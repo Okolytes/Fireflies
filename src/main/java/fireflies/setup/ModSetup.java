@@ -1,7 +1,7 @@
-package io.github.fireflies.setup;
+package fireflies.setup;
 
-import io.github.fireflies.Fireflies;
-import io.github.fireflies.entity.FireflyEntity;
+import fireflies.entity.FireflyEntity;
+import fireflies.Fireflies;
 import net.minecraft.entity.ai.attributes.GlobalEntityTypeAttributes;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;

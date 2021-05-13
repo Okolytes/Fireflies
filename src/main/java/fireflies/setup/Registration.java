@@ -1,8 +1,8 @@
-package io.github.fireflies.setup;
+package fireflies.setup;
 
-import io.github.fireflies.Fireflies;
-import io.github.fireflies.entity.FireflyEntity;
-import io.github.fireflies.item.FireflySpawnEgg;
+import fireflies.entity.FireflyEntity;
+import fireflies.Fireflies;
+import fireflies.item.FireflySpawnEgg;
 import net.minecraft.block.Block;
 import net.minecraft.entity.EntityClassification;
 import net.minecraft.entity.EntityType;

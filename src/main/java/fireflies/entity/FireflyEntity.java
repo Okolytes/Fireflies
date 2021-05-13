@@ -1,6 +1,6 @@
-package io.github.fireflies.entity;
+package fireflies.entity;
 
-import io.github.fireflies.setup.Registration;
+import fireflies.setup.Registration;
 import net.minecraft.block.BlockState;
 import net.minecraft.entity.*;
 import net.minecraft.entity.ai.RandomPositionGenerator;

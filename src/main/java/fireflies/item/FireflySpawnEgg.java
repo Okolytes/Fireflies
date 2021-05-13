@@ -1,8 +1,8 @@
-package io.github.fireflies.item;
+package fireflies.item;
 
 import java.util.Objects;
 
-import io.github.fireflies.setup.Registration;
+import fireflies.setup.Registration;
 import net.minecraft.block.BlockState;
 import net.minecraft.entity.SpawnReason;
 import net.minecraft.item.ItemGroup;

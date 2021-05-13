@@ -1,8 +1,8 @@
-package io.github.fireflies;
+package fireflies;
 
-import io.github.fireflies.setup.ClientSetup;
-import io.github.fireflies.setup.ModSetup;
-import io.github.fireflies.setup.Registration;
+import fireflies.setup.ClientSetup;
+import fireflies.setup.ModSetup;
+import fireflies.setup.Registration;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import org.apache.logging.log4j.LogManager;
@@ -10,6 +10,7 @@ import org.apache.logging.log4j.Logger;
 
 @Mod(Fireflies.MOD_ID)
 public class Fireflies {
+
     public static final String MOD_ID = "fireflies";
     public static final Logger LOGGER = LogManager.getLogger(MOD_ID);
 

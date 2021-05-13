@@ -1,7 +1,7 @@
-package io.github.fireflies.setup;
+package fireflies.setup;
 
-import io.github.fireflies.Fireflies;
-import io.github.fireflies.entity.FireflyRenderer;
+import fireflies.entity.FireflyRenderer;
+import fireflies.Fireflies;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.ColorHandlerEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;

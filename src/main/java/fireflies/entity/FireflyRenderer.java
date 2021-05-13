@@ -1,7 +1,7 @@
-package io.github.fireflies.entity;
+package fireflies.entity;
 
 import com.mojang.blaze3d.matrix.MatrixStack;
-import io.github.fireflies.Fireflies;
+import fireflies.Fireflies;
 import net.minecraft.client.renderer.entity.EntityRendererManager;
 import net.minecraft.client.renderer.entity.MobRenderer;
 import net.minecraft.util.ResourceLocation;

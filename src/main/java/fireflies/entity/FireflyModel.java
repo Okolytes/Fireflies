@@ -1,4 +1,4 @@
-package io.github.fireflies.entity;
+package fireflies.entity;
 
 import com.google.common.collect.ImmutableList;
 import net.minecraft.client.renderer.entity.model.AgeableModel;
