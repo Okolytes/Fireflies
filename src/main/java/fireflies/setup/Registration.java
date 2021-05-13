@@ -1,6 +1,6 @@
 package fireflies.setup;
 
-import fireflies.entity.FireflyEntity;
+import fireflies.entity.firefly.FireflyEntity;
 import fireflies.Fireflies;
 import fireflies.item.FireflySpawnEgg;
 import net.minecraft.block.Block;

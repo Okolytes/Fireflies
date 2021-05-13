@@ -1,6 +1,6 @@
 package fireflies.setup;
 
-import fireflies.entity.FireflyEntity;
+import fireflies.entity.firefly.FireflyEntity;
 import fireflies.Fireflies;
 import net.minecraft.entity.ai.attributes.GlobalEntityTypeAttributes;
 import net.minecraftforge.fml.common.Mod;

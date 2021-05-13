@@ -1,4 +1,4 @@
-package fireflies.entity;
+package fireflies.entity.firefly;
 
 import fireflies.setup.Registration;
 import net.minecraft.block.BlockState;
@@ -12,6 +12,7 @@ import net.minecraft.entity.passive.AnimalEntity;
 import net.minecraft.entity.passive.IFlyingAnimal;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.fluid.Fluid;
+import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.item.crafting.Ingredient;
@@ -32,10 +33,12 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 
 import javax.annotation.Nullable;
 import java.util.EnumSet;
+import java.util.function.Predicate;
 
 public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
 
     private int underWaterTicks;
+    public FireflyAbdomenAnimation animation = FireflyAbdomenAnimation.OFF;
 
     public FireflyEntity(EntityType<? extends FireflyEntity> type, World world) {
         super(type, world);
@@ -149,7 +152,7 @@ public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
 
     @Override
     protected float getStandingEyeHeight(Pose poseIn, EntitySize sizeIn) {
-        return sizeIn.height * 0.4F;
+        return sizeIn.height * 0.5F;
     }
 
     @Override
@@ -191,6 +194,13 @@ public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
     @Override
     public Vector3d getLeashStartPosition() {
         return new Vector3d(0.0D, (0.5F * this.getEyeHeight()), (this.getWidth() * 0.2F));
+    }
+
+    @OnlyIn(Dist.CLIENT)
+    @Override
+    public boolean isInRangeToRenderDist(double distance) {
+        double d0 = 64.0D * getRenderDistanceWeight();
+        return distance < d0 * d0;
     }
 
     private class WanderGoal extends Goal {

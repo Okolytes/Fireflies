@@ -1,6 +1,6 @@
 package fireflies.setup;
 
-import fireflies.entity.FireflyRenderer;
+import fireflies.entity.firefly.FireflyRenderer;
 import fireflies.Fireflies;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.ColorHandlerEvent;

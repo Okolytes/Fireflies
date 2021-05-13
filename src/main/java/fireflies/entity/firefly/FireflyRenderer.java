@@ -1,4 +1,4 @@
-package fireflies.entity;
+package fireflies.entity.firefly;
 
 import com.mojang.blaze3d.matrix.MatrixStack;
 import fireflies.Fireflies;
@@ -11,10 +11,12 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 
 @OnlyIn(Dist.CLIENT)
 public class FireflyRenderer extends MobRenderer<FireflyEntity, FireflyModel<FireflyEntity>> {
-    private static final ResourceLocation TEXTURE = new ResourceLocation(Fireflies.MOD_ID, "textures/entity/fireflyoff.png");
+    private static final ResourceLocation TEXTURE = new ResourceLocation(Fireflies.MOD_ID, "textures/entity/firefly.png");
 
     public FireflyRenderer(EntityRendererManager manager) {
         super(manager, new FireflyModel<>(), 0.3f);
+        this.addLayer(new FireflyEyesLayer<>(this));
+        this.addLayer(new FireflyAbdomenLayer<>(this));
     }
 
     @Override
