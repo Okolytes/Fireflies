@@ -15,6 +15,9 @@ import net.minecraft.fluid.Fluid;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.item.crafting.Ingredient;
+import net.minecraft.network.datasync.DataParameter;
+import net.minecraft.network.datasync.DataSerializers;
+import net.minecraft.network.datasync.EntityDataManager;
 import net.minecraft.pathfinding.FlyingPathNavigator;
 import net.minecraft.pathfinding.PathNavigator;
 import net.minecraft.pathfinding.PathNodeType;
@@ -26,6 +29,8 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.vector.Vector3d;
 import net.minecraft.world.IWorldReader;
 import net.minecraft.world.World;
+import net.minecraft.world.biome.Biome;
+import net.minecraft.world.biome.Biomes;
 import net.minecraft.world.server.ServerWorld;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
@@ -35,12 +40,11 @@ import java.util.EnumSet;
 
 @SuppressWarnings("EntityConstructor")
 public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
+    private static final DataParameter<Integer> ANIMATION = EntityDataManager.createKey(FireflyEntity.class, DataSerializers.VARINT);
+    private static final DataParameter<Float> GLOW = EntityDataManager.createKey(FireflyEntity.class, DataSerializers.FLOAT);
+    //private static final DataParameter<Boolean> GLOW_FLAG = EntityDataManager.createKey(FireflyEntity.class, DataSerializers.BOOLEAN);
 
-    public FireflyAbdomenAnimation animation = FireflyAbdomenAnimation.OFF;
-    public float glowTime;
-    public float prevGlowTime;
-    public boolean animationFlag;
-
+    private boolean glowFlag;
     private int underWaterTicks;
 
     public FireflyEntity(EntityType<? extends FireflyEntity> type, World world) {
@@ -51,12 +55,6 @@ public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
         this.setPathPriority(PathNodeType.WATER_BORDER, 16.0F);
         this.setPathPriority(PathNodeType.COCOA, -1.0F);
         this.setPathPriority(PathNodeType.FENCE, -1.0F);
-
-        this.glowTime = this.rand.nextFloat();
-    }
-
-    public FireflyEntity createChild(ServerWorld world, AgeableEntity mate) {
-        return Registration.FIREFLY.get().create(world);
     }
 
     public static AttributeModifierMap.MutableAttribute createAttributes() {
@@ -65,6 +63,13 @@ public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
                 .createMutableAttribute(Attributes.FLYING_SPEED, 0.4F)
                 .createMutableAttribute(Attributes.MOVEMENT_SPEED, 0.25F)
                 .createMutableAttribute(Attributes.FOLLOW_RANGE, 48.0D);
+    }
+
+    @Override
+    protected void registerData() {
+        super.registerData();
+        this.dataManager.register(ANIMATION, FireflyAbdomenAnimation.OFF.ordinal());
+        this.dataManager.register(GLOW, 0f);
     }
 
     @Override
@@ -107,48 +112,99 @@ public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
         return flyingpathnavigator;
     }
 
-    @Override
-    public void tick() {
-        prevGlowTime = glowTime;
-        switch (animation) {
-            case OFF:
-                glowTime = 0;
-                break;
-            case ON:
-                glowTime = 1;
-                break;
-            case CALM:
-                glowTime += animationFlag ? 0.02f : -0.02f;
-                if (glowTime <= 0) {
-                    glowTime = 0;
-                    animationFlag = true;
-                } else if (glowTime >= 1) {
-                    glowTime = 1;
-                    animationFlag = false;
-                }
-                break;
-            case STARRY_NIGHT:
-                glowTime += animationFlag ? 0.05f : -0.01f;
-                if (glowTime <= 0) {
-                    glowTime = 0;
-                    animationFlag = true;
-                } else if (glowTime >= 1) {
-                    glowTime = 1;
-                    animationFlag = false;
-                }
-                break;
-        }
-        super.tick();
+    public FireflyAbdomenAnimation getAnimation() {
+        return FireflyAbdomenAnimation.values()[this.dataManager.get(ANIMATION)];
+    }
+
+    public void setAnimation(FireflyAbdomenAnimation animation) {
+        this.dataManager.set(ANIMATION, animation.ordinal());
+    }
+
+    public float getGlow() {
+        return this.dataManager.get(GLOW);
+    }
+
+    public void setGlow(float time) {
+        this.dataManager.set(GLOW, time);
     }
 
     @Override
     public void livingTick() {
+        super.livingTick();
+
         if (this.world.isRemote) {
-            if (rand.nextFloat() > 0.9) {
+            if (this.rand.nextFloat() > 0.9) {
                 // TODO particle
             }
+        } else {
+            if (this.world.isDaytime()) {
+                this.setAnimation(FireflyAbdomenAnimation.OFF);
+                this.setGlow(0);
+                return;
+            }
+
+            Biome biome = this.world.getBiome(this.getPosition());
+            switch (biome.getCategory()) {
+                case SWAMP:
+                    this.setAnimation(FireflyAbdomenAnimation.CALM);
+                    break;
+                case FOREST:
+                    if (biome.getRegistryName() == Biomes.DARK_FOREST.getRegistryName()
+                            || biome.getRegistryName() == Biomes.DARK_FOREST_HILLS.getRegistryName()) {
+                        this.setAnimation(FireflyAbdomenAnimation.CALM_SYNCHRONIZED);
+                    } else {
+                        this.setAnimation(FireflyAbdomenAnimation.STARRY_NIGHT_SYNCHRONIZED);
+                    }
+                    break;
+                case PLAINS:
+                    this.setAnimation(FireflyAbdomenAnimation.STARRY_NIGHT);
+                    break;
+                default:
+                    this.setAnimation(FireflyAbdomenAnimation.DEFAULT);
+            }
+
+            switch (this.getAnimation()) {
+                case OFF:
+                    this.setGlow(0);
+                    break;
+                case DEFAULT:
+                    this.setGlow(glowFlag ? (this.getGlow() + 0.1f) : (this.getGlow() - 0.05f));
+                    if (this.getGlow() <= 0) {
+                        this.setGlow(0);
+                        if (Math.random() > 0.95f) {
+                            glowFlag = true;
+                        }
+                    } else if (this.getGlow() >= 1) {
+                        this.setGlow(1);
+                        glowFlag = false;
+                    }
+                    break;
+                case CALM:
+                    this.setGlow(glowFlag ? (this.getGlow() + 0.05f) : (this.getGlow() - 0.025f));
+                    if (this.getGlow() <= 0) {
+                        this.setGlow(0);
+                        if (Math.random() > 0.95f) {
+                            glowFlag = true;
+                        }
+                    } else if (this.getGlow() >= 1) {
+                        this.setGlow(1);
+                        glowFlag = false;
+                    }
+                    break;
+                case STARRY_NIGHT:
+                    this.setGlow(glowFlag ? (this.getGlow() + 0.2f) : (this.getGlow() - 0.1f));
+                    if (this.getGlow() <= 0) {
+                        this.setGlow(0);
+                        if (Math.random() > 0.95f) {
+                            glowFlag = true;
+                        }
+                    } else if (this.getGlow() >= 1) {
+                        this.setGlow(1);
+                        glowFlag = false;
+                    }
+                    break;
+            }
         }
-        super.livingTick();
     }
 
     @Override
@@ -226,6 +282,10 @@ public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
     @Override
     protected void handleFluidJump(ITag<Fluid> fluidTag) {
         this.setMotion(this.getMotion().add(0.0D, 0.01D, 0.0D));
+    }
+
+    public FireflyEntity createChild(ServerWorld world, AgeableEntity mate) {
+        return Registration.FIREFLY.get().create(world);
     }
 
     @OnlyIn(Dist.CLIENT)
