@@ -24,6 +24,11 @@ public class FireflyRenderer extends MobRenderer<FireflyEntity, FireflyModel<Fir
         return TEXTURE;
     }
 
+    @Override
+    public FireflyModel<FireflyEntity> getEntityModel() {
+        return super.getEntityModel();
+    }
+
     protected void applyRotations(FireflyEntity entityLiving, MatrixStack matrixStackIn, float ageInTicks, float rotationYaw, float partialTicks) {
         // Bob up and down
         matrixStackIn.translate(0.0D, (MathHelper.cos(ageInTicks * 0.1F) * 0.05F), 0.0D);

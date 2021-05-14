@@ -38,7 +38,13 @@ import java.util.function.Predicate;
 public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
 
     private int underWaterTicks;
+
+    @OnlyIn(Dist.CLIENT)
     public FireflyAbdomenAnimation animation = FireflyAbdomenAnimation.OFF;
+    @OnlyIn(Dist.CLIENT)
+    public float animationValue = this.rand.nextFloat(); // Start off randomly so everything isn't synced on initialization
+    @OnlyIn(Dist.CLIENT)
+    public boolean animationFlag;
 
     public FireflyEntity(EntityType<? extends FireflyEntity> type, World world) {
         super(type, world);
