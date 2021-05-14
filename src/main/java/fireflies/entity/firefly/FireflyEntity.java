@@ -12,7 +12,6 @@ import net.minecraft.entity.passive.AnimalEntity;
 import net.minecraft.entity.passive.IFlyingAnimal;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.fluid.Fluid;
-import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.item.crafting.Ingredient;
@@ -33,18 +32,16 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 
 import javax.annotation.Nullable;
 import java.util.EnumSet;
-import java.util.function.Predicate;
 
+@SuppressWarnings("EntityConstructor")
 public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
 
-    private int underWaterTicks;
-
-    @OnlyIn(Dist.CLIENT)
     public FireflyAbdomenAnimation animation = FireflyAbdomenAnimation.OFF;
-    @OnlyIn(Dist.CLIENT)
-    public float animationValue = this.rand.nextFloat(); // Start off randomly so everything isn't synced on initialization
-    @OnlyIn(Dist.CLIENT)
+    public float glowTime;
+    public float prevGlowTime;
     public boolean animationFlag;
+
+    private int underWaterTicks;
 
     public FireflyEntity(EntityType<? extends FireflyEntity> type, World world) {
         super(type, world);
@@ -54,6 +51,8 @@ public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
         this.setPathPriority(PathNodeType.WATER_BORDER, 16.0F);
         this.setPathPriority(PathNodeType.COCOA, -1.0F);
         this.setPathPriority(PathNodeType.FENCE, -1.0F);
+
+        this.glowTime = this.rand.nextFloat();
     }
 
     public FireflyEntity createChild(ServerWorld world, AgeableEntity mate) {
@@ -109,13 +108,46 @@ public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
     }
 
     @Override
+    public void tick() {
+        prevGlowTime = glowTime;
+        switch (animation) {
+            case OFF:
+                glowTime = 0;
+                break;
+            case ON:
+                glowTime = 1;
+                break;
+            case CALM:
+                glowTime += animationFlag ? 0.02f : -0.02f;
+                if (glowTime <= 0) {
+                    glowTime = 0;
+                    animationFlag = true;
+                } else if (glowTime >= 1) {
+                    glowTime = 1;
+                    animationFlag = false;
+                }
+                break;
+            case STARRY_NIGHT:
+                glowTime += animationFlag ? 0.05f : -0.01f;
+                if (glowTime <= 0) {
+                    glowTime = 0;
+                    animationFlag = true;
+                } else if (glowTime >= 1) {
+                    glowTime = 1;
+                    animationFlag = false;
+                }
+                break;
+        }
+        super.tick();
+    }
+
+    @Override
     public void livingTick() {
         if (this.world.isRemote) {
             if (rand.nextFloat() > 0.9) {
                 // TODO particle
             }
         }
-
         super.livingTick();
     }
 
