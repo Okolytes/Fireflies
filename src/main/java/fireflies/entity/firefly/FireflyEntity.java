@@ -26,6 +26,7 @@ import net.minecraft.util.DamageSource;
 import net.minecraft.util.SoundEvent;
 import net.minecraft.util.SoundEvents;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.vector.Vector3d;
 import net.minecraft.world.IWorldReader;
 import net.minecraft.world.World;
@@ -42,7 +43,6 @@ import java.util.EnumSet;
 public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
     private static final DataParameter<Integer> ANIMATION = EntityDataManager.createKey(FireflyEntity.class, DataSerializers.VARINT);
     private static final DataParameter<Float> GLOW = EntityDataManager.createKey(FireflyEntity.class, DataSerializers.FLOAT);
-    //private static final DataParameter<Boolean> GLOW_FLAG = EntityDataManager.createKey(FireflyEntity.class, DataSerializers.BOOLEAN);
 
     private boolean glowFlag;
     private int underWaterTicks;
@@ -133,8 +133,10 @@ public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
         super.livingTick();
 
         if (this.world.isRemote) {
-            if (this.rand.nextFloat() > 0.9) {
-                // TODO particle
+            if (this.rand.nextFloat() > 0.75f && this.getGlow() > 0.5f) {
+                this.world.addParticle(Registration.FIREFLY_PARTICLE.get(), this.getPosX(),
+                        this.getPosY() + 0.2f, this.getPosZ(),
+                        0.0D, 0.0D, 0.0D);
             }
         } else {
             if (this.world.isDaytime()) {
@@ -192,10 +194,10 @@ public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
                     }
                     break;
                 case STARRY_NIGHT:
-                    this.setGlow(glowFlag ? (this.getGlow() + 0.2f) : (this.getGlow() - 0.1f));
+                    this.setGlow(glowFlag ? (this.getGlow() + 0.3f) : (this.getGlow() - 0.25f));
                     if (this.getGlow() <= 0) {
                         this.setGlow(0);
-                        if (Math.random() > 0.95f) {
+                        if (Math.random() > 0.9f) {
                             glowFlag = true;
                         }
                     } else if (this.getGlow() >= 1) {
@@ -297,7 +299,7 @@ public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
     @OnlyIn(Dist.CLIENT)
     @Override
     public boolean isInRangeToRenderDist(double distance) {
-        double d0 = 64.0D * getRenderDistanceWeight();
+        double d0 = 128 * getRenderDistanceWeight();
         return distance < d0 * d0;
     }
 
