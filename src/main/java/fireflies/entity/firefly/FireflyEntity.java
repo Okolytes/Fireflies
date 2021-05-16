@@ -46,6 +46,8 @@ public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
 
     private boolean glowFlag;
     private int underWaterTicks;
+    private float fireflyPitch;
+    private float prevFireflyPitch;
 
     public FireflyEntity(EntityType<? extends FireflyEntity> type, World world) {
         super(type, world);
@@ -128,15 +130,85 @@ public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
         this.dataManager.set(GLOW, time);
     }
 
+    private Vector3d getFacing(Vector3d vector3d) {
+        Vector3d vector3d1 = vector3d.rotatePitch((float) Math.PI / 180F);
+        return vector3d1.rotateYaw(-this.prevRenderYawOffset * ((float) Math.PI / 180F));
+    }
+
+    private void updateGlow() {
+        switch (this.getAnimation()) {
+            case OFF:
+                this.setGlow(0);
+                break;
+            case DEFAULT:
+                this.setGlow(glowFlag ? (this.getGlow() + 0.1f) : (this.getGlow() - 0.05f));
+                if (this.getGlow() <= 0) {
+                    this.setGlow(0);
+                    if (this.rand.nextFloat() > 0.95f) {
+                        glowFlag = true;
+                    }
+                } else if (this.getGlow() >= 1) {
+                    this.setGlow(1);
+                    if (this.rand.nextFloat() > 0.9f) {
+                        glowFlag = false;
+                    }
+                }
+                break;
+            case CALM:
+                float calmSpeed = glowFlag ? (this.getGlow() + 0.075f) : (this.getGlow() - 0.05f);
+                if (this.getGlow() < 0.8 && this.getGlow() > 0.2) {
+                    calmSpeed = glowFlag ? (this.getGlow() + 0.02f) : (this.getGlow() - 0.01f);
+                }
+
+                this.setGlow(calmSpeed);
+                if (this.getGlow() <= 0) {
+                    this.setGlow(0);
+                    if (this.rand.nextFloat() > 0.95f) {
+                        glowFlag = true;
+                    }
+                } else if (this.getGlow() >= 1) {
+                    this.setGlow(1);
+                    if (this.rand.nextFloat() > 0.95f) {
+                        glowFlag = false;
+                    }
+                }
+                break;
+            case CALM_SYNCHRONIZED:
+                this.setGlow(FireflyAbdomenSync.calmGlowTime);
+                break;
+            case STARRY_NIGHT:
+                this.setGlow(glowFlag ? (this.getGlow() + 0.3f) : (this.getGlow() - 0.25f));
+                if (this.getGlow() <= 0) {
+                    this.setGlow(0);
+                    if (this.rand.nextFloat() > 0.925f) {
+                        glowFlag = true;
+                    }
+                } else if (this.getGlow() >= 1) {
+                    this.setGlow(1);
+                    glowFlag = false;
+                }
+                break;
+            case STARRY_NIGHT_SYNCHRONIZED:
+                this.setGlow(FireflyAbdomenSync.starryNightGlowTime);
+                break;
+        }
+    }
+
     @Override
     public void livingTick() {
         super.livingTick();
 
         if (this.world.isRemote) {
-            if (this.rand.nextFloat() > 0.75f && this.getGlow() > 0.5f) {
-                this.world.addParticle(Registration.FIREFLY_PARTICLE.get(), this.getPosX(),
-                        this.getPosY() + 0.2f, this.getPosZ(),
-                        0.0D, 0.0D, 0.0D);
+            // Particles
+            if (this.rand.nextFloat() > 0.9f && this.getGlow() > 0.25f) {
+                Vector3d vector3d = this.getFacing(new Vector3d(0.0D, -1.0D, 0.0D)).add(this.getPosX(), this.getPosY(), this.getPosZ());
+                Vector3d vector3d1 = this.getFacing(new Vector3d(this.rand.nextFloat(), -1.0D, this.rand.nextFloat() * 16));
+                Vector3d vector3d2 = vector3d1.scale(-5f + this.rand.nextFloat() * 2.0F);
+
+                float randPos = (this.rand.nextInt(1 - (-1) + 1) + (-1)) * 0.2f;
+                this.world.addParticle(Registration.FIREFLY_PARTICLE.get(),
+                        vector3d.x - randPos, vector3d.y + 1.35f - randPos, vector3d.z - randPos,
+                        vector3d2.x, vector3d2.y * -16, vector3d2.z);
             }
         } else {
             if (this.world.isDaytime()) {
@@ -165,47 +237,7 @@ public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
                     this.setAnimation(FireflyAbdomenAnimation.DEFAULT);
             }
 
-            switch (this.getAnimation()) {
-                case OFF:
-                    this.setGlow(0);
-                    break;
-                case DEFAULT:
-                    this.setGlow(glowFlag ? (this.getGlow() + 0.1f) : (this.getGlow() - 0.05f));
-                    if (this.getGlow() <= 0) {
-                        this.setGlow(0);
-                        if (Math.random() > 0.95f) {
-                            glowFlag = true;
-                        }
-                    } else if (this.getGlow() >= 1) {
-                        this.setGlow(1);
-                        glowFlag = false;
-                    }
-                    break;
-                case CALM:
-                    this.setGlow(glowFlag ? (this.getGlow() + 0.05f) : (this.getGlow() - 0.025f));
-                    if (this.getGlow() <= 0) {
-                        this.setGlow(0);
-                        if (Math.random() > 0.95f) {
-                            glowFlag = true;
-                        }
-                    } else if (this.getGlow() >= 1) {
-                        this.setGlow(1);
-                        glowFlag = false;
-                    }
-                    break;
-                case STARRY_NIGHT:
-                    this.setGlow(glowFlag ? (this.getGlow() + 0.3f) : (this.getGlow() - 0.25f));
-                    if (this.getGlow() <= 0) {
-                        this.setGlow(0);
-                        if (Math.random() > 0.9f) {
-                            glowFlag = true;
-                        }
-                    } else if (this.getGlow() >= 1) {
-                        this.setGlow(1);
-                        glowFlag = false;
-                    }
-                    break;
-            }
+            this.updateGlow();
         }
     }
 

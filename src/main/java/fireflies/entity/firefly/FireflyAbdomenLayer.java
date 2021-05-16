@@ -24,23 +24,10 @@ public class FireflyAbdomenLayer<T extends FireflyEntity, M extends EntityModel<
 
     @Override
     public void render(MatrixStack matrixStackIn, IRenderTypeBuffer bufferIn, int packedLightIn, T firefly, float limbSwing, float limbSwingAmount, float partialTicks, float ageInTicks, float netHeadYaw, float headPitch) {
-        if (Minecraft.getInstance().player == null || firefly.isInvisible())
+        if (firefly.isInvisible())
             return;
 
-        float v;
-        switch (firefly.getAnimation()) {
-            case CALM_SYNCHRONIZED:
-                // (float) MathHelper.clamp(FireflyAbdomenSync.calmGlowTime + firefly.getDistanceSq(Minecraft.getInstance().player) / 20000, 0, 1);
-                v = FireflyAbdomenSync.calmGlowTime;
-                break;
-            case STARRY_NIGHT_SYNCHRONIZED:
-                v = FireflyAbdomenSync.starryNightGlowTime;
-                break;
-            default:
-                v = firefly.getGlow();
-                break;
-        }
-
+        float v = firefly.getGlow();
         //System.out.printf("%f\n", v);
         // the alpha parameter does not seem to do anything ?
         this.getEntityModel().render(matrixStackIn, bufferIn.getBuffer(RenderType.getEyes(ABDOMEN)), 15728640,

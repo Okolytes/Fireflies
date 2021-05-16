@@ -32,7 +32,8 @@ public class Registration {
             .trackingRange(10)
             .build("firefly"));
 
-    public static final RegistryObject<BasicParticleType> FIREFLY_PARTICLE = PARTICLES.register("firefly_particle", () -> new BasicParticleType(true));
+    public static final RegistryObject<BasicParticleType> FIREFLY_PARTICLE = PARTICLES.register("firefly_particle", () -> new BasicParticleType(false));
+    public static final RegistryObject<BasicParticleType> FIREFLY_ABDOMEN_PARTICLE = PARTICLES.register("firefly_abdomen_particle", () -> new BasicParticleType(false));
 
     public static void init() {
         IEventBus iEventBus = FMLJavaModLoadingContext.get().getModEventBus();

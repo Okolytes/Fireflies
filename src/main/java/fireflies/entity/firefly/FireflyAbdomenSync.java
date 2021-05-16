@@ -1,11 +1,12 @@
 package fireflies.entity.firefly;
 
+import net.minecraft.client.Minecraft;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 
-@Mod.EventBusSubscriber(Dist.CLIENT)
+@Mod.EventBusSubscriber(Dist.DEDICATED_SERVER)
 public class FireflyAbdomenSync {
     public static float calmGlowTime;
     public static float starryNightGlowTime;
@@ -14,7 +15,10 @@ public class FireflyAbdomenSync {
     private static boolean starryNightAnimationFlag;
 
     @SubscribeEvent
-    public static void clientTickEvent(TickEvent.ClientTickEvent event) {
+    public static void clientTickEvent(TickEvent.ServerTickEvent event) {
+        if (Minecraft.getInstance().world == null)
+            return;
+
         // Calm sync
         float calmSpeed = calmAnimationFlag ? 0.02f : -0.01f;
         if (calmGlowTime < 0.8 && calmGlowTime > 0.2) {
@@ -35,7 +39,7 @@ public class FireflyAbdomenSync {
         }
 
         // Starry night sync
-        starryNightGlowTime += starryNightAnimationFlag ? 0.05f : -0.01f;
+        starryNightGlowTime += starryNightAnimationFlag ? 0.3f : -0.25f;
         if (starryNightGlowTime <= 0) {
             starryNightGlowTime = 0;
             if (Math.random() > 0.95f) {

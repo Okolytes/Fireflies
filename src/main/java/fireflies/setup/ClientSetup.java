@@ -2,6 +2,7 @@ package fireflies.setup;
 
 import fireflies.entity.firefly.FireflyRenderer;
 import fireflies.Fireflies;
+import fireflies.particle.FireflyAbdomenParticle;
 import fireflies.particle.FireflyParticle;
 import net.minecraft.client.Minecraft;
 import net.minecraftforge.api.distmarker.Dist;
@@ -24,6 +25,7 @@ public class ClientSetup {
     @SubscribeEvent(priority = EventPriority.LOWEST)
     public static void registerParticles(ParticleFactoryRegisterEvent event) {
         Minecraft.getInstance().particles.registerFactory(Registration.FIREFLY_PARTICLE.get(), FireflyParticle.Factory::new);
+        Minecraft.getInstance().particles.registerFactory(Registration.FIREFLY_ABDOMEN_PARTICLE.get(), FireflyAbdomenParticle.Factory::new);
     }
 
     @SubscribeEvent
