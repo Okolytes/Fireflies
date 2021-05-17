@@ -1,6 +1,7 @@
-package fireflies.entity.firefly;
+package fireflies.client.model;
 
 import com.google.common.collect.ImmutableList;
+import fireflies.entity.firefly.FireflyEntity;
 import net.minecraft.client.renderer.entity.model.AgeableModel;
 import net.minecraft.client.renderer.model.ModelRenderer;
 import net.minecraft.util.math.MathHelper;
@@ -70,12 +71,13 @@ public class FireflyModel<T extends FireflyEntity> extends AgeableModel<T> {
     }
 
     @Override
-    public void setRotationAngles(T entityIn, float limbSwing, float limbSwingAmount, float ageInTicks, float netHeadYaw, float headPitch) {
+    public void setRotationAngles(FireflyEntity fireflyEntity, float limbSwing, float limbSwingAmount, float ageInTicks, float netHeadYaw, float headPitch) {
         // Bob head
         this.head.rotateAngleX = 0.75f - ((float) Math.PI / 4F) + animSpeed(ageInTicks, 0.1F) * 0.1F;
 
         // Bob abdomen
         this.abdomen.rotateAngleX = 0.5F - ((float) Math.PI / 4F) + animSpeed(ageInTicks, 0.1F) * 0.05F;
+        fireflyEntity.abdomenParticlePositionOffset = this.abdomen.rotateAngleX;
 
         // Flap wings
         this.rightWing.rotateAngleZ = animSpeed(ageInTicks, 2.5F) * (float) Math.PI * 0.15F;

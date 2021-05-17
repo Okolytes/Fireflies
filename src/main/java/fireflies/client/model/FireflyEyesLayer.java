@@ -1,6 +1,8 @@
-package fireflies.entity.firefly;
+package fireflies.client.model;
 
 import fireflies.Fireflies;
+import fireflies.client.model.FireflyModel;
+import fireflies.entity.firefly.FireflyEntity;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.entity.IEntityRenderer;
 import net.minecraft.client.renderer.entity.layers.AbstractEyesLayer;

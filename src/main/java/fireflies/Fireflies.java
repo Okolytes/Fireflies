@@ -1,8 +1,8 @@
 package fireflies;
 
-import fireflies.setup.ClientSetup;
-import fireflies.setup.ModSetup;
-import fireflies.setup.Registration;
+import fireflies.setup.FirefliesClientSetup;
+import fireflies.setup.FirefliesSetup;
+import fireflies.setup.FirefliesRegistration;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import org.apache.logging.log4j.LogManager;
@@ -15,9 +15,9 @@ public class Fireflies {
     public static final Logger LOGGER = LogManager.getLogger(MOD_ID);
 
     public Fireflies() {
-        Registration.init();
+        FirefliesRegistration.init();
 
-        FMLJavaModLoadingContext.get().getModEventBus().addListener(ModSetup::init);
-        FMLJavaModLoadingContext.get().getModEventBus().addListener(ClientSetup::init);
+        FMLJavaModLoadingContext.get().getModEventBus().addListener(FirefliesSetup::init);
+        FMLJavaModLoadingContext.get().getModEventBus().addListener(FirefliesClientSetup::init);
     }
 }

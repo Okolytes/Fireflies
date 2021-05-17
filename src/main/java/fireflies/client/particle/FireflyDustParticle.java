@@ -1,4 +1,4 @@
-package fireflies.particle;
+package fireflies.client.particle;
 
 import net.minecraft.client.particle.*;
 import net.minecraft.client.world.ClientWorld;
@@ -7,11 +7,11 @@ import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
 @OnlyIn(Dist.CLIENT)
-public class FireflyParticle extends SpriteTexturedParticle {
+public class FireflyDustParticle extends SpriteTexturedParticle {
     private final float rotSpeed;
 
-    private FireflyParticle(ClientWorld worldIn, double xCoordIn, double yCoordIn, double zCoordIn, double xSpeedIn, double ySpeedIn, double zSpeedIn) {
-        super(worldIn, xCoordIn, yCoordIn, zCoordIn, xSpeedIn, ySpeedIn, zSpeedIn);
+    private FireflyDustParticle(ClientWorld clientWorld, double x, double y, double z, double xSpeed, double ySpeed, double zSpeed) {
+        super(clientWorld, x, y, z, xSpeed, ySpeed, zSpeed);
         this.particleScale = 0.1F * (this.rand.nextFloat() * 0.25F + 0.1F);
         this.maxAge = (int) (20f / (this.rand.nextFloat() * 0.8f + 0.2f)) + 16;
         this.rotSpeed = (this.rand.nextFloat() - 0.1F) * 0.05F;
@@ -62,8 +62,8 @@ public class FireflyParticle extends SpriteTexturedParticle {
         }
 
         @Override
-        public Particle makeParticle(BasicParticleType typeIn, ClientWorld worldIn, double x, double y, double z, double xSpeed, double ySpeed, double zSpeed) {
-            FireflyParticle particle = new FireflyParticle(worldIn, x, y, z, xSpeed, ySpeed, zSpeed);
+        public Particle makeParticle(BasicParticleType basicParticleType, ClientWorld clientWorld, double x, double y, double z, double xSpeed, double ySpeed, double zSpeed) {
+            FireflyDustParticle particle = new FireflyDustParticle(clientWorld, x, y, z, xSpeed, ySpeed, zSpeed);
             particle.selectSpriteRandomly(this.spriteSet);
             return particle;
         }

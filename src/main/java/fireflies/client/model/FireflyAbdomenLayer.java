@@ -1,8 +1,8 @@
-package fireflies.entity.firefly;
+package fireflies.client.model;
 
 import com.mojang.blaze3d.matrix.MatrixStack;
 import fireflies.Fireflies;
-import net.minecraft.client.Minecraft;
+import fireflies.entity.firefly.FireflyEntity;
 import net.minecraft.client.renderer.IRenderTypeBuffer;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.entity.IEntityRenderer;
@@ -27,10 +27,9 @@ public class FireflyAbdomenLayer<T extends FireflyEntity, M extends EntityModel<
         if (firefly.isInvisible())
             return;
 
-        float v = firefly.getGlow();
-        //System.out.printf("%f\n", v);
+        float glowAlpha = firefly.getGlowAlpha();
         // the alpha parameter does not seem to do anything ?
         this.getEntityModel().render(matrixStackIn, bufferIn.getBuffer(RenderType.getEyes(ABDOMEN)), 15728640,
-                OverlayTexture.NO_OVERLAY, v, v, v, 1f);
+                OverlayTexture.NO_OVERLAY, glowAlpha, glowAlpha, glowAlpha, 1f);
     }
 }

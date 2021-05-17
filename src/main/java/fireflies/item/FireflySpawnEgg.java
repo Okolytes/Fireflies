@@ -2,7 +2,7 @@ package fireflies.item;
 
 import java.util.Objects;
 
-import fireflies.setup.Registration;
+import fireflies.setup.FirefliesRegistration;
 import net.minecraft.block.BlockState;
 import net.minecraft.entity.SpawnReason;
 import net.minecraft.item.ItemGroup;
@@ -40,7 +40,7 @@ public class FireflySpawnEgg extends Item {
             TileEntity tileentity = world.getTileEntity(blockpos);
             if (tileentity instanceof MobSpawnerTileEntity) {
                 AbstractSpawner abstractspawner = ((MobSpawnerTileEntity) tileentity).getSpawnerBaseLogic();
-                abstractspawner.setEntityType(Registration.FIREFLY.get());
+                abstractspawner.setEntityType(FirefliesRegistration.FIREFLY.get());
                 tileentity.markDirty();
                 world.notifyBlockUpdate(blockpos, blockstate, blockstate, Constants.BlockFlags.BLOCK_UPDATE + Constants.BlockFlags.NOTIFY_NEIGHBORS);
                 itemstack.shrink(1);
@@ -54,7 +54,7 @@ public class FireflySpawnEgg extends Item {
                 blockpos1 = blockpos.offset(direction);
             }
 
-            if (Registration.FIREFLY.get().spawn((ServerWorld) world, itemstack, context.getPlayer(), blockpos1, SpawnReason.SPAWN_EGG, true, !Objects.equals(blockpos, blockpos1) && direction == Direction.UP) != null) {
+            if (FirefliesRegistration.FIREFLY.get().spawn((ServerWorld) world, itemstack, context.getPlayer(), blockpos1, SpawnReason.SPAWN_EGG, true, !Objects.equals(blockpos, blockpos1) && direction == Direction.UP) != null) {
                 itemstack.shrink(1);
             }
 

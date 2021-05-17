@@ -3,23 +3,20 @@ package fireflies.setup;
 import fireflies.entity.firefly.FireflyEntity;
 import fireflies.Fireflies;
 import fireflies.item.FireflySpawnEgg;
+import fireflies.client.particle.FireflyAbdomenParticleData;
 import net.minecraft.block.Block;
-import net.minecraft.client.Minecraft;
 import net.minecraft.entity.EntityClassification;
 import net.minecraft.entity.EntityType;
 import net.minecraft.item.Item;
 import net.minecraft.particles.BasicParticleType;
 import net.minecraft.particles.ParticleType;
-import net.minecraftforge.client.event.ParticleFactoryRegisterEvent;
-import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.eventbus.api.IEventBus;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.RegistryObject;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import net.minecraftforge.registries.DeferredRegister;
 import net.minecraftforge.registries.ForgeRegistries;
 
-public class Registration {
+public class FirefliesRegistration {
     private static final DeferredRegister<Block> BLOCKS = DeferredRegister.create(ForgeRegistries.BLOCKS, Fireflies.MOD_ID);
     private static final DeferredRegister<Item> ITEMS = DeferredRegister.create(ForgeRegistries.ITEMS, Fireflies.MOD_ID);
     private static final DeferredRegister<EntityType<?>> ENTITIES = DeferredRegister.create(ForgeRegistries.ENTITIES, Fireflies.MOD_ID);
@@ -32,8 +29,8 @@ public class Registration {
             .trackingRange(10)
             .build("firefly"));
 
-    public static final RegistryObject<BasicParticleType> FIREFLY_PARTICLE = PARTICLES.register("firefly_particle", () -> new BasicParticleType(false));
-    public static final RegistryObject<BasicParticleType> FIREFLY_ABDOMEN_PARTICLE = PARTICLES.register("firefly_abdomen_particle", () -> new BasicParticleType(false));
+    public static final RegistryObject<BasicParticleType> FIREFLY_DUST_PARTICLE = PARTICLES.register("firefly_dust_particle", () -> new BasicParticleType(false));
+    public static final RegistryObject<ParticleType<FireflyAbdomenParticleData>> FIREFLY_ABDOMEN_PARTICLE = PARTICLES.register("firefly_abdomen_particle", FireflyAbdomenParticleData::get);
 
     public static void init() {
         IEventBus iEventBus = FMLJavaModLoadingContext.get().getModEventBus();
