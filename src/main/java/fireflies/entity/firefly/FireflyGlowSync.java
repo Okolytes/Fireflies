@@ -27,8 +27,8 @@ public class FireflyGlowSync {
             }
 
             boolean isMiddling = calmSyncedFireflies.glowAlpha < 0.75f && calmSyncedFireflies.glowAlpha > 0.25f;
-            float increaseAmount = isMiddling ? 0.02f : 0.05f;
-            float decreaseAmount = isMiddling ? 0.01f : 0.025f;
+            float increaseAmount = isMiddling ? 0.02f : 0.075f;
+            float decreaseAmount = isMiddling ? 0.01f : 0.05f;
             calmSyncedFireflies.glowAnimation(fireflyEntity, increaseAmount, decreaseAmount, calmSyncedTryStartIncreasing, calmSyncedTryStartDecreasing);
         }
 

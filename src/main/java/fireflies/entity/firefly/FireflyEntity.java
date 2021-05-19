@@ -217,8 +217,8 @@ public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
                 break;
             case CALM:
                 boolean isMiddling = this.getGlowAlpha() < 0.75f && this.getGlowAlpha() > 0.25f;
-                float increaseAmount = isMiddling ? 0.02f : 0.05f;
-                float decreaseAmount = isMiddling ? 0.01f : 0.025f;
+                float increaseAmount = isMiddling ? 0.02f : 0.075f;
+                float decreaseAmount = isMiddling ? 0.01f : 0.05f;
                 this.glowAnimation(increaseAmount, decreaseAmount, 0.075f, 0.05f);
                 break;
             case STARRY_NIGHT:
