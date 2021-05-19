@@ -33,16 +33,19 @@ import net.minecraft.world.IWorldReader;
 import net.minecraft.world.World;
 import net.minecraft.world.biome.Biome;
 import net.minecraft.world.biome.Biomes;
+import net.minecraft.world.chunk.Chunk;
 import net.minecraft.world.server.ServerWorld;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
+import net.minecraftforge.registries.ForgeRegistries;
 
 import javax.annotation.Nullable;
 import java.util.EnumSet;
+import java.util.Objects;
 
 @SuppressWarnings({"deprecation"})
 public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
-    private static final DataParameter<Integer> ANIMATION = EntityDataManager.createKey(FireflyEntity.class, DataSerializers.VARINT);
+    private static final DataParameter<Integer> ABDOMEN_ANIMATION = EntityDataManager.createKey(FireflyEntity.class, DataSerializers.VARINT);
     private static final DataParameter<Float> GLOW_ALPHA = EntityDataManager.createKey(FireflyEntity.class, DataSerializers.FLOAT);
     private static final DataParameter<Boolean> GLOW_INCREASING = EntityDataManager.createKey(FireflyEntity.class, DataSerializers.BOOLEAN);
 
@@ -59,38 +62,58 @@ public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
         this.setPathPriority(PathNodeType.FENCE, -1.0F);
     }
 
+    public FireflyEntity createChild(ServerWorld world, AgeableEntity mate) {
+        return FirefliesRegistration.FIREFLY.get().create(world);
+    }
+
     public static AttributeModifierMap.MutableAttribute createAttributes() {
         return LivingEntity.registerAttributes()
                 .createMutableAttribute(Attributes.MAX_HEALTH, 6.0D)
-                .createMutableAttribute(Attributes.FLYING_SPEED, 0.4F)
-                .createMutableAttribute(Attributes.MOVEMENT_SPEED, 0.25F)
+                .createMutableAttribute(Attributes.FLYING_SPEED, 0.25F)
+                .createMutableAttribute(Attributes.MOVEMENT_SPEED, 0.15F)
                 .createMutableAttribute(Attributes.FOLLOW_RANGE, 48.0D);
     }
 
     @Override
     protected void registerData() {
         super.registerData();
-        this.dataManager.register(ANIMATION, FireflyAbdomenAnimation.OFF.ordinal());
+        this.dataManager.register(ABDOMEN_ANIMATION, FireflyAbdomenAnimation.OFF.ordinal());
         this.dataManager.register(GLOW_ALPHA, 0f);
         this.dataManager.register(GLOW_INCREASING, false);
     }
 
     @Override
     protected void registerGoals() {
-        this.goalSelector.addGoal(2, new BreedGoal(this, 1.0D));
-        this.goalSelector.addGoal(3, new TemptGoal(this, 1.25D, Ingredient.fromItems(Items.HONEY_BOTTLE), false));
-        this.goalSelector.addGoal(5, new FollowParentGoal(this, 1.25D));
-        this.goalSelector.addGoal(8, new FireflyEntity.WanderGoal());
-        this.goalSelector.addGoal(9, new SwimGoal(this));
+        this.goalSelector.addGoal(1, new BreedGoal(this, 1.0D));
+        this.goalSelector.addGoal(2, new TemptGoal(this, 1.25D, Ingredient.fromItems(Items.HONEY_BOTTLE), false));
+        this.goalSelector.addGoal(3, new FollowParentGoal(this, 1.25D));
+        this.goalSelector.addGoal(4, new WaterAvoidingRandomFlyingGoal(this, 0.25f));
+        this.goalSelector.addGoal(5, new WanderGoal());
+        this.goalSelector.addGoal(6, new SwimGoal(this));
+    }
+
+    @Override
+    protected PathNavigator createNavigator(World worldIn) {
+        FlyingPathNavigator flyingpathnavigator = new FlyingPathNavigator(this, worldIn) {
+            @Override
+            public boolean canEntityStandOnPos(BlockPos pos) {
+                return !this.world.getBlockState(pos.down()).isAir();
+            }
+        };
+        flyingpathnavigator.setCanOpenDoors(false);
+        flyingpathnavigator.setCanSwim(false);
+        flyingpathnavigator.setCanEnterDoors(true);
+        return flyingpathnavigator;
     }
 
     @Override
     public float getBlockPathWeight(BlockPos pos, IWorldReader worldIn) {
-        return worldIn.getBlockState(pos).isAir() ? 10.0F : 0.0F;
+        return worldIn.getBlockState(pos).isAir() ? 16.0F : 0.0F;
     }
 
     @Override
     protected void updateAITasks() {
+        super.updateAITasks();
         if (this.isInWaterOrBubbleColumn()) {
             this.underWaterTicks++;
         } else {
@@ -102,26 +125,13 @@ public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
         }
     }
 
-    @Override
-    protected PathNavigator createNavigator(World worldIn) {
-        FlyingPathNavigator flyingpathnavigator = new FlyingPathNavigator(this, worldIn) {
-            public boolean canEntityStandOnPos(BlockPos pos) {
-                return !this.world.getBlockState(pos.down()).isAir();
-            }
-        };
-        flyingpathnavigator.setCanOpenDoors(false);
-        flyingpathnavigator.setCanSwim(false);
-        flyingpathnavigator.setCanEnterDoors(true);
-        return flyingpathnavigator;
-    }
-
     public FireflyAbdomenAnimation getAnimation() {
-        return FireflyAbdomenAnimation.values()[this.dataManager.get(ANIMATION)];
+        return FireflyAbdomenAnimation.values()[this.dataManager.get(ABDOMEN_ANIMATION)];
     }
 
-    public void setAnimation(FireflyAbdomenAnimation animation) {
-        if (!world.isRemote) {
-            switch (animation) {
+    public void setAbdomenAnimation(FireflyAbdomenAnimation newAnimation) {
+        if (!world.isRemote && newAnimation != this.getAnimation()) { // Probably don't wanna update it every tick..
+            switch (newAnimation) {
                 case CALM_SYNCHRONIZED:
                     FireflyGlowSync.starryNightSyncedFireflies.syncedFireflies.remove(this);
                     if (!FireflyGlowSync.calmSyncedFireflies.syncedFireflies.contains(this)) {
@@ -134,32 +144,28 @@ public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
                         FireflyGlowSync.starryNightSyncedFireflies.syncedFireflies.add(this);
                     }
                     break;
-                default:
-                    FireflyGlowSync.calmSyncedFireflies.syncedFireflies.remove(this);
-                    FireflyGlowSync.starryNightSyncedFireflies.syncedFireflies.remove(this);
-                    break;
             }
         }
-        this.dataManager.set(ANIMATION, animation.ordinal());
+        this.dataManager.set(ABDOMEN_ANIMATION, newAnimation.ordinal());
     }
 
     public float getGlowAlpha() {
         return this.dataManager.get(GLOW_ALPHA);
     }
 
-    public void setGlowAlpha(float alpha) {
-        this.dataManager.set(GLOW_ALPHA, alpha);
+    public void setGlowAlpha(float newAlpha) {
+        this.dataManager.set(GLOW_ALPHA, newAlpha);
     }
 
     public boolean getGlowIncreasing() {
         return this.dataManager.get(GLOW_INCREASING);
     }
 
-    public void setGlowIncreasing(boolean b) {
-        this.dataManager.set(GLOW_INCREASING, b);
+    public void setGlowIncreasing(boolean newBool) {
+        this.dataManager.set(GLOW_INCREASING, newBool);
     }
 
-    public Vector3d rotateVector(Vector3d vector3d) {
+    private Vector3d rotateVector(Vector3d vector3d) {
         Vector3d vector3d1 = vector3d.rotatePitch((float) Math.PI / 180F);
         return vector3d1.rotateYaw(-this.prevRenderYawOffset * ((float) Math.PI / 180F));
     }
@@ -168,6 +174,20 @@ public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
         if (!this.world.isRemote) {
             ((ServerWorld) (this.world)).spawnParticle(new FireflyAbdomenParticleData(this.getEntityId()), this.getPosX(), this.getPosY(), this.getPosZ(),
                     1, 0, 0, 0, 0);
+        }
+    }
+
+    private void spawnFallingDustParticles() {
+        // no i don't understand this i stole it from the squid code
+        if (this.getGlowAlpha() > 0.15f && this.rand.nextFloat() > 0.9f) {
+            Vector3d vector3d = this.rotateVector(new Vector3d(0.0D, -1.0D, 0.0D)).add(this.getPosX(), this.getPosY(), this.getPosZ());
+            Vector3d vector3d1 = this.rotateVector(new Vector3d(this.rand.nextFloat(), -1.0D, this.rand.nextFloat() * Math.abs(this.getMotion().getZ()) * 10 + 2));
+            Vector3d vector3d2 = vector3d1.scale(-5f + this.rand.nextFloat() * 2.0F);
+
+            float randPos = this.isChild() ? 0f : MathHelper.nextFloat(this.rand, -0.2f, 0.2f);
+            this.world.addParticle(FirefliesRegistration.FIREFLY_DUST_PARTICLE.get(),
+                    vector3d.x + randPos, vector3d.y + 1.35f + randPos, vector3d.z + randPos,
+                    vector3d2.x, vector3d2.y * -16, vector3d2.z);
         }
     }
 
@@ -187,7 +207,7 @@ public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
         }
     }
 
-    private void tickGlowAnimation() {
+    private void updateGlowAnimation() {
         switch (this.getAnimation()) {
             case OFF:
                 this.setGlowAlpha(0);
@@ -197,68 +217,60 @@ public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
                 break;
             case CALM:
                 boolean isMiddling = this.getGlowAlpha() < 0.75f && this.getGlowAlpha() > 0.25f;
-                float increaseAmount = isMiddling ? 0.02f : 0.075f;
-                float decreaseAmount = isMiddling ? 0.01f : 0.05f;
-                this.glowAnimation(increaseAmount, decreaseAmount, 0.05f, 0.05f);
+                float increaseAmount = isMiddling ? 0.02f : 0.05f;
+                float decreaseAmount = isMiddling ? 0.01f : 0.025f;
+                this.glowAnimation(increaseAmount, decreaseAmount, 0.075f, 0.05f);
                 break;
             case STARRY_NIGHT:
                 this.glowAnimation(0.3f, 0.25f, 0.075f, 0.95f);
                 break;
             case FRANTIC:
                 this.glowAnimation(0.35f, 0.4f, 0.2f, 0.35f);
+                break;
+        }
+    }
+
+    private void updateAbdomenAnimation() {
+        Biome biome = this.world.getBiome(this.getPosition());
+        switch (biome.getCategory()) {
+            case SWAMP:
+                this.setAbdomenAnimation(FireflyAbdomenAnimation.CALM);
+                break;
+            case FOREST:
+                if (Objects.equals(biome.getRegistryName(), Biomes.DARK_FOREST.getLocation())
+                        || Objects.equals(biome.getRegistryName(), Biomes.DARK_FOREST_HILLS.getLocation())) {
+                    this.setAbdomenAnimation(FireflyAbdomenAnimation.CALM_SYNCHRONIZED);
+                } else {
+                    this.setAbdomenAnimation(FireflyAbdomenAnimation.STARRY_NIGHT_SYNCHRONIZED);
+                }
+                break;
+            case PLAINS:
+                this.setAbdomenAnimation(FireflyAbdomenAnimation.STARRY_NIGHT);
+                break;
+            case NETHER:
+            case THEEND:
+                this.setAbdomenAnimation(FireflyAbdomenAnimation.FRANTIC);
+                break;
+            default:
+                this.setAbdomenAnimation(FireflyAbdomenAnimation.DEFAULT);
+                break;
         }
     }
 
     @Override
     public void livingTick() {
         super.livingTick();
-
         if (this.world.isRemote) {
-            // Falling dust particles (no i don't understand this i stole it from the squid code)
-            if (this.getGlowAlpha() > 0.25f && this.rand.nextFloat() > 0.9f) {
-                Vector3d vector3d = this.rotateVector(new Vector3d(0.0D, -1.0D, 0.0D)).add(this.getPosX(), this.getPosY(), this.getPosZ());
-                Vector3d vector3d1 = this.rotateVector(new Vector3d(this.rand.nextFloat(), -1.0D, this.rand.nextFloat() * Math.abs(this.getMotion().getZ()) * 10 + 2));
-                Vector3d vector3d2 = vector3d1.scale(-5f + this.rand.nextFloat() * 2.0F);
-
-                float randPos = MathHelper.nextFloat(this.rand, -0.2f, 0.2f);
-                if (this.isChild()) randPos /= 4f;
-                this.world.addParticle(FirefliesRegistration.FIREFLY_DUST_PARTICLE.get(),
-                        vector3d.x + randPos, vector3d.y + 1.35f + randPos, vector3d.z + randPos,
-                        vector3d2.x, vector3d2.y * -16, vector3d2.z);
-            }
+            this.spawnFallingDustParticles();
         } else {
             if (this.world.isDaytime()) {
-                this.setAnimation(FireflyAbdomenAnimation.OFF);
+                this.setAbdomenAnimation(FireflyAbdomenAnimation.OFF);
                 this.setGlowAlpha(0);
                 return;
             }
 
-            Biome biome = this.world.getBiome(this.getPosition());
-            switch (biome.getCategory()) {
-                case SWAMP:
-                    this.setAnimation(FireflyAbdomenAnimation.CALM);
-                    break;
-                case FOREST:
-                    if (biome.getRegistryName() == Biomes.DARK_FOREST.getRegistryName()
-                            || biome.getRegistryName() == Biomes.DARK_FOREST_HILLS.getRegistryName()) {
-                        this.setAnimation(FireflyAbdomenAnimation.CALM_SYNCHRONIZED);
-                    } else {
-                        this.setAnimation(FireflyAbdomenAnimation.STARRY_NIGHT_SYNCHRONIZED);
-                    }
-                    break;
-                case PLAINS:
-                    this.setAnimation(FireflyAbdomenAnimation.STARRY_NIGHT);
-                    break;
-                case NETHER:
-                case THEEND:
-                    this.setAnimation(FireflyAbdomenAnimation.FRANTIC);
-                    break;
-                default:
-                    this.setAnimation(FireflyAbdomenAnimation.DEFAULT);
-                    break;
-            }
-
-            this.tickGlowAnimation();
+            this.updateAbdomenAnimation();
+            this.updateGlowAnimation();
         }
     }
 
@@ -348,10 +360,6 @@ public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
         this.setMotion(this.getMotion().add(0.0D, 0.01D, 0.0D));
     }
 
-    public FireflyEntity createChild(ServerWorld world, AgeableEntity mate) {
-        return FirefliesRegistration.FIREFLY.get().create(world);
-    }
-
     @OnlyIn(Dist.CLIENT)
     @Override
     public Vector3d getLeashStartPosition() {
@@ -365,33 +373,71 @@ public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
         return distance < d0 * d0;
     }
 
-    private class WanderGoal extends Goal {
-        private WanderGoal() {
+    public class WanderGoal extends Goal {
+        private final FireflyEntity fireflyEntity;
+
+        @Nullable
+        private BlockPos favouritePos;
+        private int favouritePosTimer;
+        private int newFavouritePosTimer;
+
+        public WanderGoal() {
             this.setMutexFlags(EnumSet.of(Goal.Flag.MOVE));
+            fireflyEntity = FireflyEntity.this;
+        }
+
+        @Override
+        public void tick() {
+            super.tick();
+            if (this.favouritePos == null) {
+                this.favouritePos = fireflyEntity.getPosition();
+            }
+
+            if (this.fireflyEntity.getPosition() == this.favouritePos) {
+                this.favouritePosTimer++;
+            } else {
+                this.newFavouritePosTimer++;
+            }
+
+            if (this.newFavouritePosTimer > this.favouritePosTimer) {
+                this.favouritePos = this.fireflyEntity.getPosition();
+                this.favouritePosTimer = 0;
+                this.newFavouritePosTimer = 0;
+            }
+
+            if (this.fireflyEntity.isOnGround()) {
+                this.fireflyEntity.setVelocity(0, 0.05f, 0);
+            }
         }
 
         public boolean shouldExecute() {
-            return FireflyEntity.this.navigator.noPath() && FireflyEntity.this.rand.nextInt(10) == 0;
+            return this.fireflyEntity.navigator.noPath() && this.fireflyEntity.rand.nextFloat() > 0.9f;
         }
 
         @Override
         public boolean shouldContinueExecuting() {
-            return FireflyEntity.this.navigator.hasPath();
+            return this.fireflyEntity.navigator.hasPath();
         }
 
         @Override
         public void startExecuting() {
-            Vector3d vector3d = this.getRandomLocation();
-            if (vector3d != null) {
-                FireflyEntity.this.navigator.setPath(FireflyEntity.this.navigator.getPathToPos(new BlockPos(vector3d), 1), 1.0D);
+            if (this.fireflyEntity.rand.nextFloat() > 0.5f) {
+                Vector3d vector3d = this.getRandomLocation();
+                if (vector3d != null) {
+                    this.fireflyEntity.navigator.setPath(this.fireflyEntity.navigator.getPathToPos(new BlockPos(vector3d), 1), 0.75f);
+                }
+            } else {
+                if (this.favouritePos != null) {
+                    this.fireflyEntity.navigator.setPath(this.fireflyEntity.navigator.getPathToPos(this.favouritePos, 1), 0.75f);
+                }
             }
         }
 
         @Nullable
         private Vector3d getRandomLocation() {
-            Vector3d vector3d = FireflyEntity.this.getLook(0.0F);
-            Vector3d vector3d2 = RandomPositionGenerator.findAirTarget(FireflyEntity.this, 8, 7, vector3d, ((float) Math.PI / 2F), 2, 1);
-            return vector3d2 != null ? vector3d2 : RandomPositionGenerator.findGroundTarget(FireflyEntity.this, 8, 4, -2, vector3d, ((float) Math.PI / 2F));
+            Vector3d vector3d = this.fireflyEntity.getLook(0.0F);
+            Vector3d vector3d2 = RandomPositionGenerator.findAirTarget(this.fireflyEntity, 4, 3, vector3d, ((float) Math.PI / 2F), 2, 1);
+            return vector3d2 != null ? vector3d2 : RandomPositionGenerator.findGroundTarget(this.fireflyEntity, 4, 2, -2, vector3d, ((float) Math.PI / 2F));
         }
     }
 }
