@@ -43,9 +43,6 @@ public class FireflyDustParticle extends SpriteTexturedParticle {
             this.motionY -= 0.025f;
             this.motionY = Math.max(this.motionY, -0.025f);
 
-            // Fade out of existence
-            this.particleAlpha = -(float)age / maxAge;
-
             // Kil once it touches the ground
             if (this.onGround) {
                 this.setExpired();

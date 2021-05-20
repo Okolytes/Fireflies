@@ -15,7 +15,7 @@ public class FireflyAbdomenParticle extends SpriteTexturedParticle {
     protected FireflyAbdomenParticle(ClientWorld clientWorld, double x, double y, double z, FireflyEntity fireflyEntity) {
         super(clientWorld, x, y, z);
         this.fireflyEntity = fireflyEntity;
-        this.particleScale = fireflyEntity.isChild() ? 0.25f : 0.5f;
+        this.particleScale = fireflyEntity.isChild() ? 0.25f : 0.55f;
         this.particleAlpha = 0f;
     }
 
@@ -25,9 +25,9 @@ public class FireflyAbdomenParticle extends SpriteTexturedParticle {
 
         this.particleAlpha = fireflyEntity.getGlowAlpha();
         this.setPosition(
-                fireflyEntity.getPosX() - -fireflyEntity.getWidth() * 0.25f * (double) MathHelper.sin(fireflyEntity.renderYawOffset * ((float) Math.PI / 180F)),
+                fireflyEntity.getPosX() - -fireflyEntity.getWidth() * 0.35f * (double) MathHelper.sin(fireflyEntity.renderYawOffset * ((float) Math.PI / 180F)),
                 fireflyEntity.getPosYEye() + fireflyEntity.abdomenParticlePositionOffset + 0.3f,
-                fireflyEntity.getPosZ() + -fireflyEntity.getWidth() * 0.25f * (double) MathHelper.cos(fireflyEntity.renderYawOffset * ((float) Math.PI / 180F)));
+                fireflyEntity.getPosZ() + -fireflyEntity.getWidth() * 0.35f * (double) MathHelper.cos(fireflyEntity.renderYawOffset * ((float) Math.PI / 180F)));
 
         // Destroy when the alpha reaches 0
         this.age = 0;

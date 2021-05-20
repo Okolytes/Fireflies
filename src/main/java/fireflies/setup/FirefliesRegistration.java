@@ -54,7 +54,7 @@ public class FirefliesRegistration {
     @SubscribeEvent
     public static void registerSpawnEggs(final RegistryEvent.Register<Item> event) {
         event.getRegistry().registerAll(
-                new SpawnEggItem(FIREFLY_BUILDER, 0xEDE73A, 0x4D0F0F, new Item.Properties().group(ItemGroup.MISC))
+                new SpawnEggItem(FIREFLY_BUILDER, 0x330400, 0x3E3E5B, new Item.Properties().group(ItemGroup.MISC))
                         .setRegistryName(Fireflies.MOD_ID, "firefly_spawn_egg")
         );
     }

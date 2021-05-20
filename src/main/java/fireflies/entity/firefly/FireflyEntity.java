@@ -241,6 +241,10 @@ public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
                     this.setAbdomenAnimation(FireflyAbdomenAnimation.STARRY_NIGHT_SYNCHRONIZED);
                 }
                 break;
+            case JUNGLE:
+            case TAIGA:
+                this.setAbdomenAnimation(FireflyAbdomenAnimation.STARRY_NIGHT_SYNCHRONIZED);
+                break;
             case PLAINS:
                 this.setAbdomenAnimation(FireflyAbdomenAnimation.STARRY_NIGHT);
                 break;
