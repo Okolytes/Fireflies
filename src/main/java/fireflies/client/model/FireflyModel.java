@@ -80,7 +80,7 @@ public class FireflyModel<T extends FireflyEntity> extends AgeableModel<T> {
         fireflyEntity.abdomenParticlePositionOffset = this.abdomen.rotateAngleX;
 
         // Flap wings
-        this.rightWing.rotateAngleZ = animSpeed(ageInTicks, 2.5F) * (float) Math.PI * 0.15F;
+        this.rightWing.rotateAngleZ = animSpeed(ageInTicks, 3F) * (float) Math.PI * 0.15F;
         this.leftWing.rotateAngleZ = -this.rightWing.rotateAngleZ;
 
         // Swag legs

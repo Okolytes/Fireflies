@@ -5,10 +5,17 @@ import fireflies.Fireflies;
 import fireflies.client.particle.FireflyAbdomenParticle;
 import fireflies.client.particle.FireflyDustParticle;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.audio.ISound;
+import net.minecraft.client.audio.Sound;
 import net.minecraft.client.particle.ParticleManager;
+import net.minecraft.item.Item;
+import net.minecraft.item.ItemGroup;
+import net.minecraft.item.SpawnEggItem;
+import net.minecraft.util.SoundEvent;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.ColorHandlerEvent;
 import net.minecraftforge.client.event.ParticleFactoryRegisterEvent;
+import net.minecraftforge.event.RegistryEvent;
 import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.client.registry.RenderingRegistry;
@@ -28,10 +35,4 @@ public class FirefliesClientSetup {
         particleManager.registerFactory(FirefliesRegistration.FIREFLY_DUST_PARTICLE.get(), FireflyDustParticle.Factory::new);
         particleManager.registerFactory(FirefliesRegistration.FIREFLY_ABDOMEN_PARTICLE.get(), FireflyAbdomenParticle.Factory::new);
     }
-
-    @SubscribeEvent
-    public static void onItemColor(ColorHandlerEvent.Item event) {
-        event.getItemColors().register((stack, i) -> 0xff0000, FirefliesRegistration.FIREFLY_SPAWN_EGG.get());
-    }
-
 }

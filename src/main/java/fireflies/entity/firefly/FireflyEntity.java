@@ -1,5 +1,6 @@
 package fireflies.entity.firefly;
 
+import fireflies.client.DoClientStuff;
 import fireflies.client.particle.FireflyAbdomenParticleData;
 import fireflies.setup.FirefliesRegistration;
 import net.minecraft.block.BlockState;
@@ -33,27 +34,23 @@ import net.minecraft.world.IWorldReader;
 import net.minecraft.world.World;
 import net.minecraft.world.biome.Biome;
 import net.minecraft.world.biome.Biomes;
-import net.minecraft.world.chunk.Chunk;
 import net.minecraft.world.server.ServerWorld;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
-import net.minecraftforge.registries.ForgeRegistries;
 
 import javax.annotation.Nullable;
 import java.util.EnumSet;
 import java.util.Objects;
 
-@SuppressWarnings({"deprecation"})
 public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
     private static final DataParameter<Integer> ABDOMEN_ANIMATION = EntityDataManager.createKey(FireflyEntity.class, DataSerializers.VARINT);
     private static final DataParameter<Float> GLOW_ALPHA = EntityDataManager.createKey(FireflyEntity.class, DataSerializers.FLOAT);
     private static final DataParameter<Boolean> GLOW_INCREASING = EntityDataManager.createKey(FireflyEntity.class, DataSerializers.BOOLEAN);
-
     public float abdomenParticlePositionOffset;
     private int underWaterTicks;
 
-    public FireflyEntity(EntityType<? extends FireflyEntity> type, World world) {
-        super(type, world);
+    public FireflyEntity(EntityType<? extends FireflyEntity> entityType, World world) {
+        super(entityType, world);
         this.moveController = new FlyingMovementController(this, 20, true);
         this.setPathPriority(PathNodeType.DANGER_FIRE, -1.0F);
         this.setPathPriority(PathNodeType.WATER, -1.0F);
@@ -62,8 +59,8 @@ public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
         this.setPathPriority(PathNodeType.FENCE, -1.0F);
     }
 
-    public FireflyEntity createChild(ServerWorld world, AgeableEntity mate) {
-        return FirefliesRegistration.FIREFLY.get().create(world);
+    public FireflyEntity createChild(ServerWorld serverWorld, AgeableEntity ageableEntity) {
+        return FirefliesRegistration.FIREFLY.get().create(serverWorld);
     }
 
     public static AttributeModifierMap.MutableAttribute createAttributes() {
@@ -93,8 +90,8 @@ public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
     }
 
     @Override
-    protected PathNavigator createNavigator(World worldIn) {
-        FlyingPathNavigator flyingpathnavigator = new FlyingPathNavigator(this, worldIn) {
+    protected PathNavigator createNavigator(World world) {
+        FlyingPathNavigator flyingpathnavigator = new FlyingPathNavigator(this, world) {
             @Override
             public boolean canEntityStandOnPos(BlockPos pos) {
                 return !this.world.getBlockState(pos.down()).isAir();
@@ -107,8 +104,8 @@ public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
     }
 
     @Override
-    public float getBlockPathWeight(BlockPos pos, IWorldReader worldIn) {
-        return worldIn.getBlockState(pos).isAir() ? 16.0F : 0.0F;
+    public float getBlockPathWeight(BlockPos blockPos, IWorldReader world) {
+        return world.getBlockState(blockPos).isAir() ? 16.0F : 0.0F;
     }
 
     @Override
@@ -130,7 +127,7 @@ public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
     }
 
     public void setAbdomenAnimation(FireflyAbdomenAnimation newAnimation) {
-        if (!world.isRemote && newAnimation != this.getAnimation()) { // Probably don't wanna update it every tick..
+        if (!this.world.isRemote && newAnimation != this.getAnimation()) { // Probably don't wanna access list(s) every tick
             switch (newAnimation) {
                 case CALM_SYNCHRONIZED:
                     FireflyGlowSync.starryNightSyncedFireflies.syncedFireflies.remove(this);
@@ -231,14 +228,14 @@ public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
     }
 
     private void updateAbdomenAnimation() {
-        Biome biome = this.world.getBiome(this.getPosition());
-        switch (biome.getCategory()) {
+        Biome currentBiome = this.world.getBiome(this.getPosition());
+        switch (currentBiome.getCategory()) {
             case SWAMP:
                 this.setAbdomenAnimation(FireflyAbdomenAnimation.CALM);
                 break;
             case FOREST:
-                if (Objects.equals(biome.getRegistryName(), Biomes.DARK_FOREST.getLocation())
-                        || Objects.equals(biome.getRegistryName(), Biomes.DARK_FOREST_HILLS.getLocation())) {
+                if (Objects.equals(currentBiome.getRegistryName(), Biomes.DARK_FOREST.getLocation())
+                        || Objects.equals(currentBiome.getRegistryName(), Biomes.DARK_FOREST_HILLS.getLocation())) {
                     this.setAbdomenAnimation(FireflyAbdomenAnimation.CALM_SYNCHRONIZED);
                 } else {
                     this.setAbdomenAnimation(FireflyAbdomenAnimation.STARRY_NIGHT_SYNCHRONIZED);
@@ -275,8 +272,8 @@ public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
     }
 
     @Override
-    public boolean isBreedingItem(ItemStack stack) {
-        return stack.getItem() == Items.HONEY_BOTTLE;
+    public boolean isBreedingItem(ItemStack itemStack) {
+        return itemStack.getItem() == Items.HONEY_BOTTLE;
     }
 
     @Override
@@ -292,9 +289,18 @@ public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
     }
 
     @Override
+    public void onAddedToWorld() {
+        super.onAddedToWorld();
+        if (this.world.isRemote) {
+            DoClientStuff doClientStuff = new DoClientStuff();
+            doClientStuff.playFireflyLoopSound(this);
+        }
+    }
+
+    @Override
     public void onRemovedFromWorld() {
         super.onRemovedFromWorld();
-        if (!world.isRemote) {
+        if (!this.world.isRemote) {
             FireflyGlowSync.calmSyncedFireflies.syncedFireflies.remove(this);
             FireflyGlowSync.starryNightSyncedFireflies.syncedFireflies.remove(this);
         }
@@ -306,7 +312,7 @@ public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
     }
 
     @Override
-    protected SoundEvent getHurtSound(DamageSource damageSourceIn) {
+    protected SoundEvent getHurtSound(DamageSource damageSource) {
         return SoundEvents.ENTITY_BEE_HURT;
     }
 
@@ -321,8 +327,8 @@ public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
     }
 
     @Override
-    protected float getStandingEyeHeight(Pose poseIn, EntitySize sizeIn) {
-        return sizeIn.height * 0.5F;
+    protected float getStandingEyeHeight(Pose pose, EntitySize entitySize) {
+        return entitySize.height * 0.5F;
     }
 
     @Override
@@ -331,7 +337,7 @@ public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
     }
 
     @Override
-    protected void updateFallState(double y, boolean onGroundIn, BlockState state, BlockPos pos) {
+    protected void updateFallState(double y, boolean onGround, BlockState blockState, BlockPos blockPos) {
         // Do nothing
     }
 
@@ -341,7 +347,7 @@ public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
     }
 
     @Override
-    protected void playStepSound(BlockPos pos, BlockState blockIn) {
+    protected void playStepSound(BlockPos blockPos, BlockState blockState) {
         // None
     }
 
@@ -403,10 +409,6 @@ public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
                 this.favouritePos = this.fireflyEntity.getPosition();
                 this.favouritePosTimer = 0;
                 this.newFavouritePosTimer = 0;
-            }
-
-            if (this.fireflyEntity.isOnGround()) {
-                this.fireflyEntity.setVelocity(0, 0.05f, 0);
             }
         }
 

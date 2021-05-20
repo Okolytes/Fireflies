@@ -1,0 +1,7 @@
+{
+  "firefly_flight_loop": {
+    "category": "entity",
+    "subtitle": "fireflies.subtitle.firefly_flight_loop",
+    "sounds": [ "fireflies:firefly_flight_loop" ]
+  }
+}

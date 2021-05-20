@@ -32,16 +32,16 @@ public class FireflyGlowSync {
             calmSyncedFireflies.glowAnimation(fireflyEntity, increaseAmount, decreaseAmount, calmSyncedTryStartIncreasing, calmSyncedTryStartDecreasing);
         }
 
-      for (FireflyEntity fireflyEntity : starryNightSyncedFireflies.syncedFireflies) {
-          if (!shouldUpdateGlowAnimation(fireflyEntity)) {
-              continue;
-          }
+        for (FireflyEntity fireflyEntity : starryNightSyncedFireflies.syncedFireflies) {
+            if (!shouldUpdateGlowAnimation(fireflyEntity)) {
+                continue;
+            }
 
-          starryNightSyncedFireflies.glowAnimation(fireflyEntity, 0.3f, 0.25f, starryNightSyncedTryStartIncreasing, starryNightSyncedTryStartDecreasing);
-      }
+            starryNightSyncedFireflies.glowAnimation(fireflyEntity, 0.3f, 0.25f, starryNightSyncedTryStartIncreasing, starryNightSyncedTryStartDecreasing);
+        }
     }
 
-    private static boolean shouldUpdateGlowAnimation(FireflyEntity fireflyEntity){
+    private static boolean shouldUpdateGlowAnimation(FireflyEntity fireflyEntity) {
         return fireflyEntity.isAlive() && !fireflyEntity.world.isRemote;
     }
 }
