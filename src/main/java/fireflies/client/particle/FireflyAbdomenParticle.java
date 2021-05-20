@@ -15,7 +15,7 @@ public class FireflyAbdomenParticle extends SpriteTexturedParticle {
     protected FireflyAbdomenParticle(ClientWorld clientWorld, double x, double y, double z, FireflyEntity fireflyEntity) {
         super(clientWorld, x, y, z);
         this.fireflyEntity = fireflyEntity;
-        this.particleScale = fireflyEntity.isChild() ? 0.25f : 0.55f;
+        this.particleScale = fireflyEntity.isChild() ? 0.2f : 0.45f;
         this.particleAlpha = 0f;
     }
 

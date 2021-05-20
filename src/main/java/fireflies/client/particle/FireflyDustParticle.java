@@ -37,7 +37,7 @@ public class FireflyDustParticle extends SpriteTexturedParticle {
             this.setExpired();
         } else {
             this.prevParticleAngle = this.particleAngle;
-            this.particleAngle += (float) Math.PI * this.rotSpeed * 2.0F;
+            this.particleAngle += (float) Math.PI * this.rotSpeed * 1.25f;
 
             this.move(this.motionX, this.motionY, this.motionZ);
             this.motionY -= 0.025f;

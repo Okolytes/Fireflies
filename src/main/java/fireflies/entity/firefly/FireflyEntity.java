@@ -175,8 +175,8 @@ public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
     }
 
     private void spawnFallingDustParticles() {
-        // no i don't understand this i stole it from the squid code
-        if (this.getGlowAlpha() > 0.15f && this.rand.nextFloat() > 0.9f) {
+        if (this.ticksExisted % 8 == 0 && this.getGlowAlpha() > 0.25f) {
+            // no i don't understand this i stole it from the squid code
             Vector3d vector3d = this.rotateVector(new Vector3d(0.0D, -1.0D, 0.0D)).add(this.getPosX(), this.getPosY(), this.getPosZ());
             Vector3d vector3d1 = this.rotateVector(new Vector3d(this.rand.nextFloat(), -1.0D, this.rand.nextFloat() * Math.abs(this.getMotion().getZ()) * 10 + 2));
             Vector3d vector3d2 = vector3d1.scale(-5f + this.rand.nextFloat() * 2.0F);
