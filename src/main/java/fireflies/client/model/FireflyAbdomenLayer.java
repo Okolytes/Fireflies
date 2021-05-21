@@ -28,7 +28,6 @@ public class FireflyAbdomenLayer<T extends FireflyEntity, M extends EntityModel<
             return;
 
         float glowAlpha = firefly.getGlowAlpha();
-        // the alpha parameter does not seem to do anything ?
         this.getEntityModel().render(matrixStackIn, bufferIn.getBuffer(RenderType.getEyes(ABDOMEN)), 15728640,
                 OverlayTexture.NO_OVERLAY, glowAlpha, glowAlpha, glowAlpha, 1f);
     }

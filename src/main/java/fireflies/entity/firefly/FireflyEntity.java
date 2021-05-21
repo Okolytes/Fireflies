@@ -347,10 +347,9 @@ public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
 
     @Override
     public boolean attackEntityFrom(DamageSource source, float amount) {
-        if (this.world.isRemote) {
-            for (int i = 0; i < MathHelper.clamp(amount, 3, 10); i++) {
-                this.world.addParticle(FirefliesRegistration.FIREFLY_DUST_PARTICLE.get(), this.getPosX(), this.getPosY(), this.getPosZ(), 0, 0, 0);
-            }
+        if (!this.world.isRemote && this.world.isNightTime()) {
+            ((ServerWorld) (this.world)).spawnParticle(FirefliesRegistration.FIREFLY_DUST_PARTICLE.get(), this.getPosX(), this.getPosY(), this.getPosZ(),
+                    (int) MathHelper.clamp(amount, 3, 10), 0, 0, 0, 1);
         }
         return super.attackEntityFrom(source, amount);
     }
