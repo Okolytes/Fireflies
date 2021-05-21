@@ -1,7 +1,7 @@
 package fireflies.client;
 
 import fireflies.entity.firefly.FireflyEntity;
-import fireflies.entity.firefly.FireflyFlightLoopSound;
+import fireflies.client.sound.FireflyFlightLoopSound;
 import net.minecraft.client.Minecraft;
 
 // Java classloading forces us to put calls to the Minecraft class in here I guess...

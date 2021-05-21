@@ -1,5 +1,6 @@
-package fireflies.entity.firefly;
+package fireflies.client.sound;
 
+import fireflies.entity.firefly.FireflyEntity;
 import fireflies.setup.FirefliesRegistration;
 import net.minecraft.client.audio.TickableSound;
 import net.minecraft.entity.Entity;

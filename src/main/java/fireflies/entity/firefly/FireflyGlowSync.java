@@ -22,22 +22,18 @@ public class FireflyGlowSync {
         boolean starryNightSyncedTryStartDecreasing = Math.random() <= 0.9f;
 
         for (FireflyEntity fireflyEntity : calmSyncedFireflies.syncedFireflies) {
-            if (!shouldUpdateGlowAnimation(fireflyEntity)) {
-                continue;
+            if (shouldUpdateGlowAnimation(fireflyEntity)) {
+                boolean isMiddling = calmSyncedFireflies.glowAlpha < 0.75f && calmSyncedFireflies.glowAlpha > 0.25f;
+                float increaseAmount = isMiddling ? 0.02f : 0.075f;
+                float decreaseAmount = isMiddling ? 0.01f : 0.05f;
+                calmSyncedFireflies.glowAnimation(fireflyEntity, increaseAmount, decreaseAmount, calmSyncedTryStartIncreasing, calmSyncedTryStartDecreasing);
             }
-
-            boolean isMiddling = calmSyncedFireflies.glowAlpha < 0.75f && calmSyncedFireflies.glowAlpha > 0.25f;
-            float increaseAmount = isMiddling ? 0.02f : 0.075f;
-            float decreaseAmount = isMiddling ? 0.01f : 0.05f;
-            calmSyncedFireflies.glowAnimation(fireflyEntity, increaseAmount, decreaseAmount, calmSyncedTryStartIncreasing, calmSyncedTryStartDecreasing);
         }
 
         for (FireflyEntity fireflyEntity : starryNightSyncedFireflies.syncedFireflies) {
-            if (!shouldUpdateGlowAnimation(fireflyEntity)) {
-                continue;
+            if (shouldUpdateGlowAnimation(fireflyEntity)) {
+                starryNightSyncedFireflies.glowAnimation(fireflyEntity, 0.3f, 0.25f, starryNightSyncedTryStartIncreasing, starryNightSyncedTryStartDecreasing);
             }
-
-            starryNightSyncedFireflies.glowAnimation(fireflyEntity, 0.3f, 0.25f, starryNightSyncedTryStartIncreasing, starryNightSyncedTryStartDecreasing);
         }
     }
 
