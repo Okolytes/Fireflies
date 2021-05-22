@@ -43,7 +43,7 @@ public class FireflyFlightLoopSound extends TickableSound {
             this.z = this.fireflyEntity.getPosZ();
             double v = Math.sqrt(Entity.horizontalMag(fireflyEntity.getMotion()));
             this.pitch = (float) MathHelper.clampedLerp(this.getMinPitch(), this.getMaxPitch(), v);
-            this.volume = (float) MathHelper.clampedLerp(0.03f, 0.1f, v);
+            this.volume = (float) MathHelper.clampedLerp(0.04f, 0.1f, v);
         } else {
             this.finishPlaying();
         }

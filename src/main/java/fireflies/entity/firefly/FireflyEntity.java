@@ -2,18 +2,14 @@ package fireflies.entity.firefly;
 
 import fireflies.client.DoClientStuff;
 import fireflies.setup.FirefliesRegistration;
-import net.minecraft.block.BedBlock;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
-import net.minecraft.block.FurnaceBlock;
 import net.minecraft.entity.*;
 import net.minecraft.entity.ai.RandomPositionGenerator;
 import net.minecraft.entity.ai.attributes.AttributeModifierMap;
 import net.minecraft.entity.ai.attributes.Attributes;
 import net.minecraft.entity.ai.controller.FlyingMovementController;
-import net.minecraft.entity.ai.controller.MovementController;
 import net.minecraft.entity.ai.goal.*;
-import net.minecraft.entity.monster.GhastEntity;
 import net.minecraft.entity.passive.AnimalEntity;
 import net.minecraft.entity.passive.IFlyingAnimal;
 import net.minecraft.entity.player.PlayerEntity;
@@ -24,14 +20,10 @@ import net.minecraft.item.crafting.Ingredient;
 import net.minecraft.network.datasync.DataParameter;
 import net.minecraft.network.datasync.DataSerializers;
 import net.minecraft.network.datasync.EntityDataManager;
-import net.minecraft.particles.ParticleTypes;
 import net.minecraft.pathfinding.FlyingPathNavigator;
 import net.minecraft.pathfinding.PathNavigator;
 import net.minecraft.pathfinding.PathNodeType;
-import net.minecraft.state.properties.BedPart;
-import net.minecraft.tags.BlockTags;
 import net.minecraft.tags.ITag;
-import net.minecraft.tileentity.ChestTileEntity;
 import net.minecraft.util.DamageSource;
 import net.minecraft.util.SoundEvent;
 import net.minecraft.util.SoundEvents;
@@ -49,12 +41,12 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 import javax.annotation.Nullable;
 import java.util.EnumSet;
 import java.util.Objects;
-import java.util.Random;
 
 public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
-    private static final DataParameter<Integer> ABDOMEN_ANIMATION = EntityDataManager.createKey(FireflyEntity.class, DataSerializers.VARINT);
-    private static final DataParameter<Float> GLOW_ALPHA = EntityDataManager.createKey(FireflyEntity.class, DataSerializers.FLOAT);
-    private static final DataParameter<Boolean> GLOW_INCREASING = EntityDataManager.createKey(FireflyEntity.class, DataSerializers.BOOLEAN);
+    private static final DataParameter<Boolean> IS_NIGHTTIME = EntityDataManager.createKey(FireflyEntity.class, DataSerializers.BOOLEAN);
+    public FireflyAbdomenAnimation abdomenAnimation;
+    public float glowAlpha;
+    public boolean glowIncreasing;
     public float abdomenParticlePositionOffset;
     private int underWaterTicks;
     private int lastAccelerationTicks;
@@ -84,9 +76,7 @@ public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
     @Override
     protected void registerData() {
         super.registerData();
-        this.dataManager.register(ABDOMEN_ANIMATION, FireflyAbdomenAnimation.OFF.ordinal());
-        this.dataManager.register(GLOW_ALPHA, 0f);
-        this.dataManager.register(GLOW_INCREASING, false);
+        this.dataManager.register(IS_NIGHTTIME, false);
     }
 
     @Override
@@ -119,12 +109,8 @@ public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
         return world.getBlockState(blockPos).isAir() ? 16.0F : 0.0F;
     }
 
-    public FireflyAbdomenAnimation getAnimation() {
-        return FireflyAbdomenAnimation.values()[this.dataManager.get(ABDOMEN_ANIMATION)];
-    }
-
     public void setAbdomenAnimation(FireflyAbdomenAnimation newAnimation) {
-        if (!this.world.isRemote && newAnimation != this.getAnimation()) { // Probably don't wanna access list(s) every tick
+        if (this.world.isRemote && newAnimation != this.abdomenAnimation) { // Probably don't wanna access list(s) every tick
             switch (newAnimation) {
                 case CALM_SYNCHRONIZED:
                     FireflyGlowSync.starryNightSyncedFireflies.syncedFireflies.remove(this);
@@ -140,37 +126,12 @@ public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
                     break;
             }
         }
-        this.dataManager.set(ABDOMEN_ANIMATION, newAnimation.ordinal());
-    }
-
-    public float getGlowAlpha() {
-        return this.dataManager.get(GLOW_ALPHA);
-    }
-
-    public void setGlowAlpha(float newAlpha) {
-        this.dataManager.set(GLOW_ALPHA, newAlpha);
-    }
-
-    public boolean getGlowIncreasing() {
-        return this.dataManager.get(GLOW_INCREASING);
-    }
-
-    public void setGlowIncreasing(boolean newBool) {
-        this.dataManager.set(GLOW_INCREASING, newBool);
-    }
-
-    public double[] abdomenParticlePos() {
-        return new double[]{
-                this.getPosX() - -this.getWidth() * 0.35f * MathHelper.sin(this.renderYawOffset * ((float) Math.PI / 180F)),
-                this.getPosYEye() + this.abdomenParticlePositionOffset + 0.3f,
-                this.getPosZ() + -this.getWidth() * 0.35f * MathHelper.cos(this.renderYawOffset * ((float) Math.PI / 180F))
-        };
+        this.abdomenAnimation = newAnimation;
     }
 
     public void spawnAbdomenParticle() {
-        if (!this.world.isRemote) {
-            ((ServerWorld) (this.world)).spawnParticle(new FireflyAbdomenParticleData(this.getEntityId()), this.getPosX(), this.getPosY(), this.getPosZ(),
-                    0, 0, 0, 0, 0);
+        if (this.world.isRemote) {
+            this.world.addParticle(new FireflyAbdomenParticleData(this.getEntityId()), this.getPosX(), this.getPosY(), this.getPosZ(), 0, 0, 0);
         }
     }
 
@@ -180,7 +141,7 @@ public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
     }
 
     private void spawnFallingDustParticles() {
-        if (this.ticksExisted % 8 == 0 && this.getGlowAlpha() > 0.25f) {
+        if (this.ticksExisted % 8 == 0 && this.glowAlpha > 0.25f) {
             // no i don't understand this i stole it from the squid code
             Vector3d vector3d = this.rotateVector(new Vector3d(0.0D, -1.0D, 0.0D)).add(this.getPosX(), this.getPosY(), this.getPosZ());
             Vector3d vector3d1 = this.rotateVector(new Vector3d(this.rand.nextFloat(), -1.0D, this.rand.nextFloat() * Math.abs(this.getMotion().getZ()) * 10 + 2));
@@ -194,31 +155,31 @@ public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
     }
 
     private void glowAnimation(float increase, float decrease, float startIncreasingChance, float startDecreasingChance) {
-        this.setGlowAlpha(this.getGlowIncreasing() ? (this.getGlowAlpha() + increase) : (this.getGlowAlpha() - decrease));
-        if (this.getGlowAlpha() <= 0) {
-            this.setGlowAlpha(0); // If it goes under or over 0 or 1 it'll wrap back around to being on/off, we don't want that
+        this.glowAlpha += this.glowIncreasing ? increase : -decrease;
+        if (this.glowAlpha <= 0) {
+            this.glowAlpha = 0; // If it goes under or over 0 or 1 it'll wrap back around to being on/off, we don't want that
             if (this.rand.nextFloat() <= startIncreasingChance) {
-                this.setGlowIncreasing(true);
+                this.glowIncreasing = true;
                 this.spawnAbdomenParticle();
             }
-        } else if (this.getGlowAlpha() >= 1) {
-            this.setGlowAlpha(1);
+        } else if (this.glowAlpha >= 1) {
+            this.glowAlpha = 1;
             if (this.rand.nextFloat() <= startDecreasingChance) {
-                this.setGlowIncreasing(false);
+                this.glowIncreasing = false;
             }
         }
     }
 
     private void updateGlowAnimation() {
-        switch (this.getAnimation()) {
+        switch (this.abdomenAnimation) {
             case OFF:
-                this.setGlowAlpha(0);
+                this.glowAlpha = 0;
                 break;
             case DEFAULT:
                 this.glowAnimation(0.1f, 0.05f, 0.05f, 0.075f);
                 break;
             case CALM:
-                boolean isMiddling = this.getGlowAlpha() < 0.75f && this.getGlowAlpha() > 0.25f;
+                boolean isMiddling = this.glowAlpha < 0.75f && this.glowAlpha > 0.25f;
                 float increaseAmount = isMiddling ? 0.02f : 0.075f;
                 float decreaseAmount = isMiddling ? 0.01f : 0.05f;
                 this.glowAnimation(increaseAmount, decreaseAmount, 0.075f, 0.05f);
@@ -263,20 +224,25 @@ public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
         }
     }
 
+    private boolean isNightTime() {
+        return this.dataManager.get(FireflyEntity.IS_NIGHTTIME);
+    }
+
     @Override
     public void livingTick() {
         super.livingTick();
-        if (this.world.isRemote) {
-            this.spawnFallingDustParticles();
-        } else {
-            if (this.world.isDaytime()) {
-                this.setAbdomenAnimation(FireflyAbdomenAnimation.OFF);
-                this.setGlowAlpha(0);
-                return;
-            }
 
-            this.updateAbdomenAnimation();
-            this.updateGlowAnimation();
+        if (this.world.isRemote) {
+            if (this.isNightTime()) {
+                this.updateAbdomenAnimation();
+                this.updateGlowAnimation();
+                this.spawnFallingDustParticles();
+            } else {
+                this.setAbdomenAnimation(FireflyAbdomenAnimation.OFF);
+                this.glowAlpha = 0;
+            }
+        } else if (this.ticksExisted % 60 == 0) {
+            this.dataManager.set(FireflyEntity.IS_NIGHTTIME, this.world.isNightTime());
         }
     }
 
@@ -309,7 +275,7 @@ public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
     @Override
     public void onRemovedFromWorld() {
         super.onRemovedFromWorld();
-        if (!this.world.isRemote) {
+        if (this.world.isRemote) {
             FireflyGlowSync.calmSyncedFireflies.syncedFireflies.remove(this);
             FireflyGlowSync.starryNightSyncedFireflies.syncedFireflies.remove(this);
         }
@@ -426,7 +392,7 @@ public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
         } else if (this.ticksExisted % 20 == 0) {
             if (!this.world.isAirBlock(this.getPosition().down())) {
                 this.setMotion(0, 0.005f, 0);
-            } else if (this.world.isAirBlock(this.getPosition().down(3))){
+            } else if (this.world.isAirBlock(this.getPosition().down(3))) {
                 this.setMotion(0, -0.01f, 0);
             }
         }

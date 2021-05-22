@@ -11,7 +11,7 @@ public class FireflyGlowSync {
     public static final FireflySyncedAnimation starryNightSyncedFireflies = new FireflySyncedAnimation();
 
     @SubscribeEvent
-    public static void serverTickEvent(TickEvent.ServerTickEvent event) {
+    public static void clientTickEvent(TickEvent.ClientTickEvent event) {
         if (event.phase == TickEvent.Phase.END) // Runs on both START and END
             return;
 
@@ -38,6 +38,6 @@ public class FireflyGlowSync {
     }
 
     private static boolean shouldUpdateGlowAnimation(FireflyEntity fireflyEntity) {
-        return fireflyEntity.isAlive() && !fireflyEntity.world.isRemote;
+        return fireflyEntity.isAlive() && fireflyEntity.world.isRemote;
     }
 }

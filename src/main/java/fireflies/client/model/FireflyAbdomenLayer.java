@@ -27,8 +27,8 @@ public class FireflyAbdomenLayer<T extends FireflyEntity, M extends EntityModel<
         if (firefly.isInvisible())
             return;
 
-        float glowAlpha = firefly.getGlowAlpha();
+        float glowAlpha = firefly.glowAlpha;
         this.getEntityModel().render(matrixStackIn, bufferIn.getBuffer(RenderType.getEyes(ABDOMEN)), 15728640,
-                OverlayTexture.NO_OVERLAY, glowAlpha, glowAlpha, glowAlpha, 1f);
+                OverlayTexture.NO_OVERLAY, glowAlpha, glowAlpha, glowAlpha, glowAlpha);
     }
 }

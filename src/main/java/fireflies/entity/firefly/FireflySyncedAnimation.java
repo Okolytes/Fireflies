@@ -21,11 +21,11 @@ public class FireflySyncedAnimation {
                 this.glowIncreasing = false;
             }
         }
-        fireflyEntity.setGlowAlpha(this.glowAlpha);
-        fireflyEntity.setGlowIncreasing(this.glowIncreasing);
+        fireflyEntity.glowAlpha = this.glowAlpha;
+        fireflyEntity.glowIncreasing = this.glowIncreasing;
     }
 
     public float modifyAmount(FireflyEntity fireflyEntity, float increaseAmount, float decreaseAmount) {
-        return fireflyEntity.getGlowIncreasing() ? increaseAmount / this.syncedFireflies.size() : -decreaseAmount / this.syncedFireflies.size();
+        return fireflyEntity.glowIncreasing ? increaseAmount / this.syncedFireflies.size() : -decreaseAmount / this.syncedFireflies.size();
     }
 }
