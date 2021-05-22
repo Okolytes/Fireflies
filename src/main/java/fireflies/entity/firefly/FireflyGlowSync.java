@@ -15,24 +15,28 @@ public class FireflyGlowSync {
         if (event.phase == TickEvent.Phase.END) // Runs on both START and END
             return;
 
-        // outside the loops so each firefly does not impact the odds
-        boolean calmSyncedTryStartIncreasing = Math.random() <= 0.075f;
-        boolean calmSyncedTryStartDecreasing = Math.random() <= 0.05f;
-        boolean starryNightSyncedTryStartIncreasing = Math.random() <= 0.075f;
-        boolean starryNightSyncedTryStartDecreasing = Math.random() <= 0.9f;
+        if (!calmSyncedFireflies.syncedFireflies.isEmpty()) {
+            // outside the loop(s) so each firefly does not impact the odds
+            boolean calmSyncedTryStartIncreasing = Math.random() <= 0.075f;
+            boolean calmSyncedTryStartDecreasing = Math.random() <= 0.05f;
 
-        for (FireflyEntity fireflyEntity : calmSyncedFireflies.syncedFireflies) {
-            if (shouldUpdateGlowAnimation(fireflyEntity)) {
-                boolean isMiddling = calmSyncedFireflies.glowAlpha < 0.75f && calmSyncedFireflies.glowAlpha > 0.25f;
-                float increaseAmount = isMiddling ? 0.02f : 0.075f;
-                float decreaseAmount = isMiddling ? 0.01f : 0.05f;
-                calmSyncedFireflies.glowAnimation(fireflyEntity, increaseAmount, decreaseAmount, calmSyncedTryStartIncreasing, calmSyncedTryStartDecreasing);
+            for (FireflyEntity fireflyEntity : calmSyncedFireflies.syncedFireflies) {
+                if (shouldUpdateGlowAnimation(fireflyEntity)) {
+                    boolean isMiddling = calmSyncedFireflies.glowAlpha < 0.75f && calmSyncedFireflies.glowAlpha > 0.25f;
+                    float increaseAmount = isMiddling ? 0.02f : 0.075f;
+                    float decreaseAmount = isMiddling ? 0.01f : 0.05f;
+                    calmSyncedFireflies.glowAnimation(fireflyEntity, increaseAmount, decreaseAmount, calmSyncedTryStartIncreasing, calmSyncedTryStartDecreasing);
+                }
             }
         }
 
-        for (FireflyEntity fireflyEntity : starryNightSyncedFireflies.syncedFireflies) {
-            if (shouldUpdateGlowAnimation(fireflyEntity)) {
-                starryNightSyncedFireflies.glowAnimation(fireflyEntity, 0.3f, 0.25f, starryNightSyncedTryStartIncreasing, starryNightSyncedTryStartDecreasing);
+        if (!starryNightSyncedFireflies.syncedFireflies.isEmpty()) {
+            boolean starryNightSyncedTryStartIncreasing = Math.random() <= 0.075f;
+            boolean starryNightSyncedTryStartDecreasing = Math.random() <= 0.9f;
+            for (FireflyEntity fireflyEntity : starryNightSyncedFireflies.syncedFireflies) {
+                if (shouldUpdateGlowAnimation(fireflyEntity)) {
+                    starryNightSyncedFireflies.glowAnimation(fireflyEntity, 0.3f, 0.25f, starryNightSyncedTryStartIncreasing, starryNightSyncedTryStartDecreasing);
+                }
             }
         }
     }

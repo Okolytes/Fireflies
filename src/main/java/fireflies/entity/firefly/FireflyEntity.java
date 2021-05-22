@@ -110,7 +110,7 @@ public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
     }
 
     public void setAbdomenAnimation(FireflyAbdomenAnimation newAnimation) {
-        if (this.world.isRemote && newAnimation != this.abdomenAnimation) { // Probably don't wanna access list(s) every tick
+        if (this.world.isRemote && newAnimation != this.abdomenAnimation) { // Probably don't wanna try do list(s) stuff every tick
             switch (newAnimation) {
                 case CALM_SYNCHRONIZED:
                     FireflyGlowSync.starryNightSyncedFireflies.syncedFireflies.remove(this);
@@ -130,8 +130,8 @@ public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
     }
 
     public void spawnAbdomenParticle() {
-        if (this.world.isRemote) {
-            this.world.addParticle(new FireflyAbdomenParticleData(this.getEntityId()), this.getPosX(), this.getPosY(), this.getPosZ(), 0, 0, 0);
+        if (this.world.isRemote && !this.isInvisible()) {
+            this.world.addOptionalParticle(new FireflyAbdomenParticleData(this.getEntityId()), true, this.getPosX(), this.getPosY(), this.getPosZ(), 0, 0, 0);
         }
     }
 
