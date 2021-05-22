@@ -17,17 +17,11 @@ import net.minecraft.fluid.Fluid;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.item.crafting.Ingredient;
-import net.minecraft.network.datasync.DataParameter;
-import net.minecraft.network.datasync.DataSerializers;
-import net.minecraft.network.datasync.EntityDataManager;
 import net.minecraft.pathfinding.FlyingPathNavigator;
 import net.minecraft.pathfinding.PathNavigator;
 import net.minecraft.pathfinding.PathNodeType;
 import net.minecraft.tags.ITag;
-import net.minecraft.util.DamageSource;
-import net.minecraft.util.RegistryKey;
-import net.minecraft.util.SoundEvent;
-import net.minecraft.util.SoundEvents;
+import net.minecraft.util.*;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.vector.Vector3d;
@@ -51,7 +45,6 @@ public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
     public float abdomenParticlePositionOffset;
     private int underWaterTicks;
     private int lastAccelerationTicks;
-    private static final DataParameter<Boolean> IS_NIGHTTIME = EntityDataManager.createKey(FireflyEntity.class, DataSerializers.BOOLEAN);
 
     public FireflyEntity(EntityType<? extends FireflyEntity> entityType, World world) {
         super(entityType, world);
@@ -73,12 +66,6 @@ public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
                 .createMutableAttribute(Attributes.FLYING_SPEED, 0.25F)
                 .createMutableAttribute(Attributes.MOVEMENT_SPEED, 0.15F)
                 .createMutableAttribute(Attributes.FOLLOW_RANGE, 48.0D);
-    }
-
-    @Override
-    protected void registerData() {
-        super.registerData();
-        this.dataManager.register(IS_NIGHTTIME, false);
     }
 
     @Override
@@ -132,6 +119,11 @@ public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
     }
 
     private void updateAbdomenAnimation() {
+        if (this.getPosition().getY() < 0 || this.getPosition().getY() >= 256) {
+            this.setAbdomenAnimation(FireflyAbdomenAnimation.FRANTIC);
+            return;
+        }
+
         Biome currentBiome = this.world.getBiome(this.getPosition());
         switch (currentBiome.getCategory()) {
             case SWAMP:
@@ -157,11 +149,7 @@ public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
                 this.setAbdomenAnimation(FireflyAbdomenAnimation.FRANTIC);
                 break;
             default:
-                if (this.getPosition().getY() >= 0 && this.getPosition().getY() < 256) {
-                    this.setAbdomenAnimation(FireflyAbdomenAnimation.DEFAULT);
-                } else {
-                    this.setAbdomenAnimation(FireflyAbdomenAnimation.FRANTIC);
-                }
+                this.setAbdomenAnimation(FireflyAbdomenAnimation.DEFAULT);
                 break;
         }
     }
@@ -239,8 +227,13 @@ public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
         }
     }
 
-    private boolean isNightTime() {
-        return this.dataManager.get(FireflyEntity.IS_NIGHTTIME);
+    // Taken from World#calculateInitialSkylight()
+    private boolean isDayTime() {
+        double d0 = 1.0D - (double)(this.world.getRainStrength(1.0F) * 5.0F) / 16.0D;
+        double d1 = 1.0D - (double)(this.world.getThunderStrength(1.0F) * 5.0F) / 16.0D;
+        double d2 = 0.5D + 2.0D * MathHelper.clamp(MathHelper.cos(this.world.func_242415_f(1.0F) * ((float)Math.PI * 2F)), -0.25D, 0.25D);
+        int skylightSubtracted = (int)((1.0D - d2 * d0 * d1) * 11.0D);
+        return !this.world.getDimensionType().doesFixedTimeExist() && skylightSubtracted < 4;
     }
 
     @Override
@@ -248,16 +241,14 @@ public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
         super.livingTick();
 
         if (this.world.isRemote) {
-            if (this.isNightTime()) {
+            if (this.isDayTime()) {
+                this.setAbdomenAnimation(FireflyAbdomenAnimation.OFF);
+                this.glowAlpha = 0;
+            } else {
                 this.updateAbdomenAnimation();
                 this.updateGlowAnimation();
                 this.spawnFallingDustParticles();
-            } else {
-                this.setAbdomenAnimation(FireflyAbdomenAnimation.OFF);
-                this.glowAlpha = 0;
             }
-        } else if (this.ticksExisted % 60 == 0 || this.ticksExisted == 5) {
-            this.dataManager.set(FireflyEntity.IS_NIGHTTIME, this.world.isNightTime());
         }
     }
 
