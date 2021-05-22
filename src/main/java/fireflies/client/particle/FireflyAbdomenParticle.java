@@ -28,12 +28,10 @@ public class FireflyAbdomenParticle extends SpriteTexturedParticle {
 
         this.particleAlpha = this.fireflyEntity.glowAlpha;
 
-        this.setPosition(
-                this.fireflyEntity.getPosX() - -this.fireflyEntity.getWidth() * 0.35f * MathHelper.sin(this.fireflyEntity.renderYawOffset * ((float) Math.PI / 180F)),
-                this.fireflyEntity.getPosYEye() + this.fireflyEntity.abdomenParticlePositionOffset + 0.3f,
-                this.fireflyEntity.getPosZ() + -this.fireflyEntity.getWidth() * 0.35f * MathHelper.cos(this.fireflyEntity.renderYawOffset * ((float) Math.PI / 180F)));
+        double[] pos = this.fireflyEntity.abdomenParticlePos();
+        this.setPosition(pos[0], pos[1], pos[2]);
 
-        // Destroy when the alpha reaches 0
+        // Destroy when the alpha reaches 0 (or firefly gets removed)
         if ((this.particleAlpha <= 0f && !this.fireflyEntity.glowIncreasing) || !this.fireflyEntity.isAlive()) {
             this.setExpired();
         }

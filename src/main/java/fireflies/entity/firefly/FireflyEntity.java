@@ -87,7 +87,7 @@ public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
         this.goalSelector.addGoal(4, new WaterAvoidingRandomFlyingGoal(this, 0.75f));
         this.goalSelector.addGoal(5, new WanderGoal(this));
         this.goalSelector.addGoal(7, new SwimGoal(this));
-        this.goalSelector.addGoal(10, new MoveToHoneyGoal(this, 1, 24));
+        this.goalSelector.addGoal(10, new MoveToHoneyGoal(this, 1f, 24));
     }
 
     @Override
@@ -95,7 +95,7 @@ public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
         FlyingPathNavigator flyingpathnavigator = new FlyingPathNavigator(this, world) {
             @Override
             public boolean canEntityStandOnPos(BlockPos pos) {
-                return !this.world.getBlockState(pos.down()).isAir();
+                return !this.world.isAirBlock(pos.down());
             }
         };
         flyingpathnavigator.setCanOpenDoors(false);
@@ -106,7 +106,7 @@ public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
 
     @Override
     public float getBlockPathWeight(BlockPos blockPos, IWorldReader world) {
-        return world.getBlockState(blockPos).isAir() ? 16.0F : 0.0F;
+        return world.isAirBlock(blockPos) ? 10.0F : 0.0F;
     }
 
     public void setAbdomenAnimation(FireflyAbdomenAnimation newAnimation) {
@@ -125,13 +125,20 @@ public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
                     }
                     break;
             }
+            this.abdomenAnimation = newAnimation;
         }
-        this.abdomenAnimation = newAnimation;
+    }
+
+    public double[] abdomenParticlePos() {
+        return new double[]{this.getPosX() - -this.getWidth() * 0.35f * MathHelper.sin(this.renderYawOffset * ((float) Math.PI / 180F)),
+                this.getPosYEye() + this.abdomenParticlePositionOffset + 0.3f,
+                this.getPosZ() + -this.getWidth() * 0.35f * MathHelper.cos(this.renderYawOffset * ((float) Math.PI / 180F))};
     }
 
     public void spawnAbdomenParticle() {
         if (this.world.isRemote && !this.isInvisible()) {
-            this.world.addOptionalParticle(new FireflyAbdomenParticleData(this.getEntityId()), true, this.getPosX(), this.getPosY(), this.getPosZ(), 0, 0, 0);
+            double[] pos = this.abdomenParticlePos();
+            this.world.addOptionalParticle(new FireflyAbdomenParticleData(this.getEntityId()), true, pos[0], pos[1], pos[2], 0, 0, 0);
         }
     }
 
@@ -376,6 +383,7 @@ public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
             this.attackEntityFrom(DamageSource.DROWN, 1.0F);
         }
 
+        this.lastAccelerationTicks++;
         if (MathHelper.sqrt(Entity.horizontalMag(this.getMotion())) < 0.015f
                 && this.lastAccelerationTicks > 60 && !this.world.isRemote) {
             final float accelAmount = 0.035f;
@@ -396,8 +404,6 @@ public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
                 this.setMotion(0, -0.01f, 0);
             }
         }
-
-        this.lastAccelerationTicks++;
     }
 
     private static class WanderGoal extends Goal {
@@ -423,7 +429,7 @@ public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
             }
 
             if (this.currentBlockTimer > 60) { // Try to start moving if we're idle for 3 seconds
-                this.moveToRandomLocation(this.fireflyEntity.getLook(0.0F)
+                this.tryMoveToRandomLocation(this.fireflyEntity.getLook(0.0F)
                         .rotateYaw(MathHelper.nextFloat(this.fireflyEntity.rand, -80, -180)));
                 this.currentBlockTimer = 0;
             }
@@ -440,30 +446,26 @@ public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
 
         @Override
         public void startExecuting() {
-            this.moveToRandomLocation(this.fireflyEntity.getLook(0.0F));
-        }
-
-        private void moveToRandomLocation(Vector3d angle) {
-            Vector3d vector3d = this.getRandomLocation(angle);
-            if (vector3d != null) {
-                this.fireflyEntity.navigator.setPath(this.fireflyEntity.navigator.getPathToPos(new BlockPos(vector3d), 1), 0.75f);
-            }
+            this.tryMoveToRandomLocation(this.fireflyEntity.getLook(0.0F));
         }
 
         @Nullable
-        private Vector3d getRandomLocation(Vector3d angle) {
-            Vector3d vector3d2 = null;
+        private void tryMoveToRandomLocation(Vector3d angle) {
+            Vector3d vector3d = null;
             for (int i = 0; i < 3; i++) {
-                vector3d2 = RandomPositionGenerator.findAirTarget(this.fireflyEntity, 3, 2, angle, ((float) Math.PI / 2F), 2, 2);
-                if (vector3d2 != null) {
+                vector3d = RandomPositionGenerator.findAirTarget(this.fireflyEntity, 3, 2, angle, ((float) Math.PI / 2F), 2, 2);
+                if (vector3d != null) {
                     break;
                 }
             }
 
-            return vector3d2;
+            if (vector3d != null) {
+                this.fireflyEntity.navigator.setPath(this.fireflyEntity.navigator.getPathToPos(new BlockPos(vector3d), 1), 0.75f);
+            }
         }
     }
 
+    // FIXME
     private static class MoveToHoneyGoal extends MoveToBlockGoal {
         public MoveToHoneyGoal(CreatureEntity creature, double speedIn, int length) {
             super(creature, speedIn, length);
