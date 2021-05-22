@@ -2,7 +2,7 @@ package fireflies.setup;
 
 import fireflies.entity.firefly.FireflyEntity;
 import fireflies.Fireflies;
-import fireflies.client.particle.FireflyAbdomenParticleData;
+import fireflies.entity.firefly.FireflyAbdomenParticleData;
 import net.minecraft.block.Block;
 import net.minecraft.entity.EntityClassification;
 import net.minecraft.entity.EntityType;

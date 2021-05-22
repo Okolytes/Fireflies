@@ -1,7 +1,10 @@
 package fireflies.client.particle;
 
+import com.mojang.blaze3d.vertex.IVertexBuilder;
+import fireflies.entity.firefly.FireflyAbdomenParticleData;
 import fireflies.entity.firefly.FireflyEntity;
 import net.minecraft.client.particle.*;
+import net.minecraft.client.renderer.ActiveRenderInfo;
 import net.minecraft.client.world.ClientWorld;
 import net.minecraft.entity.Entity;
 import net.minecraft.util.math.MathHelper;
@@ -16,22 +19,20 @@ public class FireflyAbdomenParticle extends SpriteTexturedParticle {
         super(clientWorld, x, y, z);
         this.fireflyEntity = fireflyEntity;
         this.particleScale = fireflyEntity.isChild() ? 0.2f : 0.45f;
-        this.particleAlpha = 0f;
+        this.maxAge = 1000; // Somethings probably gone wrong if its existed for this long.
     }
 
     @Override
     public void tick() {
         super.tick();
 
-        this.particleAlpha = fireflyEntity.getGlowAlpha();
-        this.setPosition(
-                fireflyEntity.getPosX() - -fireflyEntity.getWidth() * 0.35f * (double) MathHelper.sin(fireflyEntity.renderYawOffset * ((float) Math.PI / 180F)),
-                fireflyEntity.getPosYEye() + fireflyEntity.abdomenParticlePositionOffset + 0.3f,
-                fireflyEntity.getPosZ() + -fireflyEntity.getWidth() * 0.35f * (double) MathHelper.cos(fireflyEntity.renderYawOffset * ((float) Math.PI / 180F)));
+        this.particleAlpha = this.fireflyEntity.getGlowAlpha();
+
+        double[] pos = this.fireflyEntity.abdomenParticlePos();
+        this.setPosition(pos[0], pos[1], pos[2]);
 
         // Destroy when the alpha reaches 0
-        this.age = 0;
-        if ((this.particleAlpha <= 0f && !fireflyEntity.getGlowIncreasing()) || !fireflyEntity.isAlive()) {
+        if ((this.particleAlpha <= 0f && !this.fireflyEntity.getGlowIncreasing()) || !this.fireflyEntity.isAlive()) {
             this.setExpired();
         }
     }
@@ -62,6 +63,7 @@ public class FireflyAbdomenParticle extends SpriteTexturedParticle {
 
             FireflyAbdomenParticle fireflyAbdomenParticle = new FireflyAbdomenParticle(clientWorld, x, y, z, (FireflyEntity) entity);
             fireflyAbdomenParticle.selectSpriteRandomly(this.iAnimatedSprite);
+            fireflyAbdomenParticle.setAlphaF(0);
             return fireflyAbdomenParticle;
         }
     }

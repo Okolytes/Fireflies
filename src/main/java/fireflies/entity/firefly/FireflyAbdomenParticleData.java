@@ -1,4 +1,4 @@
-package fireflies.client.particle;
+package fireflies.entity.firefly;
 
 import com.mojang.brigadier.StringReader;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
