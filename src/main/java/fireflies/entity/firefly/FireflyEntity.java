@@ -25,6 +25,7 @@ import net.minecraft.pathfinding.PathNavigator;
 import net.minecraft.pathfinding.PathNodeType;
 import net.minecraft.tags.ITag;
 import net.minecraft.util.DamageSource;
+import net.minecraft.util.RegistryKey;
 import net.minecraft.util.SoundEvent;
 import net.minecraft.util.SoundEvents;
 import net.minecraft.util.math.BlockPos;
@@ -41,15 +42,16 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 import javax.annotation.Nullable;
 import java.util.EnumSet;
 import java.util.Objects;
+import java.util.Optional;
 
 public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
-    private static final DataParameter<Boolean> IS_NIGHTTIME = EntityDataManager.createKey(FireflyEntity.class, DataSerializers.BOOLEAN);
     public FireflyAbdomenAnimation abdomenAnimation;
     public float glowAlpha;
     public boolean glowIncreasing;
     public float abdomenParticlePositionOffset;
     private int underWaterTicks;
     private int lastAccelerationTicks;
+    private static final DataParameter<Boolean> IS_NIGHTTIME = EntityDataManager.createKey(FireflyEntity.class, DataSerializers.BOOLEAN);
 
     public FireflyEntity(EntityType<? extends FireflyEntity> entityType, World world) {
         super(entityType, world);
@@ -129,35 +131,38 @@ public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
         }
     }
 
-    public double[] abdomenParticlePos() {
-        return new double[]{this.getPosX() - -this.getWidth() * 0.35f * MathHelper.sin(this.renderYawOffset * ((float) Math.PI / 180F)),
-                this.getPosYEye() + this.abdomenParticlePositionOffset + 0.3f,
-                this.getPosZ() + -this.getWidth() * 0.35f * MathHelper.cos(this.renderYawOffset * ((float) Math.PI / 180F))};
-    }
-
-    public void spawnAbdomenParticle() {
-        if (this.world.isRemote && !this.isInvisible()) {
-            double[] pos = this.abdomenParticlePos();
-            this.world.addOptionalParticle(new FireflyAbdomenParticleData(this.getEntityId()), true, pos[0], pos[1], pos[2], 0, 0, 0);
-        }
-    }
-
-    private Vector3d rotateVector(Vector3d vector3d) {
-        Vector3d vector3d1 = vector3d.rotatePitch((float) Math.PI / 180F);
-        return vector3d1.rotateYaw(-this.prevRenderYawOffset * ((float) Math.PI / 180F));
-    }
-
-    private void spawnFallingDustParticles() {
-        if (this.ticksExisted % 8 == 0 && this.glowAlpha > 0.25f) {
-            // no i don't understand this i stole it from the squid code
-            Vector3d vector3d = this.rotateVector(new Vector3d(0.0D, -1.0D, 0.0D)).add(this.getPosX(), this.getPosY(), this.getPosZ());
-            Vector3d vector3d1 = this.rotateVector(new Vector3d(this.rand.nextFloat(), -1.0D, this.rand.nextFloat() * Math.abs(this.getMotion().getZ()) * 10 + 2));
-            Vector3d vector3d2 = vector3d1.scale(-5f + this.rand.nextFloat() * 2.0F);
-
-            float randPos = this.isChild() ? 0f : MathHelper.nextFloat(this.rand, -0.2f, 0.2f);
-            this.world.addParticle(FirefliesRegistration.FIREFLY_DUST_PARTICLE.get(),
-                    vector3d.x + randPos, vector3d.y + 1.35f + randPos, vector3d.z + randPos,
-                    vector3d2.x, vector3d2.y * -16, vector3d2.z);
+    private void updateAbdomenAnimation() {
+        Biome currentBiome = this.world.getBiome(this.getPosition());
+        switch (currentBiome.getCategory()) {
+            case SWAMP:
+                this.setAbdomenAnimation(FireflyAbdomenAnimation.CALM);
+                break;
+            case FOREST:
+                Optional<RegistryKey<Biome>> biomeRegistryKey = this.world.func_242406_i(this.getPosition());
+                if (Objects.equals(biomeRegistryKey, Optional.of(Biomes.DARK_FOREST)) || Objects.equals(biomeRegistryKey, Optional.of(Biomes.DARK_FOREST_HILLS))) {
+                    this.setAbdomenAnimation(FireflyAbdomenAnimation.CALM_SYNCHRONIZED);
+                } else {
+                    this.setAbdomenAnimation(FireflyAbdomenAnimation.STARRY_NIGHT_SYNCHRONIZED);
+                }
+                break;
+            case JUNGLE:
+            case TAIGA:
+                this.setAbdomenAnimation(FireflyAbdomenAnimation.STARRY_NIGHT_SYNCHRONIZED);
+                break;
+            case PLAINS:
+                this.setAbdomenAnimation(FireflyAbdomenAnimation.STARRY_NIGHT);
+                break;
+            case NETHER:
+            case THEEND:
+                this.setAbdomenAnimation(FireflyAbdomenAnimation.FRANTIC);
+                break;
+            default:
+                if (this.getPosition().getY() >= 0 && this.getPosition().getY() < 256) {
+                    this.setAbdomenAnimation(FireflyAbdomenAnimation.DEFAULT);
+                } else {
+                    this.setAbdomenAnimation(FireflyAbdomenAnimation.FRANTIC);
+                }
+                break;
         }
     }
 
@@ -200,34 +205,37 @@ public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
         }
     }
 
-    private void updateAbdomenAnimation() {
-        Biome currentBiome = this.world.getBiome(this.getPosition());
-        switch (currentBiome.getCategory()) {
-            case SWAMP:
-                this.setAbdomenAnimation(FireflyAbdomenAnimation.CALM);
-                break;
-            case FOREST:
-                if (Objects.equals(currentBiome.getRegistryName(), Biomes.DARK_FOREST.getLocation())
-                        || Objects.equals(currentBiome.getRegistryName(), Biomes.DARK_FOREST_HILLS.getLocation())) {
-                    this.setAbdomenAnimation(FireflyAbdomenAnimation.CALM_SYNCHRONIZED);
-                } else {
-                    this.setAbdomenAnimation(FireflyAbdomenAnimation.STARRY_NIGHT_SYNCHRONIZED);
-                }
-                break;
-            case JUNGLE:
-            case TAIGA:
-                this.setAbdomenAnimation(FireflyAbdomenAnimation.STARRY_NIGHT_SYNCHRONIZED);
-                break;
-            case PLAINS:
-                this.setAbdomenAnimation(FireflyAbdomenAnimation.STARRY_NIGHT);
-                break;
-            case NETHER:
-            case THEEND:
-                this.setAbdomenAnimation(FireflyAbdomenAnimation.FRANTIC);
-                break;
-            default:
-                this.setAbdomenAnimation(FireflyAbdomenAnimation.DEFAULT);
-                break;
+    public double[] abdomenParticlePos() {
+        return new double[]{
+                this.getPosX() - -this.getWidth() * 0.35f * MathHelper.sin(this.renderYawOffset * ((float) Math.PI / 180F)),
+                this.getPosYEye() + this.abdomenParticlePositionOffset + 0.3f,
+                this.getPosZ() + -this.getWidth() * 0.35f * MathHelper.cos(this.renderYawOffset * ((float) Math.PI / 180F))
+        };
+    }
+
+    public void spawnAbdomenParticle() {
+        if (this.world.isRemote && !this.isInvisible()) {
+            double[] pos = this.abdomenParticlePos();
+            this.world.addOptionalParticle(new FireflyAbdomenParticleData(this.getEntityId()), true, pos[0], pos[1], pos[2], 0, 0, 0);
+        }
+    }
+
+    private Vector3d rotateVector(Vector3d vector3d) {
+        Vector3d vector3d1 = vector3d.rotatePitch((float) Math.PI / 180F);
+        return vector3d1.rotateYaw(-this.prevRenderYawOffset * ((float) Math.PI / 180F));
+    }
+
+    private void spawnFallingDustParticles() {
+        if (this.ticksExisted % 8 == 0 && this.glowAlpha > 0.25f && !this.isInvisible()) {
+            // no i don't understand this i stole it from the squid code
+            Vector3d vector3d = this.rotateVector(new Vector3d(0.0D, -1.0D, 0.0D)).add(this.getPosX(), this.getPosY(), this.getPosZ());
+            Vector3d vector3d1 = this.rotateVector(new Vector3d(this.rand.nextFloat(), -1.0D, this.rand.nextFloat() * Math.abs(this.getMotion().getZ()) * 10 + 2));
+            Vector3d vector3d2 = vector3d1.scale(-5f + this.rand.nextFloat() * 2.0F);
+
+            float randPos = this.isChild() ? 0f : MathHelper.nextFloat(this.rand, -0.2f, 0.2f);
+            this.world.addParticle(FirefliesRegistration.FIREFLY_DUST_PARTICLE.get(),
+                    vector3d.x + randPos, vector3d.y + 1.35f + randPos, vector3d.z + randPos,
+                    vector3d2.x, vector3d2.y * -16, vector3d2.z);
         }
     }
 
@@ -248,7 +256,7 @@ public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
                 this.setAbdomenAnimation(FireflyAbdomenAnimation.OFF);
                 this.glowAlpha = 0;
             }
-        } else if (this.ticksExisted % 60 == 0) {
+        } else if (this.ticksExisted % 60 == 0 || this.ticksExisted == 5) {
             this.dataManager.set(FireflyEntity.IS_NIGHTTIME, this.world.isNightTime());
         }
     }
@@ -327,7 +335,7 @@ public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
     public boolean attackEntityFrom(DamageSource source, float amount) {
         if (!this.world.isRemote && this.world.isNightTime()) {
             ((ServerWorld) (this.world)).spawnParticle(FirefliesRegistration.FIREFLY_DUST_PARTICLE.get(), this.getPosX(), this.getPosY(), this.getPosZ(),
-                    (int) MathHelper.clamp(amount, 3, 10), 0, 0, 0, 1);
+                    (int) MathHelper.clamp(amount, 3, 10), 0, 0, 0, 0);
         }
         return super.attackEntityFrom(source, amount);
     }

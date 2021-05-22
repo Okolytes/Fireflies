@@ -1,13 +1,10 @@
 package fireflies.client.particle;
 
-import com.mojang.blaze3d.vertex.IVertexBuilder;
 import fireflies.entity.firefly.FireflyAbdomenParticleData;
 import fireflies.entity.firefly.FireflyEntity;
 import net.minecraft.client.particle.*;
-import net.minecraft.client.renderer.ActiveRenderInfo;
 import net.minecraft.client.world.ClientWorld;
 import net.minecraft.entity.Entity;
-import net.minecraft.util.math.MathHelper;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
@@ -58,7 +55,7 @@ public class FireflyAbdomenParticle extends SpriteTexturedParticle {
         @Override
         public Particle makeParticle(FireflyAbdomenParticleData fireflyAbdomenParticleData, ClientWorld clientWorld, double x, double y, double z, double xSpeed, double ySpeed, double zSpeed) {
             Entity entity = clientWorld.getEntityByID(fireflyAbdomenParticleData.fireflyId);
-            if (entity == null || !entity.isAlive())
+            if (entity == null || !entity.isAlive() || !(entity instanceof FireflyEntity))
                 return null;
 
             FireflyAbdomenParticle fireflyAbdomenParticle = new FireflyAbdomenParticle(clientWorld, x, y, z, (FireflyEntity) entity);
