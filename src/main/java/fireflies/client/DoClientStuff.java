@@ -9,4 +9,8 @@ public class DoClientStuff {
     public void playFireflyLoopSound(FireflyEntity fireflyEntity) {
         Minecraft.getInstance().getSoundHandler().playOnNextTick(new FireflyFlightLoopSound(fireflyEntity));
     }
+
+    public boolean isGamePaused() {
+        return Minecraft.getInstance().isGamePaused();
+    }
 }

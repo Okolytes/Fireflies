@@ -1,6 +1,7 @@
 package fireflies.entity.firefly;
 
 import fireflies.Fireflies;
+import fireflies.client.DoClientStuff;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
@@ -12,8 +13,10 @@ public class FireflyGlowSync {
 
     @SubscribeEvent
     public static void clientTickEvent(TickEvent.ClientTickEvent event) {
-        if (event.phase == TickEvent.Phase.END) // Runs on both START and END
+        if (event.phase == TickEvent.Phase.END // Runs on both START and END
+                || new DoClientStuff().isGamePaused())
             return;
+
 
         if (!calmSyncedFireflies.syncedFireflies.isEmpty()) {
             // outside the loop(s) so each firefly does not impact the odds
