@@ -1,8 +1,8 @@
 package fireflies;
 
 import fireflies.setup.FirefliesClientSetup;
-import fireflies.setup.FirefliesSetup;
 import fireflies.setup.FirefliesRegistration;
+import fireflies.setup.FirefliesSetup;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import org.apache.logging.log4j.LogManager;

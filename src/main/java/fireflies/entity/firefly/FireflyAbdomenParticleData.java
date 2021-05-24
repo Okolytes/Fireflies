@@ -3,10 +3,10 @@ package fireflies.entity.firefly;
 import com.mojang.brigadier.StringReader;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.serialization.Codec;
+import fireflies.setup.FirefliesRegistration;
 import net.minecraft.network.PacketBuffer;
 import net.minecraft.particles.IParticleData;
 import net.minecraft.particles.ParticleType;
-import fireflies.setup.FirefliesRegistration;
 
 public class FireflyAbdomenParticleData implements IParticleData {
     public final int fireflyId;

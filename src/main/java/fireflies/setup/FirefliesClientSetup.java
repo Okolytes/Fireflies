@@ -1,21 +1,13 @@
 package fireflies.setup;
 
-import fireflies.client.render.FireflyRenderer;
 import fireflies.Fireflies;
 import fireflies.client.particle.FireflyAbdomenParticle;
 import fireflies.client.particle.FireflyDustParticle;
+import fireflies.client.render.FireflyRenderer;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.audio.ISound;
-import net.minecraft.client.audio.Sound;
 import net.minecraft.client.particle.ParticleManager;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemGroup;
-import net.minecraft.item.SpawnEggItem;
-import net.minecraft.util.SoundEvent;
 import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.client.event.ColorHandlerEvent;
 import net.minecraftforge.client.event.ParticleFactoryRegisterEvent;
-import net.minecraftforge.event.RegistryEvent;
 import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.client.registry.RenderingRegistry;

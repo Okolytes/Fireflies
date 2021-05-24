@@ -4,6 +4,7 @@ import fireflies.client.DoClientStuff;
 import fireflies.setup.FirefliesRegistration;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.HoneyBlock;
+import net.minecraft.block.LeavesBlock;
 import net.minecraft.entity.*;
 import net.minecraft.entity.ai.RandomPositionGenerator;
 import net.minecraft.entity.ai.attributes.AttributeModifierMap;
@@ -17,7 +18,6 @@ import net.minecraft.fluid.Fluid;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.item.crafting.Ingredient;
-import net.minecraft.particles.ParticleTypes;
 import net.minecraft.pathfinding.FlyingPathNavigator;
 import net.minecraft.pathfinding.PathNavigator;
 import net.minecraft.pathfinding.PathNodeType;
@@ -26,7 +26,10 @@ import net.minecraft.util.DamageSource;
 import net.minecraft.util.RegistryKey;
 import net.minecraft.util.SoundEvent;
 import net.minecraft.util.SoundEvents;
-import net.minecraft.util.math.*;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.BlockRayTraceResult;
+import net.minecraft.util.math.MathHelper;
+import net.minecraft.util.math.RayTraceContext;
 import net.minecraft.util.math.vector.Vector3d;
 import net.minecraft.world.IWorldReader;
 import net.minecraft.world.World;
@@ -37,7 +40,6 @@ import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
 import javax.annotation.Nullable;
-import java.util.EnumSet;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -47,14 +49,11 @@ public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
     public boolean glowIncreasing;
     public float abdomenParticlePositionOffset;
     private int underWaterTicks;
-    private int lastAccelerationTicks;
     private boolean entrancedByHoney;
-    @Nullable
-    private BlockPos honeyBlock = null;
 
     public FireflyEntity(EntityType<? extends FireflyEntity> entityType, World world) {
         super(entityType, world);
-        this.moveController = new FlyingMovementController(this, 10, true);
+        this.moveController = new FireflyEntity.FlyingMovementHelper(this, 20, true);
         this.setPathPriority(PathNodeType.DANGER_FIRE, -1.0F);
         this.setPathPriority(PathNodeType.WATER, -1.0F);
         this.setPathPriority(PathNodeType.WATER_BORDER, 16.0F);
@@ -76,12 +75,12 @@ public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
 
     @Override
     protected void registerGoals() {
+        this.goalSelector.addGoal(0, new TemptGoal(this, 1.15f, Ingredient.fromItems(Items.HONEY_BOTTLE, Items.HONEY_BLOCK), false));
         this.goalSelector.addGoal(1, new BreedGoal(this, 1f));
-        this.goalSelector.addGoal(2, new TemptGoal(this, 1.25D, Ingredient.fromItems(Items.HONEY_BOTTLE, Items.HONEY_BLOCK), false));
-        this.goalSelector.addGoal(3, new FollowParentGoal(this, 1.25D));
-        this.goalSelector.addGoal(4, new WaterAvoidingRandomFlyingGoal(this, 0.75f));
-        this.goalSelector.addGoal(5, new WanderGoal(this));
-        this.goalSelector.addGoal(7, new SwimGoal(this));
+        this.goalSelector.addGoal(2, new FireflyEntity.EntrancedByHoneyGoal(this, 1.15f, 8));
+        this.goalSelector.addGoal(3, new FollowParentGoal(this, 1.15f));
+        this.goalSelector.addGoal(4, new FireflyEntity.WanderGoal(this, 1f, 1, false));
+        this.goalSelector.addGoal(5, new SwimGoal(this));
     }
 
     @Override
@@ -89,7 +88,7 @@ public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
         FlyingPathNavigator flyingpathnavigator = new FlyingPathNavigator(this, world) {
             @Override
             public boolean canEntityStandOnPos(BlockPos pos) {
-                return !this.world.isAirBlock(pos);
+                return !this.world.isAirBlock(pos.down());
             }
         };
         flyingpathnavigator.setCanOpenDoors(false);
@@ -129,6 +128,7 @@ public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
             return;
         }
 
+        // Set the animation based on the current biome.
         Biome currentBiome = this.world.getBiome(this.getPosition());
         switch (currentBiome.getCategory()) {
             case SWAMP:
@@ -136,7 +136,8 @@ public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
                 break;
             case FOREST:
                 Optional<RegistryKey<Biome>> biomeRegistryKey = this.world.func_242406_i(this.getPosition());
-                if (Objects.equals(biomeRegistryKey, Optional.of(Biomes.DARK_FOREST)) || Objects.equals(biomeRegistryKey, Optional.of(Biomes.DARK_FOREST_HILLS))) {
+                if (Objects.equals(biomeRegistryKey, Optional.of(Biomes.DARK_FOREST))
+                        || Objects.equals(biomeRegistryKey, Optional.of(Biomes.DARK_FOREST_HILLS))) {
                     this.setAbdomenAnimation(FireflyAbdomenAnimation.CALM_SYNCHRONIZED);
                 } else {
                     this.setAbdomenAnimation(FireflyAbdomenAnimation.STARRY_NIGHT_SYNCHRONIZED);
@@ -159,8 +160,10 @@ public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
         }
     }
 
-    private void glowAnimation(float increase, float decrease, float startIncreasingChance, float startDecreasingChance) {
-        this.glowAlpha += this.glowIncreasing ? increase : -decrease;
+    private void glowAnimation(float increaseAmount, float decreaseAmount, float startIncreasingChance, float startDecreasingChance) {
+        // Add / deplete the glow alpha, baby fireflies go a little faster.
+        this.glowAlpha += this.glowIncreasing
+                ? (this.isChild() ? increaseAmount * 1.25f : increaseAmount) : (this.isChild() ? -decreaseAmount * 1.25f : -decreaseAmount);
         if (this.glowAlpha <= 0) {
             this.glowAlpha = 0; // If it goes under or over 0 or 1 it'll wrap back around to being on/off, we don't want that
             if (this.rand.nextFloat() <= startIncreasingChance) {
@@ -176,6 +179,7 @@ public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
     }
 
     private void updateGlowAnimation() {
+        // Update the glow animation every tick.
         switch (this.abdomenAnimation) {
             case OFF:
                 this.glowAlpha = 0;
@@ -198,6 +202,11 @@ public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
         }
     }
 
+    /**
+     * Keeps up with the bobbing animation of the firefly.
+     *
+     * @return the precise position of where the abdomen particle should spawn.
+     */
     public double[] abdomenParticlePos() {
         return new double[]{
                 this.getPosX() - -this.getWidth() * 0.35f * MathHelper.sin(this.renderYawOffset * ((float) Math.PI / 180F)),
@@ -208,6 +217,7 @@ public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
 
     public void spawnAbdomenParticle() {
         if (this.world.isRemote && !this.isInvisible()) {
+            // Spawn the abdomen particle at the proper position, with range being far as the firefly itself.
             double[] pos = this.abdomenParticlePos();
             this.world.addOptionalParticle(new FireflyAbdomenParticleData(this.getEntityId()), true, pos[0], pos[1], pos[2], 0, 0, 0);
         }
@@ -219,8 +229,8 @@ public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
     }
 
     private void spawnFallingDustParticles() {
-        if (this.ticksExisted % 8 == 0 && this.glowAlpha > 0.25f && !this.isInvisible()) {
-            // no i don't understand this i stole it from the squid code
+        if (this.ticksExisted % 8 == 0 && this.rand.nextFloat() > 0.25f && this.glowAlpha > 0.25f && !this.isInvisible()) {
+            // Spawn falling particles every so often, at the abdomen's position. Falling angle depends on fireflies speed.
             Vector3d vector3d = this.rotateVector(new Vector3d(0.0D, -1.0D, 0.0D)).add(this.getPosX(), this.getPosY(), this.getPosZ());
             Vector3d vector3d1 = this.rotateVector(new Vector3d(this.rand.nextFloat(), -1.0D, this.rand.nextFloat() * Math.abs(this.getMotion().getZ()) * 10 + 2));
             Vector3d vector3d2 = vector3d1.scale(-5f + this.rand.nextFloat() * 2.0F);
@@ -232,11 +242,12 @@ public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
         }
     }
 
-    // Taken from World#calculateInitialSkylight()
     private boolean isDayTime() {
+        // Taken from World#calculateInitialSkylight(), since I couldn't figure out how to check the skylight from the chunk data :I
         double d0 = 1.0D - (double) (this.world.getRainStrength(1.0F) * 5.0F) / 16.0D;
         double d1 = 1.0D - (double) (this.world.getThunderStrength(1.0F) * 5.0F) / 16.0D;
-        double d2 = 0.5D + 2.0D * MathHelper.clamp(MathHelper.cos(this.world.func_242415_f(1.0F) * ((float) Math.PI * 2F)), -0.25D, 0.25D);
+        double d2 = 0.5D + 2.0D *
+                MathHelper.clamp(MathHelper.cos(this.world.func_242415_f(1.0F) * ((float) Math.PI * 2F)), -0.25D, 0.25D);
         int skylightSubtracted = (int) ((1.0D - d2 * d0 * d1) * 11.0D);
         return !this.world.getDimensionType().doesFixedTimeExist() && skylightSubtracted < 4;
     }
@@ -247,12 +258,18 @@ public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
 
         if (this.world.isRemote) {
             if (this.isDayTime()) {
+                // Turn off during the day
                 this.setAbdomenAnimation(FireflyAbdomenAnimation.OFF);
                 this.glowAlpha = 0;
             } else {
                 this.updateAbdomenAnimation();
                 this.updateGlowAnimation();
                 this.spawnFallingDustParticles();
+
+                // Fix abdomen particle not spawning with synced firefly on first glow cycle
+                if (this.ticksExisted < 3 && this.glowAlpha > 0.1f) {
+                    this.spawnAbdomenParticle();
+                }
             }
         }
     }
@@ -278,6 +295,7 @@ public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
     public void onAddedToWorld() {
         super.onAddedToWorld();
         if (this.world.isRemote) {
+            // Start playing the flight loop sound
             DoClientStuff doClientStuff = new DoClientStuff();
             doClientStuff.playFireflyLoopSound(this);
         }
@@ -287,6 +305,7 @@ public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
     public void onRemovedFromWorld() {
         super.onRemovedFromWorld();
         if (this.world.isRemote) {
+            // Remove ourselves from all the synced lists, if any.
             FireflyGlowSync.calmSyncedFireflies.syncedFireflies.remove(this);
             FireflyGlowSync.starryNightSyncedFireflies.syncedFireflies.remove(this);
         }
@@ -329,9 +348,10 @@ public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
 
     @Override
     public boolean attackEntityFrom(DamageSource source, float amount) {
+        // If it's night, puff out some particles on hit, the amount depending on damage.
         if (!this.world.isRemote && this.world.isNightTime()) {
             ((ServerWorld) (this.world)).spawnParticle(FirefliesRegistration.FIREFLY_DUST_PARTICLE.get(), this.getPosX(), this.getPosY(), this.getPosZ(),
-                    (int) MathHelper.clamp(amount, 3, 10), 0, 0, 0, 0);
+                    (int) MathHelper.clamp(amount, 2, 8), 0, 0, 0, 0);
         }
         return super.attackEntityFrom(source, amount);
     }
@@ -358,7 +378,7 @@ public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
 
     @Override
     protected void handleFluidJump(ITag<Fluid> fluidTag) {
-        this.addMotion(0.0D, 0.01D, 0.0D);
+        this.addMotion(0f, 0.01f, 0f);
     }
 
     @OnlyIn(Dist.CLIENT)
@@ -370,10 +390,14 @@ public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
     @OnlyIn(Dist.CLIENT)
     @Override
     public boolean isInRangeToRenderDist(double distance) {
+        // About 2x the render distance of players.
         double d0 = 128 * getRenderDistanceWeight();
         return distance < d0 * d0;
     }
 
+    /**
+     * Adds/removes motion to the current amount.
+     */
     private void addMotion(double x, double y, double z) {
         this.setMotion(this.getMotion().add(x, y, z));
     }
@@ -391,140 +415,218 @@ public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
         if (this.underWaterTicks > 20) {
             this.attackEntityFrom(DamageSource.DROWN, 1.0F);
         }
-
-        if (!this.entrancedByHoney) {
-            this.lastAccelerationTicks++;
-            if (MathHelper.sqrt(Entity.horizontalMag(this.getMotion())) < 0.015f && this.lastAccelerationTicks > 60 && !this.world.isRemote) {
-                final float accelAmount = 0.025f;
-                this.addMotion(
-                        MathHelper.clamp(this.getLook(0).getX(), -accelAmount, accelAmount),
-                        this.world.isAirBlock(this.getPosition().down()) ? 0f : 0.05f,
-                        MathHelper.clamp(this.getLook(0).getZ(), -accelAmount, accelAmount));
-                this.navigator.clearPath();
-                this.lastAccelerationTicks = 0;
-            }
-
-            if (this.isOnGround()) {
-                this.navigator.tryMoveToXYZ(this.getPosXRandom(3f), this.getPosY() + 2, this.getPosZRandom(3f), 0.85);
-            } else if (this.ticksExisted % 20 == 0) {
-                if (!this.world.isAirBlock(this.getPosition().down())) {
-                    this.addMotion(0, 0.005f, 0);
-                } else if (this.world.isAirBlock(this.getPosition().down(3))) {
-                    this.addMotion(0, -0.01f, 0);
-                }
-            }
-
-            if (this.ticksExisted % 60 == 0) {
-                this.tryMoveToHoney();
-            }
-        } else if (this.honeyBlock != null) {
-            if (!this.getPosition().withinDistance(this.getPositionVec(), 3f)) {
-                this.navigator.setPath(this.navigator.getPathToPos(this.honeyBlock, 1), 0.95f);
-            }
-        }
     }
 
-    private void tryMoveToHoney() {
-        final int radius = 6;
-        double closestHoneyBlockDistSqr = Double.MAX_VALUE;
-        BlockPos closestHoneyBlock = null;
-        for (BlockPos blockPos :
-                BlockPos.getAllInBoxMutable(this.getPosition().add(radius, radius, radius), this.getPosition().add(-radius, -radius, -radius))) {
-            if (this.world.getBlockState(blockPos).getBlock() instanceof HoneyBlock) {
-                double distSqr = blockPos.distanceSq(this.getPosition());
-                if (distSqr < closestHoneyBlockDistSqr) {
-                    closestHoneyBlockDistSqr = distSqr;
-                    closestHoneyBlock = blockPos;
-                }
-            }
-        }
-
-        if (closestHoneyBlock != null) {
-            this.entrancedByHoney = true;
-            this.honeyBlock = closestHoneyBlock;
-            this.navigator.setPath(this.navigator.getPathToPos(closestHoneyBlock, 1), 0.9f);
-        }
-    }
-
-    private static class WanderGoal extends Goal {
+    private static class WanderGoal extends RandomWalkingGoal {
+        private static final EntityPredicate FIREFLY_PREDICATE = (new EntityPredicate()).setDistance(8f).allowFriendlyFire().allowInvulnerable().setIgnoresLineOfSight();
         private final FireflyEntity fireflyEntity;
-        private BlockPos currentBlock;
-        private int currentBlockTimer;
+        private final World world;
 
-        private WanderGoal(FireflyEntity fireflyEntity) {
-            this.setMutexFlags(EnumSet.of(Goal.Flag.MOVE));
+        private WanderGoal(FireflyEntity fireflyEntity, double speed, int chance, boolean stopWhenIdle) {
+            super(fireflyEntity, speed, chance, stopWhenIdle);
             this.fireflyEntity = fireflyEntity;
-            this.currentBlock = fireflyEntity.getPosition();
+            this.world = fireflyEntity.world;
+        }
+
+        @Override
+        public boolean shouldExecute() {
+            return !this.fireflyEntity.entrancedByHoney && this.fireflyEntity.ticksExisted % 20 == 0 && super.shouldExecute();
+        }
+
+        @Override
+        public boolean shouldContinueExecuting() {
+            return !this.fireflyEntity.entrancedByHoney && super.shouldContinueExecuting();
+        }
+
+        @Nullable
+        @Override
+        protected Vector3d getPosition() {
+            Vector3d position;
+
+            // Find some place to go in the air.
+            position = RandomPositionGenerator.findAirTarget(this.fireflyEntity, 3, 1,
+                    this.fireflyEntity.getLook(0), (float) (Math.PI / 2f), 2, 1);
+
+            // Try again...
+            if (position == null) {
+                position = RandomPositionGenerator.findRandomTarget(this.fireflyEntity, 3, 1);
+            }
+
+            // Ok, we'll just try to go to another firefly then.
+            if (position == null) {
+                // Search within 8 block radius.
+                FireflyEntity closestFirefly = this.world.getClosestEntityWithinAABB(FireflyEntity.class, FIREFLY_PREDICATE, this.fireflyEntity,
+                        this.fireflyEntity.getPosX(), this.fireflyEntity.getPosY(), this.fireflyEntity.getPosZ(),
+                        this.fireflyEntity.getBoundingBox().grow(8f, 2.5f, 8f));
+
+                if (closestFirefly != null) {
+                    position = closestFirefly.getPositionVec();
+                }
+            }
+
+            if (position != null) {
+                BlockPos blockPos = new BlockPos(position);
+
+                // Don't land on the ground if its avoidable..
+                if (this.world.getBlockState(blockPos.down()).isSolid()
+                        && this.world.isAirBlock(blockPos.up())) {
+                    position = position.add(0, 1.5f, 0);
+                }
+
+                // Don't go too high.
+                if (position.getY() - this.fireflyEntity.getPosY() > 2f) {
+                    position = position.add(0, -(position.getY() - this.fireflyEntity.getPosY() - 1f), 0);
+                }
+
+                // Avoid leaves.. They float to the top of trees which is unwanted.
+                if (this.world.getBlockState(blockPos.down()).getBlock() instanceof LeavesBlock) {
+                    for (int i = 0; i < 3; i++) {
+                        if (!(this.world.getBlockState(blockPos.down(i)).getBlock() instanceof LeavesBlock))
+                            position = position.add(0, -i, 0);
+                    }
+                }
+            }
+
+            return position;
+        }
+    }
+
+    private static class FlyingMovementHelper extends FlyingMovementController {
+        private final FireflyEntity fireflyEntity;
+        private final World world;
+        private boolean isHighUp;
+        private BlockPos prevBlockPos;
+
+        private FlyingMovementHelper(FireflyEntity fireflyEntity, int maximumRotateAngle, boolean affectedByGravity) {
+            super(fireflyEntity, maximumRotateAngle, affectedByGravity);
+            this.fireflyEntity = fireflyEntity;
+            this.world = fireflyEntity.world;
+            this.prevBlockPos = fireflyEntity.getPosition();
+        }
+
+        private boolean moveForward(float multiplier, float y, float speed) {
+            return this.fireflyEntity.navigator.tryMoveToXYZ(
+                    this.fireflyEntity.getPosX() + this.fireflyEntity.getLookVec().getX() * multiplier,
+                    this.fireflyEntity.getPosY() + y,
+                    this.fireflyEntity.getPosZ() + this.fireflyEntity.getLookVec().getZ() * multiplier, speed);
         }
 
         @Override
         public void tick() {
             super.tick();
 
-            if (this.currentBlock == this.fireflyEntity.getPosition()) {
-                this.currentBlockTimer++;
-            } else {
-                this.currentBlock = this.fireflyEntity.getPosition();
-                this.currentBlockTimer = 0;
+            // Do random accelerations every so often.
+            if (this.fireflyEntity.ticksExisted % 100 == 0 && this.fireflyEntity.rand.nextFloat() > 0.75f && !this.fireflyEntity.entrancedByHoney) {
+                final float accelAmount = 0.125f;
+                this.fireflyEntity.addMotion(
+                        MathHelper.clamp(this.fireflyEntity.getLook(0).getX(), -accelAmount, accelAmount),
+                        this.world.isAirBlock(this.fireflyEntity.getPosition().down()) ? 0f : 0.075f,
+                        MathHelper.clamp(this.fireflyEntity.getLook(0).getZ(), -accelAmount, accelAmount));
             }
 
-            if (this.currentBlockTimer > 60 && !this.fireflyEntity.entrancedByHoney) { // Try to start moving if we're idle for 3 seconds
-                this.tryMoveToRandomLocation(this.fireflyEntity.getLook(0.0F)
-                        .rotateYaw(MathHelper.nextFloat(this.fireflyEntity.rand, -80, -180)));
-                this.currentBlockTimer = 0;
+            // Don't vertically too quickly.
+            if (this.fireflyEntity.getMotion().getY() < -0.04f) {
+                this.fireflyEntity.addMotion(0, 0.025f, 0);
+            } else if (this.fireflyEntity.getMotion().getY() > 0.04f) {
+                this.fireflyEntity.addMotion(0, -0.025f, 0);
+            }
+
+            if (this.fireflyEntity.ticksExisted % 20 == 0 && !this.fireflyEntity.entrancedByHoney) {
+                // Stay off the ground
+                if (this.world.getBlockState(this.fireflyEntity.getPosition().down()).isSolid() || this.fireflyEntity.isOnGround()) {
+                    this.moveForward(1.2f, 1.5f, 0.85f);
+                }
+
+                // And also don't stay too high in the air
+                for (int i = 1; i < 4; i++) {
+                    isHighUp = !this.world.getBlockState(this.fireflyEntity.getPosition().down(i)).isSolid();
+                    if (!isHighUp) break;
+                }
+                if (isHighUp) {
+                    this.moveForward(1.2f, -2f, 0.85f);
+                }
+
+                // Try to not stay idle for more than a second.
+                if (this.prevBlockPos == this.fireflyEntity.getPosition()) {
+                    if (!this.moveForward(2f, this.fireflyEntity.rand.nextFloat(), 1f)) {
+                        this.moveForward(-2f, this.fireflyEntity.rand.nextFloat(), 1f);
+                    }
+                }
+                this.prevBlockPos = this.fireflyEntity.getPosition();
             }
         }
+    }
 
-        public boolean shouldExecute() {
-            return this.fireflyEntity.navigator.noPath();
+    private static class EntrancedByHoneyGoal extends MoveToBlockGoal {
+        private final FireflyEntity fireflyEntity;
+        private final World world;
+
+        private EntrancedByHoneyGoal(FireflyEntity fireflyEntity, double speed, int length) {
+            super(fireflyEntity, speed, length);
+            this.fireflyEntity = fireflyEntity;
+            this.world = fireflyEntity.world;
+        }
+
+        private Vector3d getDestinationBlockCentered() {
+            return new Vector3d(this.destinationBlock.getX() + 0.5f, this.destinationBlock.getY() + 0.5f, this.destinationBlock.getZ() + 0.5f);
+        }
+
+        private boolean isHoneyBlockVisible(BlockPos destinationBlock) {
+            BlockRayTraceResult rayTraceResult = this.world.rayTraceBlocks(new RayTraceContext(
+                    this.fireflyEntity.getPositionVec().add(0, this.fireflyEntity.getEyeHeight(), 0),
+                    new Vector3d(destinationBlock.getX() + 0.5f, destinationBlock.getY() + 0.5f, destinationBlock.getZ() + 0.5f),
+                    RayTraceContext.BlockMode.COLLIDER, RayTraceContext.FluidMode.NONE, this.fireflyEntity));
+
+            return this.fireflyEntity.world.getBlockState(rayTraceResult.getPos()).getBlock() instanceof HoneyBlock;
         }
 
         @Override
-        public boolean shouldContinueExecuting() {
-            return this.fireflyEntity.navigator.hasPath();
+        protected int getRunDelay(CreatureEntity creatureIn) {
+            return 20 + this.fireflyEntity.rand.nextInt(20);
         }
 
         @Override
         public void startExecuting() {
-            this.tryMoveToRandomLocation(this.fireflyEntity.getLook(0.0F));
+            super.startExecuting();
+            this.fireflyEntity.entrancedByHoney = true;
         }
 
-        private void tryMoveToRandomLocation(Vector3d angle) {
-            if (this.fireflyEntity.entrancedByHoney && this.fireflyEntity.honeyBlock != null) {
-                if (!(this.fireflyEntity.world.getBlockState(this.fireflyEntity.honeyBlock).getBlock() instanceof HoneyBlock)) {
-                    this.fireflyEntity.entrancedByHoney = false;
-                    this.fireflyEntity.honeyBlock = null;
-                    return;
-                }
+        @Override
+        public void resetTask() {
+            super.resetTask();
+            this.fireflyEntity.entrancedByHoney = false;
+        }
 
-                this.fireflyEntity.navigator.setPath(this.fireflyEntity.navigator.getPathToPos(this.fireflyEntity.honeyBlock, 1), 0.9f);
-                return;
+        @Override
+        public void tick() {
+            super.tick();
+            Vector3d destinationBlockCentered = this.getDestinationBlockCentered();
+            // Stare at the honey block.
+            this.fireflyEntity.getLookController()
+                    .setLookPosition(destinationBlockCentered.getX(), destinationBlockCentered.getY(), destinationBlockCentered.getZ(),
+                            this.fireflyEntity.getHorizontalFaceSpeed(), this.fireflyEntity.getVerticalFaceSpeed());
+
+            // Keep close to the honey block.
+            if (this.fireflyEntity.ticksExisted % 20 == 0 && this.fireflyEntity
+                    .getDistanceSq(destinationBlockCentered.getX(), destinationBlockCentered.getY(), destinationBlockCentered.getZ()) > 3f) {
+                this.attemptToMove();
             }
+        }
 
-            Vector3d vector3d = RandomPositionGenerator.findAirTarget(this.fireflyEntity, 3, 1, angle, ((float) Math.PI / 2F), 3, 1);
-            if (vector3d != null) {
-                BlockPos blockPos = new BlockPos(vector3d);
-                if (blockPos.getY() - this.currentBlock.getY() > 2)
-                    return;
-
-                if (this.fireflyEntity.world.getBlockState(blockPos).isSolid()) {
-                    blockPos = blockPos.up();
-                }
-
-                for (int i = 1; i < 10; i++) {
-                    if (i > 2 && !this.fireflyEntity.world.getBlockState(blockPos.down(i)).isSolid()) {
-                        blockPos = blockPos.down(i);
-                        break;
-                    }
-                }
-
-                this.fireflyEntity.navigator.setPath(this.fireflyEntity.navigator.getPathToPos(blockPos, 1), 0.75f);
-                // Debugging purposes lol
-                if (!this.fireflyEntity.world.isRemote) {
-                    ((ServerWorld) this.fireflyEntity.world).spawnParticle(ParticleTypes.FLAME, blockPos.getX(), blockPos.getY(), blockPos.getZ(),
-                            8, 0, 0, 0, 0);
-                }
+        @Override
+        protected boolean shouldMoveTo(IWorldReader worldReader, BlockPos blockPos) {
+            if (this.world.getBlockState(blockPos).getBlock() instanceof HoneyBlock && this.isHoneyBlockVisible(blockPos)) {
+                this.fireflyEntity.entrancedByHoney = true;
+                return true;
             }
+            return false;
+        }
+
+        @Override
+        protected void attemptToMove() {
+            Vector3d destinationBlockCentered = this.getDestinationBlockCentered();
+            this.fireflyEntity.getNavigator().tryMoveToXYZ(
+                    destinationBlockCentered.getX(), destinationBlockCentered.getY(), destinationBlockCentered.getZ(), this.movementSpeed);
         }
     }
 }

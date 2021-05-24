@@ -2,11 +2,12 @@ package fireflies.entity.firefly;
 
 import fireflies.Fireflies;
 import fireflies.client.DoClientStuff;
+import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 
-@Mod.EventBusSubscriber(modid = Fireflies.MOD_ID)
+@Mod.EventBusSubscriber(modid = Fireflies.MOD_ID, value = Dist.CLIENT)
 public class FireflyGlowSync {
     public static final FireflySyncedAnimation calmSyncedFireflies = new FireflySyncedAnimation();
     public static final FireflySyncedAnimation starryNightSyncedFireflies = new FireflySyncedAnimation();
@@ -16,7 +17,6 @@ public class FireflyGlowSync {
         if (event.phase == TickEvent.Phase.END // Runs on both START and END
                 || new DoClientStuff().isGamePaused())
             return;
-
 
         if (!calmSyncedFireflies.syncedFireflies.isEmpty()) {
             // outside the loop(s) so each firefly does not impact the odds
