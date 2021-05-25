@@ -34,7 +34,6 @@ public class FireflyAbdomenParticle extends SpriteTexturedParticle {
         }
     }
 
-    @Override
     public IParticleRenderType getRenderType() {
         return IParticleRenderType.PARTICLE_SHEET_TRANSLUCENT;
     }

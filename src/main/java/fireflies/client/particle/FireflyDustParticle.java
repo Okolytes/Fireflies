@@ -20,7 +20,7 @@ public class FireflyDustParticle extends SpriteTexturedParticle {
     }
 
     public IParticleRenderType getRenderType() {
-        return IParticleRenderType.PARTICLE_SHEET_TRANSLUCENT;
+        return IParticleRenderType.PARTICLE_SHEET_OPAQUE;
     }
 
     @Override
