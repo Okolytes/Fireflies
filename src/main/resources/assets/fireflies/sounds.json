@@ -1,7 +1,26 @@
 {
+  "firefly_hurt": {
+    "category": "entity",
+    "subtitle": "fireflies.subtitle.firefly_hurt",
+    "sounds": [
+      "fireflies:firefly_hurt_0",
+      "fireflies:firefly_hurt_1",
+      "fireflies:firefly_hurt_2"
+    ]
+  },
+  "firefly_death": {
+    "category": "entity",
+    "subtitle": "fireflies.subtitle.firefly_death",
+    "sounds": [ "fireflies:firefly_death" ]
+  },
   "firefly_flight_loop": {
     "category": "entity",
     "subtitle": "fireflies.subtitle.firefly_flight_loop",
     "sounds": [ "fireflies:firefly_flight_loop" ]
+  },
+  "firefly_apply_redstone": {
+    "category": "entity",
+    "subtitle": "fireflies.subtitle.firefly_apply_redstone",
+    "sounds": [ "fireflies:firefly_apply_redstone" ]
   }
 }

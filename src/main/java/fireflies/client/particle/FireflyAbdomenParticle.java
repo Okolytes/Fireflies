@@ -1,6 +1,7 @@
 package fireflies.client.particle;
 
 import fireflies.entity.firefly.FireflyAbdomenParticleData;
+import fireflies.entity.firefly.FireflyAbdomenRedstoneParticleData;
 import fireflies.entity.firefly.FireflyEntity;
 import net.minecraft.client.particle.*;
 import net.minecraft.client.world.ClientWorld;
@@ -16,22 +17,25 @@ public class FireflyAbdomenParticle extends SpriteTexturedParticle {
         super(clientWorld, x, y, z);
         this.fireflyEntity = fireflyEntity;
         this.particleScale = fireflyEntity.isChild() ? 0.2f : 0.45f;
-        this.maxAge = 1000; // Somethings probably gone wrong if its existed for this long.
+        // Somethings probably gone wrong if its existed for this long.
+        this.maxAge = this.fireflyEntity.isRedstoneActivated(true) ? Integer.MAX_VALUE : 1000;
+        this.fireflyEntity.abdomenParticle = this;
     }
 
     @Override
     public void tick() {
         super.tick();
 
-        this.particleAlpha = this.fireflyEntity.glowAlpha;
+        if (!this.fireflyEntity.isRedstoneActivated(true)) {
+            this.particleAlpha = this.fireflyEntity.glowAlpha;
+        }
 
         double[] pos = this.fireflyEntity.abdomenParticlePos();
         this.setPosition(pos[0], pos[1], pos[2]);
 
-        // Destroy when the alpha reaches 0 (or firefly gets removed)
-        if ((this.particleAlpha <= 0f && !this.fireflyEntity.glowIncreasing) || !this.fireflyEntity.isAlive()) {
+        // Destroy when the alpha reaches 0, or firefly dies
+        if ((this.particleAlpha <= 0f && !this.fireflyEntity.glowIncreasing) || !this.fireflyEntity.isAlive())
             this.setExpired();
-        }
     }
 
     public IParticleRenderType getRenderType() {
@@ -44,10 +48,10 @@ public class FireflyAbdomenParticle extends SpriteTexturedParticle {
     }
 
     @OnlyIn(Dist.CLIENT)
-    public static class Factory implements IParticleFactory<FireflyAbdomenParticleData> {
+    public static class AbdomenParticleFactory implements IParticleFactory<FireflyAbdomenParticleData> {
         private final IAnimatedSprite iAnimatedSprite;
 
-        public Factory(IAnimatedSprite iAnimatedSprite) {
+        public AbdomenParticleFactory(IAnimatedSprite iAnimatedSprite) {
             this.iAnimatedSprite = iAnimatedSprite;
         }
 
@@ -58,8 +62,29 @@ public class FireflyAbdomenParticle extends SpriteTexturedParticle {
                 return null;
 
             FireflyAbdomenParticle fireflyAbdomenParticle = new FireflyAbdomenParticle(clientWorld, x, y, z, (FireflyEntity) entity);
-            fireflyAbdomenParticle.selectSpriteRandomly(this.iAnimatedSprite);
+            fireflyAbdomenParticle.selectSpriteRandomly(iAnimatedSprite);
             fireflyAbdomenParticle.setAlphaF(0);
+            return fireflyAbdomenParticle;
+        }
+    }
+
+    @OnlyIn(Dist.CLIENT)
+    public static class AbdomenRedstoneParticleFactory implements IParticleFactory<FireflyAbdomenRedstoneParticleData> {
+        private final IAnimatedSprite iAnimatedSprite;
+
+        public AbdomenRedstoneParticleFactory(IAnimatedSprite iAnimatedSprite) {
+            this.iAnimatedSprite = iAnimatedSprite;
+        }
+
+        @Override
+        public Particle makeParticle(FireflyAbdomenRedstoneParticleData fireflyAbdomenRedstoneParticleData, ClientWorld clientWorld, double x, double y, double z, double xSpeed, double ySpeed, double zSpeed) {
+            Entity entity = clientWorld.getEntityByID(fireflyAbdomenRedstoneParticleData.fireflyId);
+            if (entity == null || !entity.isAlive() || !(entity instanceof FireflyEntity))
+                return null;
+
+            FireflyAbdomenParticle fireflyAbdomenParticle = new FireflyAbdomenParticle(clientWorld, x, y, z, (FireflyEntity) entity);
+            fireflyAbdomenParticle.selectSpriteRandomly(iAnimatedSprite);
+            fireflyAbdomenParticle.setAlphaF(1f);
             return fireflyAbdomenParticle;
         }
     }

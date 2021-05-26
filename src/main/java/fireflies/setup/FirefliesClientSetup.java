@@ -24,7 +24,9 @@ public class FirefliesClientSetup {
     @SubscribeEvent(priority = EventPriority.LOWEST)
     public static void registerParticles(ParticleFactoryRegisterEvent event) {
         ParticleManager particleManager = Minecraft.getInstance().particles;
-        particleManager.registerFactory(FirefliesRegistration.FIREFLY_DUST_PARTICLE.get(), FireflyDustParticle.Factory::new);
-        particleManager.registerFactory(FirefliesRegistration.FIREFLY_ABDOMEN_PARTICLE.get(), FireflyAbdomenParticle.Factory::new);
+        particleManager.registerFactory(FirefliesRegistration.FIREFLY_DUST_PARTICLE.get(), FireflyDustParticle.DustParticleFactory::new);
+        particleManager.registerFactory(FirefliesRegistration.FIREFLY_DUST_REDSTONE_PARTICLE.get(), FireflyDustParticle.DustRedstoneParticleFactory::new);
+        particleManager.registerFactory(FirefliesRegistration.FIREFLY_ABDOMEN_PARTICLE.get(), FireflyAbdomenParticle.AbdomenParticleFactory::new);
+        particleManager.registerFactory(FirefliesRegistration.FIREFLY_ABDOMEN_REDSTONE_PARTICLE.get(), FireflyAbdomenParticle.AbdomenRedstoneParticleFactory::new);
     }
 }

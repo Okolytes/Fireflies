@@ -15,7 +15,8 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 
 @OnlyIn(Dist.CLIENT)
 public class FireflyRenderer extends MobRenderer<FireflyEntity, FireflyModel<FireflyEntity>> {
-    private static final ResourceLocation TEXTURE = new ResourceLocation(Fireflies.MOD_ID, "textures/entity/firefly.png");
+    private static final ResourceLocation DEFAULT = new ResourceLocation(Fireflies.MOD_ID, "textures/entity/firefly.png");
+    private static final ResourceLocation REDSTONE = new ResourceLocation(Fireflies.MOD_ID, "textures/entity/firefly_redstone.png");
 
     public FireflyRenderer(EntityRendererManager manager) {
         super(manager, new FireflyModel<>(), 0.3f);
@@ -24,8 +25,8 @@ public class FireflyRenderer extends MobRenderer<FireflyEntity, FireflyModel<Fir
     }
 
     @Override
-    public ResourceLocation getEntityTexture(FireflyEntity entity) {
-        return TEXTURE;
+    public ResourceLocation getEntityTexture(FireflyEntity fireflyEntity) {
+        return fireflyEntity.isRedstoneActivated(true) ? REDSTONE : DEFAULT;
     }
 
     protected void applyRotations(FireflyEntity fireflyEntity, MatrixStack matrixStack, float ageInTicks, float rotationYaw, float partialTicks) {

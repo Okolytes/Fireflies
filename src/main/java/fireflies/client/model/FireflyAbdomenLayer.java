@@ -17,18 +17,24 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 @OnlyIn(Dist.CLIENT)
 public class FireflyAbdomenLayer<T extends FireflyEntity, M extends EntityModel<T>> extends LayerRenderer<T, M> {
     private static final ResourceLocation ABDOMEN = new ResourceLocation(Fireflies.MOD_ID, "textures/entity/firefly_layer_abdomen.png");
+    private static final ResourceLocation ABDOMEN_REDSTONE = new ResourceLocation(Fireflies.MOD_ID, "textures/entity/firefly_layer_abdomen_redstone.png");
 
     public FireflyAbdomenLayer(IEntityRenderer<T, M> entityRenderer) {
         super(entityRenderer);
     }
 
     @Override
-    public void render(MatrixStack matrixStackIn, IRenderTypeBuffer bufferIn, int packedLightIn, T firefly, float limbSwing, float limbSwingAmount, float partialTicks, float ageInTicks, float netHeadYaw, float headPitch) {
-        if (firefly.isInvisible())
+    protected ResourceLocation getEntityTexture(T fireflyEntity) {
+        return fireflyEntity.isRedstoneActivated(true) ? ABDOMEN_REDSTONE : ABDOMEN;
+    }
+
+    @Override
+    public void render(MatrixStack matrixStack, IRenderTypeBuffer buffer, int packedLight, T fireflyEntity, float limbSwing, float limbSwingAmount, float partialTicks, float ageInTicks, float netHeadYaw, float headPitch) {
+        if (fireflyEntity.isInvisible())
             return;
 
-        float glowAlpha = firefly.glowAlpha;
-        this.getEntityModel().render(matrixStackIn, bufferIn.getBuffer(RenderType.getEyes(ABDOMEN)), 15728640,
+        float glowAlpha = fireflyEntity.glowAlpha;
+        this.getEntityModel().render(matrixStack, buffer.getBuffer(RenderType.getEyes(this.getEntityTexture(fireflyEntity))), 15728640,
                 OverlayTexture.NO_OVERLAY, glowAlpha, glowAlpha, glowAlpha, glowAlpha);
     }
 }

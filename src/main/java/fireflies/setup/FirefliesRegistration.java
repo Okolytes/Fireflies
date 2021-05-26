@@ -2,6 +2,7 @@ package fireflies.setup;
 
 import fireflies.Fireflies;
 import fireflies.entity.firefly.FireflyAbdomenParticleData;
+import fireflies.entity.firefly.FireflyAbdomenRedstoneParticleData;
 import fireflies.entity.firefly.FireflyEntity;
 import net.minecraft.block.Block;
 import net.minecraft.block.DispenserBlock;
@@ -41,16 +42,19 @@ public class FirefliesRegistration {
             .trackingRange(10)
             .build("firefly");
 
-    private static final Item FIREFLY_SPAWN_EGG = new SpawnEggItem(FIREFLY_BUILDER, 0x330400, 0x3E3E5B, new Item.Properties().group(ItemGroup.MISC))
-            .setRegistryName(Fireflies.MOD_ID, "firefly_spawn_egg");
+    private static final Item FIREFLY_SPAWN_EGG = new SpawnEggItem(FIREFLY_BUILDER, 0x5B1313, 0xF7DD36, new Item.Properties().group(ItemGroup.MISC)).setRegistryName(Fireflies.MOD_ID, "firefly_spawn_egg");
 
     public static final RegistryObject<EntityType<FireflyEntity>> FIREFLY = ENTITIES.register("firefly", () -> FIREFLY_BUILDER);
 
     public static final RegistryObject<BasicParticleType> FIREFLY_DUST_PARTICLE = PARTICLES.register("firefly_dust_particle", () -> new BasicParticleType(false));
+    public static final RegistryObject<BasicParticleType> FIREFLY_DUST_REDSTONE_PARTICLE = PARTICLES.register("firefly_dust_redstone_particle", () -> new BasicParticleType(false));
     public static final RegistryObject<ParticleType<FireflyAbdomenParticleData>> FIREFLY_ABDOMEN_PARTICLE = PARTICLES.register("firefly_abdomen_particle", FireflyAbdomenParticleData::get);
+    public static final RegistryObject<ParticleType<FireflyAbdomenRedstoneParticleData>> FIREFLY_ABDOMEN_REDSTONE_PARTICLE = PARTICLES.register("firefly_abdomen_redstone_particle", FireflyAbdomenRedstoneParticleData::get);
 
-    public static final RegistryObject<SoundEvent> FIREFLY_FLIGHT_LOOP = SOUNDS.register("firefly_flight_loop",
-            () -> new SoundEvent(new ResourceLocation(Fireflies.MOD_ID, "firefly_flight_loop")));
+    public static final RegistryObject<SoundEvent> FIREFLY_HURT = registerSoundEvent("firefly_hurt");
+    public static final RegistryObject<SoundEvent> FIREFLY_DEATH = registerSoundEvent("firefly_death");
+    public static final RegistryObject<SoundEvent> FIREFLY_FLIGHT_LOOP = registerSoundEvent("firefly_flight_loop");
+    public static final RegistryObject<SoundEvent> FIREFLY_APPLY_REDSTONE = registerSoundEvent("firefly_apply_redstone");
 
     public static void init() {
         IEventBus iEventBus = FMLJavaModLoadingContext.get().getModEventBus();
@@ -67,19 +71,25 @@ public class FirefliesRegistration {
                 FIREFLY_SPAWN_EGG
         );
 
-        // IDispenseItemBehavior#init L192
+        // Registers the spawn egg's dispenser behaviour.
+        // Taken from IDispenseItemBehavior#init L192
         DefaultDispenseItemBehavior defaultDispenseItemBehavior = new DefaultDispenseItemBehavior() {
             /**
              * Dispense the specified stack, play the dispense sound and spawn particles.
              */
             public ItemStack dispenseStack(IBlockSource source, ItemStack stack) {
                 Direction direction = source.getBlockState().get(DispenserBlock.FACING);
-                EntityType<?> entitytype = ((SpawnEggItem) stack.getItem()).getType(stack.getTag());
-                entitytype.spawn(source.getWorld(), stack, null, source.getBlockPos().offset(direction), SpawnReason.DISPENSER, direction != Direction.UP, false);
+                EntityType<?> entityType = ((SpawnEggItem) stack.getItem()).getType(stack.getTag());
+                entityType.spawn(source.getWorld(), stack, null, source.getBlockPos().offset(direction), SpawnReason.DISPENSER, direction != Direction.UP, false);
                 stack.shrink(1);
                 return stack;
             }
         };
         DispenserBlock.registerDispenseBehavior(FIREFLY_SPAWN_EGG, defaultDispenseItemBehavior);
+    }
+
+    private static RegistryObject<SoundEvent> registerSoundEvent(String name) {
+        // Less C+P
+        return SOUNDS.register(name, () -> new SoundEvent(new ResourceLocation(Fireflies.MOD_ID, name)));
     }
 }
