@@ -13,6 +13,16 @@
     "subtitle": "fireflies.subtitle.firefly_death",
     "sounds": [ "fireflies:firefly_death" ]
   },
+  "firefly_glow": {
+    "category": "entity",
+    "subtitle": "fireflies.subtitle.firefly_glow",
+    "sounds": [
+      "fireflies:firefly_glow_0",
+      "fireflies:firefly_glow_1",
+      "fireflies:firefly_glow_2",
+      "fireflies:firefly_glow_3"
+    ]
+  },
   "firefly_flight_loop": {
     "category": "entity",
     "subtitle": "fireflies.subtitle.firefly_flight_loop",

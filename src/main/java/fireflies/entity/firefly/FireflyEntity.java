@@ -3,7 +3,9 @@ package fireflies.entity.firefly;
 import fireflies.client.DoClientStuff;
 import fireflies.client.particle.FireflyAbdomenParticle;
 import fireflies.setup.FirefliesRegistration;
-import net.minecraft.block.*;
+import net.minecraft.block.BlockState;
+import net.minecraft.block.HoneyBlock;
+import net.minecraft.block.LeavesBlock;
 import net.minecraft.entity.*;
 import net.minecraft.entity.ai.RandomPositionGenerator;
 import net.minecraft.entity.ai.attributes.AttributeModifierMap;
@@ -206,6 +208,10 @@ public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
         }
     }
 
+    public void playGlowSound() {
+        //this.world.playSound(this.getPosX(), this.getPosY(), this.getPosZ(), FirefliesRegistration.FIREFLY_GLOW.get(), SoundCategory.NEUTRAL, 0.33f, 1, false);
+    }
+
     private void glowAnimation(float increaseAmount, float decreaseAmount, float startIncreasingChance, float startDecreasingChance) {
         // Add / deplete the glow alpha, baby fireflies go a little faster.
         this.glowAlpha += this.glowIncreasing
@@ -220,6 +226,7 @@ public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
             this.glowAlpha = 1;
             if (this.rand.nextFloat() <= startDecreasingChance) {
                 this.glowIncreasing = false;
+                this.playGlowSound();
             }
         }
     }
@@ -256,7 +263,7 @@ public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
     /**
      * Keeps up with the bobbing animation of the firefly.
      *
-     * @return the precise position of where the abdomen particle should spawn.
+     * @return the precise position of where the abdomen particle should spawn / move to.
      */
     public double[] abdomenParticlePos() {
         return new double[]{
@@ -449,7 +456,7 @@ public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
     @Override
     public boolean attackEntityFrom(DamageSource source, float amount) {
         // puff out some particles on hit, the amount depending on damage.
-        if (this.world.isRemote && this.glowAlpha > 0.25f) {
+        if (this.world.isRemote) {
             for (int i = 0; i < (int) MathHelper.clamp(amount, 2, 5); i++) {
                 this.world.addParticle(
                         this.isRedstoneActivated(false) ? FirefliesRegistration.FIREFLY_DUST_REDSTONE_PARTICLE.get() : FirefliesRegistration.FIREFLY_DUST_PARTICLE.get(),

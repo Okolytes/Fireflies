@@ -53,6 +53,7 @@ public class FirefliesRegistration {
 
     public static final RegistryObject<SoundEvent> FIREFLY_HURT = registerSoundEvent("firefly_hurt");
     public static final RegistryObject<SoundEvent> FIREFLY_DEATH = registerSoundEvent("firefly_death");
+    public static final RegistryObject<SoundEvent> FIREFLY_GLOW = registerSoundEvent("firefly_glow");
     public static final RegistryObject<SoundEvent> FIREFLY_FLIGHT_LOOP = registerSoundEvent("firefly_flight_loop");
     public static final RegistryObject<SoundEvent> FIREFLY_APPLY_REDSTONE = registerSoundEvent("firefly_apply_redstone");
 

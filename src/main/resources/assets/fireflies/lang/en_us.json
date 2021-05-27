@@ -3,6 +3,7 @@
   "entity.fireflies.firefly": "Firefly",
   "fireflies.subtitle.firefly_hurt": "Firefly hurts",
   "fireflies.subtitle.firefly_death": "Firefly dies",
+  "fireflies.subtitle.firefly_glow": "Firefly glows",
   "fireflies.subtitle.firefly_flight_loop": "Firefly buzzes",
   "fireflies.subtitle.firefly_apply_redstone": "Firefly transforms"
 }

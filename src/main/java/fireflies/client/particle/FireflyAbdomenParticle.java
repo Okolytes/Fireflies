@@ -30,6 +30,7 @@ public class FireflyAbdomenParticle extends SpriteTexturedParticle {
             this.particleAlpha = this.fireflyEntity.glowAlpha;
         }
 
+        // Keep at the exact point of the abdomen
         double[] pos = this.fireflyEntity.abdomenParticlePos();
         this.setPosition(pos[0], pos[1], pos[2]);
 

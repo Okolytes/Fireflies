@@ -1,5 +1,9 @@
 package fireflies.entity.firefly;
 
+import fireflies.setup.FirefliesRegistration;
+import net.minecraft.util.SoundCategory;
+import net.minecraft.util.math.MathHelper;
+
 import java.util.ArrayList;
 
 public class FireflySyncedAnimation {
@@ -19,6 +23,9 @@ public class FireflySyncedAnimation {
             this.glowAlpha = 1;
             if (tryStartDecreasing) {
                 this.glowIncreasing = false;
+                fireflyEntity.world.playSound(fireflyEntity.getPosX(), fireflyEntity.getPosY(), fireflyEntity.getPosZ(), FirefliesRegistration.FIREFLY_GLOW.get(), SoundCategory.NEUTRAL,
+                        MathHelper.nextFloat(fireflyEntity.world.rand, 0.25f, 0.5f), MathHelper.nextFloat(fireflyEntity.world.rand, 1f, 1.2f),
+                        true);
             }
         }
         fireflyEntity.glowAlpha = this.glowAlpha;
