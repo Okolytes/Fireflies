@@ -15,18 +15,18 @@ import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
 
 @Mod.EventBusSubscriber(modid = Fireflies.MOD_ID, value = Dist.CLIENT, bus = Mod.EventBusSubscriber.Bus.MOD)
-public class FirefliesClientSetup {
+public class ClientSetup {
 
     public static void init(final FMLClientSetupEvent event) {
-        RenderingRegistry.registerEntityRenderingHandler(FirefliesRegistration.FIREFLY.get(), FireflyRenderer::new);
+        RenderingRegistry.registerEntityRenderingHandler(Registry.FIREFLY.get(), FireflyRenderer::new);
     }
 
     @SubscribeEvent(priority = EventPriority.LOWEST)
     public static void registerParticles(ParticleFactoryRegisterEvent event) {
         ParticleManager particleManager = Minecraft.getInstance().particles;
-        particleManager.registerFactory(FirefliesRegistration.FIREFLY_DUST_PARTICLE.get(), FireflyDustParticle.DustParticleFactory::new);
-        particleManager.registerFactory(FirefliesRegistration.FIREFLY_DUST_REDSTONE_PARTICLE.get(), FireflyDustParticle.DustRedstoneParticleFactory::new);
-        particleManager.registerFactory(FirefliesRegistration.FIREFLY_ABDOMEN_PARTICLE.get(), FireflyAbdomenParticle.AbdomenParticleFactory::new);
-        particleManager.registerFactory(FirefliesRegistration.FIREFLY_ABDOMEN_REDSTONE_PARTICLE.get(), FireflyAbdomenParticle.AbdomenRedstoneParticleFactory::new);
+        particleManager.registerFactory(Registry.FIREFLY_DUST_PARTICLE.get(), FireflyDustParticle.DustParticleFactory::new);
+        particleManager.registerFactory(Registry.FIREFLY_DUST_REDSTONE_PARTICLE.get(), FireflyDustParticle.DustRedstoneParticleFactory::new);
+        particleManager.registerFactory(Registry.FIREFLY_ABDOMEN_PARTICLE.get(), FireflyAbdomenParticle.AbdomenParticleFactory::new);
+        particleManager.registerFactory(Registry.FIREFLY_ABDOMEN_REDSTONE_PARTICLE.get(), FireflyAbdomenParticle.AbdomenRedstoneParticleFactory::new);
     }
 }

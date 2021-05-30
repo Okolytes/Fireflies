@@ -7,11 +7,11 @@ import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 
 @Mod.EventBusSubscriber(modid = Fireflies.MOD_ID, bus = Mod.EventBusSubscriber.Bus.FORGE)
-public class FirefliesSetup {
+public class Setup {
 
     public static void init(final FMLCommonSetupEvent event) {
         event.enqueueWork(() -> {
-            GlobalEntityTypeAttributes.put(FirefliesRegistration.FIREFLY.get(), FireflyEntity.createAttributes().create());
+            GlobalEntityTypeAttributes.put(Registry.FIREFLY.get(), FireflyEntity.createAttributes().create());
         });
     }
 }

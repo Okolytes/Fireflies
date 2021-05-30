@@ -1,0 +1,19 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    " # ",
+    "#$#",
+    " # "
+  ],
+  "key": {
+    "#": {
+      "item": "minecraft:redstone"
+    },
+    "$": {
+      "item": "fireflies:illumerin_block"
+    }
+  },
+  "result": {
+    "item": "fireflies:redstone_illumerin_block"
+  }
+}

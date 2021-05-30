@@ -3,7 +3,7 @@ package fireflies.entity.firefly;
 import com.mojang.brigadier.StringReader;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.serialization.Codec;
-import fireflies.setup.FirefliesRegistration;
+import fireflies.setup.Registry;
 import net.minecraft.network.PacketBuffer;
 import net.minecraft.particles.IParticleData;
 import net.minecraft.particles.ParticleType;
@@ -36,7 +36,7 @@ public class FireflyAbdomenRedstoneParticleData implements IParticleData {
 
     @Override
     public ParticleType<?> getType() {
-        return FirefliesRegistration.FIREFLY_ABDOMEN_REDSTONE_PARTICLE.get();
+        return Registry.FIREFLY_ABDOMEN_REDSTONE_PARTICLE.get();
     }
 
     @Override

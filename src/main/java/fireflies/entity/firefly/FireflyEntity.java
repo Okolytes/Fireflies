@@ -1,8 +1,9 @@
 package fireflies.entity.firefly;
 
+import fireflies.block.RedstoneIllumerinBlock;
 import fireflies.client.DoClientStuff;
 import fireflies.client.particle.FireflyAbdomenParticle;
-import fireflies.setup.FirefliesRegistration;
+import fireflies.setup.Registry;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.HoneyBlock;
 import net.minecraft.block.LeavesBlock;
@@ -43,6 +44,7 @@ import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
 import javax.annotation.Nullable;
+import java.util.ArrayList;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -57,6 +59,8 @@ public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
     private boolean entrancedByHoney;
     private boolean isRedstoneActivatedDelayed;
     private static final DataParameter<Boolean> REDSTONE_ACTIVATED = EntityDataManager.createKey(FireflyEntity.class, DataSerializers.BOOLEAN);
+    private static final int ILLUMERIN_RADIUS = 5;
+    private final ArrayList<BlockPos> illumerinBlocks = new ArrayList<>(125); // 5*5*5 = 125
 
     public FireflyEntity(EntityType<? extends FireflyEntity> entityType, World world) {
         super(entityType, world);
@@ -69,7 +73,7 @@ public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
     }
 
     public FireflyEntity createChild(ServerWorld serverWorld, AgeableEntity ageableEntity) {
-        return FirefliesRegistration.FIREFLY.get().create(serverWorld);
+        return Registry.FIREFLY.get().create(serverWorld);
     }
 
     public static AttributeModifierMap.MutableAttribute createAttributes() {
@@ -300,7 +304,7 @@ public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
 
             float randPos = this.isChild() ? 0f : MathHelper.nextFloat(this.rand, -0.2f, 0.2f);
             this.world.addParticle(this.isRedstoneActivated(true)
-                            ? FirefliesRegistration.FIREFLY_DUST_REDSTONE_PARTICLE.get() : FirefliesRegistration.FIREFLY_DUST_PARTICLE.get(),
+                            ? Registry.FIREFLY_DUST_REDSTONE_PARTICLE.get() : Registry.FIREFLY_DUST_PARTICLE.get(),
                     vector3d.x + randPos, vector3d.y + 1.35f + randPos, vector3d.z + randPos,
                     vector3d2.x, vector3d2.y * -16, vector3d2.z);
         }
@@ -316,8 +320,49 @@ public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
         return !this.world.getDimensionType().doesFixedTimeExist() && skylightSubtracted < 4;
     }
 
-    private void doRedstoneStuff() {
-        // ... Like what?
+    private void activateIllumerinBlocks() {
+        // Activate redstone illumerin blocks in a radius
+        for (double x = this.getPosX() - ILLUMERIN_RADIUS; x < this.getPosX() + ILLUMERIN_RADIUS; x++) {
+            for (double y = this.getPosY() - ILLUMERIN_RADIUS; y < this.getPosY() + ILLUMERIN_RADIUS; y++) {
+                for (double z = this.getPosZ() - ILLUMERIN_RADIUS; z < this.getPosZ() + ILLUMERIN_RADIUS; z++) {
+                    BlockPos pos = new BlockPos(x, y, z);
+                    if (pos.distanceSq(this.getPosition()) > ILLUMERIN_RADIUS * ILLUMERIN_RADIUS)
+                        continue;
+
+                    BlockState state = this.world.getBlockState(pos);
+                    if (state.getBlock() instanceof RedstoneIllumerinBlock && !state.get(RedstoneIllumerinBlock.LOCKED)) {
+                        this.world.setBlockState(pos,
+                                state.with(RedstoneIllumerinBlock.LOCKED, Boolean.TRUE).with(RedstoneIllumerinBlock.POWERED, Boolean.TRUE), 3);
+                        this.illumerinBlocks.add(pos);
+                    }
+                }
+            }
+        }
+    }
+
+    private void removeInvalidIllumerinBlocks() {
+        this.illumerinBlocks.removeIf(pos -> {
+            BlockState state = this.world.getBlockState(pos);
+            // Remove if no longer a illumerin block
+            if (!(state.getBlock() instanceof RedstoneIllumerinBlock)) {
+                return true;
+            }
+
+            // Remove if out of range
+            if (pos.distanceSq(this.getPosition()) > ILLUMERIN_RADIUS * ILLUMERIN_RADIUS) {
+                this.world.setBlockState(pos, state.with(RedstoneIllumerinBlock.LOCKED, Boolean.FALSE), 3);
+                this.world.getPendingBlockTicks().scheduleTick(pos, state.getBlock(), 1);
+                return true;
+            }
+
+            // Remove if we dead
+            if(!this.isAlive()) {
+                this.world.setBlockState(pos, state.with(RedstoneIllumerinBlock.LOCKED, Boolean.FALSE), 3);
+                this.world.getPendingBlockTicks().scheduleTick(pos, state.getBlock(), 1);
+            }
+
+            return false;
+        });
     }
 
     @Override
@@ -339,8 +384,11 @@ public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
                     this.spawnAbdomenParticle();
                 }
             }
-        } else if (this.isRedstoneActivated(true) && this.ticksExisted % 10 == 0) {
-            this.doRedstoneStuff();
+        } else if (this.isRedstoneActivated(true)) {
+            if (this.ticksExisted % 10 == 0) {
+                this.removeInvalidIllumerinBlocks();
+                this.activateIllumerinBlocks();
+            }
         }
     }
 
@@ -378,6 +426,8 @@ public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
             // Remove ourselves from all the synced lists, if any.
             FireflyGlowSync.calmSyncedFireflies.syncedFireflies.remove(this);
             FireflyGlowSync.starryNightSyncedFireflies.syncedFireflies.remove(this);
+        } else {
+            this.removeInvalidIllumerinBlocks();
         }
     }
 
@@ -407,7 +457,7 @@ public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
                 this.spawnRedstoneParticlePuff(5 + this.rand.nextInt(5), 1f);
             } else {
                 // Play the conversion sound to the client
-                player.playSound(FirefliesRegistration.FIREFLY_APPLY_REDSTONE.get(), 1f, 1f);
+                player.playSound(Registry.FIREFLY_APPLY_REDSTONE.get(), 1f, 1f);
                 // Destroy the current abdomen particle.
                 if (this.abdomenParticle != null) this.abdomenParticle.setExpired();
                 // Spawn the new redstone abdomen particle.
@@ -425,12 +475,12 @@ public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
 
     @Override
     protected SoundEvent getHurtSound(DamageSource damageSource) {
-        return FirefliesRegistration.FIREFLY_HURT.get();
+        return Registry.FIREFLY_HURT.get();
     }
 
     @Override
     protected SoundEvent getDeathSound() {
-        return FirefliesRegistration.FIREFLY_DEATH.get();
+        return Registry.FIREFLY_DEATH.get();
     }
 
     @Override
@@ -459,7 +509,7 @@ public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
         if (this.world.isRemote) {
             for (int i = 0; i < (int) MathHelper.clamp(amount, 2, 5); i++) {
                 this.world.addParticle(
-                        this.isRedstoneActivated(false) ? FirefliesRegistration.FIREFLY_DUST_REDSTONE_PARTICLE.get() : FirefliesRegistration.FIREFLY_DUST_PARTICLE.get(),
+                        this.isRedstoneActivated(false) ? Registry.FIREFLY_DUST_REDSTONE_PARTICLE.get() : Registry.FIREFLY_DUST_PARTICLE.get(),
                         this.getPosX(), this.getPosY(), this.getPosZ(), 0, 0, 0);
             }
         }

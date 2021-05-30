@@ -1,7 +1,7 @@
 package fireflies.client.sound;
 
 import fireflies.entity.firefly.FireflyEntity;
-import fireflies.setup.FirefliesRegistration;
+import fireflies.setup.Registry;
 import net.minecraft.client.audio.TickableSound;
 import net.minecraft.entity.Entity;
 import net.minecraft.util.SoundCategory;
@@ -15,7 +15,7 @@ public class FireflyFlightLoopSound extends TickableSound {
     private final FireflyEntity fireflyEntity;
 
     public FireflyFlightLoopSound(FireflyEntity fireflyEntity) {
-        super(FirefliesRegistration.FIREFLY_FLIGHT_LOOP.get(), SoundCategory.NEUTRAL);
+        super(Registry.FIREFLY_FLIGHT_LOOP.get(), SoundCategory.NEUTRAL);
         this.fireflyEntity = fireflyEntity;
         this.x = fireflyEntity.getPosX();
         this.y = fireflyEntity.getPosY();
