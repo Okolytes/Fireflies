@@ -30,14 +30,9 @@ public class RedstoneIllumerinBlock extends IllumerinBlock {
         if (flag != state.get(POWERED)) {
             world.setBlockState(pos, state.with(POWERED, flag), 3);
         }
-
-        if (state.get(POWERED)) {
-            addBounds(pos);
-        } else {
-            ILLUMERIN_BOUNDS.remove(getBounds(pos));
-        }
     }
 
+    @SuppressWarnings("deprecation")
     @Override
     public void tick(BlockState state, ServerWorld worldIn, BlockPos pos, Random rand) {
         super.tick(state, worldIn, pos, rand);
@@ -47,6 +42,7 @@ public class RedstoneIllumerinBlock extends IllumerinBlock {
     @SuppressWarnings("deprecation")
     @Override
     public void neighborChanged(BlockState state, World worldIn, BlockPos pos, Block blockIn, BlockPos fromPos, boolean isMoving) {
+        super.neighborChanged(state, worldIn, pos, blockIn, fromPos, isMoving);
         this.updatePower(pos, worldIn, state);
     }
 
@@ -60,18 +56,16 @@ public class RedstoneIllumerinBlock extends IllumerinBlock {
         return state;
     }
 
+    @SuppressWarnings("deprecation")
     @Override
-    public void onReplaced(BlockState state, World worldIn, BlockPos pos, BlockState newState, boolean isMoving) {
+    public void onReplaced(BlockState state, World world, BlockPos pos, BlockState newState, boolean isMoving) {
         if (!state.matchesBlock(newState.getBlock())) {
             if (state.get(POWERED)) {
-                worldIn.notifyNeighborsOfStateChange(pos, this);
-                addBounds(pos);
-            } else {
-                ILLUMERIN_BOUNDS.remove(getBounds(pos));
+                world.notifyNeighborsOfStateChange(pos, this);
             }
         }
 
-        super.onReplaced(state, worldIn, pos, newState, isMoving);
+        super.onReplaced(state, world, pos, newState, isMoving);
     }
 
     @SuppressWarnings("deprecation")

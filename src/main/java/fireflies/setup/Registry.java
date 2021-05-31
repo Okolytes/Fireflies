@@ -2,7 +2,6 @@ package fireflies.setup;
 
 import fireflies.Fireflies;
 import fireflies.block.IllumerinBlock;
-import fireflies.block.IllumerinBlockTile;
 import fireflies.block.RedstoneIllumerinBlock;
 import fireflies.entity.firefly.FireflyAbdomenParticleData;
 import fireflies.entity.firefly.FireflyAbdomenRedstoneParticleData;
@@ -42,7 +41,6 @@ public class Registry {
     //region Blocks / Tiles / BlockItems
     public static final RegistryObject<Block> ILLUMERIN_BLOCK = BLOCKS.register("illumerin_block", IllumerinBlock::new);
     public static final RegistryObject<Item> ILLUMERIN_BLOCKITEM = ITEMS.register("illumerin_block", () -> new BlockItem(ILLUMERIN_BLOCK.get(), new Item.Properties().group(ItemGroup.DECORATIONS)));
-    public static final RegistryObject<TileEntityType<IllumerinBlockTile>> ILLUMERIN_BLOCK_TILE = TILE_ENTITIES.register("illumerin_block", () -> TileEntityType.Builder.create(IllumerinBlockTile::new, ILLUMERIN_BLOCK.get()).build(null));
 
     public static final RegistryObject<Block> REDSTONE_ILLUMERIN_BLOCK = BLOCKS.register("redstone_illumerin_block", RedstoneIllumerinBlock::new);
     public static final RegistryObject<Item> REDSTONE_ILLUMERIN_BLOCKITEM = ITEMS.register("redstone_illumerin_block", () -> new BlockItem(REDSTONE_ILLUMERIN_BLOCK.get(), new Item.Properties().group(ItemGroup.REDSTONE)));

@@ -58,9 +58,9 @@ public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
     private int isInRain;
     private boolean entrancedByHoney;
     private boolean isRedstoneActivatedDelayed;
-    private static final DataParameter<Boolean> REDSTONE_ACTIVATED = EntityDataManager.createKey(FireflyEntity.class, DataSerializers.BOOLEAN);
     private static final int ILLUMERIN_RADIUS = 5;
-    private final ArrayList<BlockPos> illumerinBlocks = new ArrayList<>(125); // 5*5*5 = 125
+    private final ArrayList<BlockPos> illumerinBlocks = new ArrayList<>(ILLUMERIN_RADIUS * ILLUMERIN_RADIUS * ILLUMERIN_RADIUS);
+    private static final DataParameter<Boolean> REDSTONE_ACTIVATED = EntityDataManager.createKey(FireflyEntity.class, DataSerializers.BOOLEAN);
 
     public FireflyEntity(EntityType<? extends FireflyEntity> entityType, World world) {
         super(entityType, world);
@@ -326,13 +326,12 @@ public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
             for (double y = this.getPosY() - ILLUMERIN_RADIUS; y < this.getPosY() + ILLUMERIN_RADIUS; y++) {
                 for (double z = this.getPosZ() - ILLUMERIN_RADIUS; z < this.getPosZ() + ILLUMERIN_RADIUS; z++) {
                     BlockPos pos = new BlockPos(x, y, z);
-                    if (pos.distanceSq(this.getPosition()) > ILLUMERIN_RADIUS * ILLUMERIN_RADIUS)
+                    if (!pos.withinDistance(this.getPosition(), ILLUMERIN_RADIUS))
                         continue;
 
                     BlockState state = this.world.getBlockState(pos);
                     if (state.getBlock() instanceof RedstoneIllumerinBlock && !state.get(RedstoneIllumerinBlock.LOCKED)) {
-                        this.world.setBlockState(pos,
-                                state.with(RedstoneIllumerinBlock.LOCKED, Boolean.TRUE).with(RedstoneIllumerinBlock.POWERED, Boolean.TRUE), 3);
+                        this.world.setBlockState(pos, state.with(RedstoneIllumerinBlock.LOCKED, Boolean.TRUE).with(RedstoneIllumerinBlock.POWERED, Boolean.TRUE), 3);
                         this.illumerinBlocks.add(pos);
                     }
                 }
@@ -356,7 +355,7 @@ public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
             }
 
             // Remove if we dead
-            if(!this.isAlive()) {
+            if (!this.isAlive()) {
                 this.world.setBlockState(pos, state.with(RedstoneIllumerinBlock.LOCKED, Boolean.FALSE), 3);
                 this.world.getPendingBlockTicks().scheduleTick(pos, state.getBlock(), 1);
             }
