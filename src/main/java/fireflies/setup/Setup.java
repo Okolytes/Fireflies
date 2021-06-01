@@ -10,6 +10,7 @@ import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 public class Setup {
 
     public static void init(final FMLCommonSetupEvent event) {
+        // Register all of our entity attributes
         event.enqueueWork(() -> {
             GlobalEntityTypeAttributes.put(Registry.FIREFLY.get(), FireflyEntity.createAttributes().create());
         });

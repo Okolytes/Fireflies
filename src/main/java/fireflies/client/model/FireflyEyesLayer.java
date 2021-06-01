@@ -23,7 +23,7 @@ public class FireflyEyesLayer<T extends FireflyEntity, M extends FireflyModel<T>
 
     @Override
     protected ResourceLocation getEntityTexture(T fireflyEntity) {
-        return fireflyEntity.isRedstoneActivated(true) ? EYES_REDSTONE : EYES;
+        return fireflyEntity.isRedstoneCoated(true) ? EYES_REDSTONE : EYES;
     }
 
     @Override

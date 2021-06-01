@@ -2,7 +2,6 @@ package fireflies.entity.firefly;
 
 import fireflies.block.RedstoneIllumerinBlock;
 import fireflies.client.DoClientStuff;
-import fireflies.client.particle.FireflyAbdomenParticle;
 import fireflies.setup.Registry;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.HoneyBlock;
@@ -49,18 +48,46 @@ import java.util.Objects;
 import java.util.Optional;
 
 public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
+    /**
+     * (Client) The current animation this firefly has.
+     */
     public FireflyAbdomenAnimation abdomenAnimation;
-    public FireflyAbdomenParticle abdomenParticle;
+    /**
+     * (Client) The current alpha of the abdomen overlay on the firefly.
+     */
     public float glowAlpha;
-    public boolean glowIncreasing;
-    public float abdomenParticlePositionOffset;
+    /**
+     * (Client) Is the glow alpha increasing or decreasing?
+     */
+    public boolean isGlowIncreasing;
+    /**
+     * How many ticks this firefly has been underwater for, used to start taking damage & converting from redstone firefly after 20 ticks.
+     */
     private int underWaterTicks;
-    private int isInRain;
-    private boolean entrancedByHoney;
-    private boolean isRedstoneActivatedDelayed;
+    /**
+     * How many ticks this firefly has been rained on for, used for converting from redstone firefly after 20 ticks.
+     */
+    private int rainedOnTicks;
+    /**
+     * Is this fireflies current goal to pathfind towards honey?
+     */
+    private boolean isEntrancedByHoney;
+    /**
+     * Used for checking if the current firefly is redstone coated, this is updated every 20 ticks.
+     */
+    private boolean prevIsRedstoneCoated;
+    /**
+     * The radius (spherical) of which redstone illumerin blocks can be activated.
+     */
     private static final int ILLUMERIN_RADIUS = 5;
+    /**
+     * A list of redstone illumerin blocks this firefly is currently activating.
+     */
     private final ArrayList<BlockPos> illumerinBlocks = new ArrayList<>(ILLUMERIN_RADIUS * ILLUMERIN_RADIUS * ILLUMERIN_RADIUS);
-    private static final DataParameter<Boolean> REDSTONE_ACTIVATED = EntityDataManager.createKey(FireflyEntity.class, DataSerializers.BOOLEAN);
+    /**
+     * DataParameter for if this firefly is redstone activated or not.
+     */
+    private static final DataParameter<Boolean> IS_REDSTONE_COATED = EntityDataManager.createKey(FireflyEntity.class, DataSerializers.BOOLEAN);
 
     public FireflyEntity(EntityType<? extends FireflyEntity> entityType, World world) {
         super(entityType, world);
@@ -86,42 +113,59 @@ public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
 
     @Override
     protected void registerData() {
+        // Register our DataParameters.
         super.registerData();
-        this.dataManager.register(REDSTONE_ACTIVATED, false);
+        this.dataManager.register(IS_REDSTONE_COATED, false);
     }
 
-    public boolean isRedstoneActivated(boolean delayed) {
+    /**
+     * Get the value of {@link FireflyEntity#IS_REDSTONE_COATED}
+     *
+     * @param delayed If true, this method will return the cached value of {@link FireflyEntity#IS_REDSTONE_COATED}, the cache is updated every 20 ticks.
+     * @return The DataParameter's value or the cached value, depending on the delayed parameter.
+     */
+    public boolean isRedstoneCoated(boolean delayed) {
         // I don't know what the performance implications are of getting a DataParameter value every frame & tick,
         // so I'm doing this just to be on the safe side ¯\_(ツ)_/¯
         if (delayed) {
+            // Update the cached value
+            // For the first 3 ticks it will return the actual current value, so things don't look screwy.
             if (this.ticksExisted % 20 == 0 || this.ticksExisted < 3) {
-                this.isRedstoneActivatedDelayed = this.dataManager.get(REDSTONE_ACTIVATED);
+                this.prevIsRedstoneCoated = this.dataManager.get(IS_REDSTONE_COATED);
             }
-            return this.isRedstoneActivatedDelayed;
-        } else {
-            return this.dataManager.get(REDSTONE_ACTIVATED);
+            return this.prevIsRedstoneCoated;
         }
+
+        return this.dataManager.get(IS_REDSTONE_COATED);
     }
 
-    public void setRedstoneActivated(boolean b) {
-        this.isRedstoneActivatedDelayed = b;
-        this.dataManager.set(REDSTONE_ACTIVATED, b);
+    /**
+     * Update {@link FireflyEntity#IS_REDSTONE_COATED}, and its cached value.
+     *
+     * @param b The new value to set the DataParameter to.
+     */
+    private void setRedstoneCovered(boolean b) {
+        this.prevIsRedstoneCoated = b;
+        this.dataManager.set(IS_REDSTONE_COATED, b);
     }
 
     @Override
-    public void writeAdditional(CompoundNBT compound) {
-        super.writeAdditional(compound);
-        compound.putBoolean("RedstoneActivated", this.isRedstoneActivated(true));
+    public void writeAdditional(CompoundNBT nbt) {
+        // Write to our nbt data
+        super.writeAdditional(nbt);
+        nbt.putBoolean("IsRedstoneCoated", this.isRedstoneCoated(true));
     }
 
     @Override
-    public void readAdditional(CompoundNBT compound) {
-        super.readAdditional(compound);
-        this.setRedstoneActivated(compound.getBoolean("RedstoneActivated"));
+    public void readAdditional(CompoundNBT nbt) {
+        // Read from our nbt data
+        super.readAdditional(nbt);
+        this.setRedstoneCovered(nbt.getBoolean("IsRedstoneCoated"));
     }
 
     @Override
     protected void registerGoals() {
+        // Register all of our fireflies AI goals.
         this.goalSelector.addGoal(0, new BreedGoal(this, 1f));
         this.goalSelector.addGoal(1, new TemptGoal(this, 1.15f, Ingredient.fromItems(Items.HONEY_BOTTLE, Items.HONEY_BLOCK), false));
         this.goalSelector.addGoal(2, new FireflyEntity.EntrancedByHoneyGoal(this, 1.15f, 8));
@@ -132,6 +176,7 @@ public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
 
     @Override
     protected PathNavigator createNavigator(World world) {
+        // Create the fireflies navigator
         FlyingPathNavigator flyingpathnavigator = new FlyingPathNavigator(this, world) {
             @Override
             public boolean canEntityStandOnPos(BlockPos pos) {
@@ -149,8 +194,15 @@ public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
         return world.isAirBlock(blockPos) ? 10.0F : 0.0F;
     }
 
-    public void setAbdomenAnimation(FireflyAbdomenAnimation newAnimation) {
-        if (newAnimation != this.abdomenAnimation) { // Probably don't wanna try do list(s) stuff every tick
+    /**
+     * (Client) Set the fireflies abdomen animation, also changes the sync lists accordingly.
+     *
+     * @param newAnimation The new animation to change to.
+     * @see FireflyEntity#abdomenAnimation
+     */
+    private void setAbdomenAnimation(FireflyAbdomenAnimation newAnimation) {
+        // Don't access / update the lists if there's no need to !
+        if (newAnimation != this.abdomenAnimation) {
             switch (newAnimation) {
                 case CALM_SYNCHRONIZED:
                     FireflyGlowSync.starryNightSyncedFireflies.syncedFireflies.remove(this);
@@ -169,13 +221,20 @@ public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
         }
     }
 
+    /**
+     * (Client) Update the abdomen animation based on the biome it's in, among other conditions, every tick.
+     *
+     * @see FireflyEntity#abdomenAnimation
+     */
     private void updateAbdomenAnimation() {
-        if (this.isRedstoneActivated(true)) {
+        // The redstone firefly always has its abdomen on.
+        if (this.isRedstoneCoated(true)) {
             this.setAbdomenAnimation(FireflyAbdomenAnimation.ON);
             return;
         }
 
-        if (this.getPosition().getY() < 0 || this.getPosition().getY() >= 256) {
+        // It's scary in the void...
+        if (this.getPosition().getY() <= 0 || this.getPosition().getY() >= 256) {
             this.setAbdomenAnimation(FireflyAbdomenAnimation.FRANTIC);
             return;
         }
@@ -188,8 +247,7 @@ public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
                 break;
             case FOREST:
                 Optional<RegistryKey<Biome>> biomeRegistryKey = this.world.func_242406_i(this.getPosition());
-                if (Objects.equals(biomeRegistryKey, Optional.of(Biomes.DARK_FOREST))
-                        || Objects.equals(biomeRegistryKey, Optional.of(Biomes.DARK_FOREST_HILLS))) {
+                if (Objects.equals(biomeRegistryKey, Optional.of(Biomes.DARK_FOREST)) || Objects.equals(biomeRegistryKey, Optional.of(Biomes.DARK_FOREST_HILLS))) {
                     this.setAbdomenAnimation(FireflyAbdomenAnimation.CALM_SYNCHRONIZED);
                 } else {
                     this.setAbdomenAnimation(FireflyAbdomenAnimation.STARRY_NIGHT_SYNCHRONIZED);
@@ -206,45 +264,67 @@ public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
             case THEEND:
                 this.setAbdomenAnimation(FireflyAbdomenAnimation.FRANTIC);
                 break;
+            case DESERT:
+                this.setAbdomenAnimation(FireflyAbdomenAnimation.SLOW);
+                break;
             default:
                 this.setAbdomenAnimation(FireflyAbdomenAnimation.DEFAULT);
                 break;
         }
     }
 
-    public void playGlowSound() {
+    /**
+     * (Client) Unused for now - play a sound when the firefly starts glowing.
+     */
+    private void playGlowSound() {
         //this.world.playSound(this.getPosX(), this.getPosY(), this.getPosZ(), FirefliesRegistration.FIREFLY_GLOW.get(), SoundCategory.NEUTRAL, 0.33f, 1, false);
     }
 
+    /**
+     * (Client) Handle logic for the abdomen animation
+     *
+     * @param increaseAmount           The amount in which the glow alpha should increase
+     * @param decreaseAmount           The amount in which the glow alpha should decrease
+     * @param startIncreasingChance    The chance for the glow alpha to begin increasing, once it's at 0.
+     * @param startDecreasingChanceThe The chance for the glow alpha to begin decreasing, once it's at 1.
+     * @see FireflyEntity#abdomenAnimation
+     * @see FireflyEntity#glowAlpha
+     * @see FireflyEntity#isGlowIncreasing
+     */
     private void glowAnimation(float increaseAmount, float decreaseAmount, float startIncreasingChance, float startDecreasingChance) {
         // Add / deplete the glow alpha, baby fireflies go a little faster.
-        this.glowAlpha += this.glowIncreasing
+        this.glowAlpha += this.isGlowIncreasing
                 ? (this.isChild() ? increaseAmount * 1.25f : increaseAmount) : (this.isChild() ? -decreaseAmount * 1.25f : -decreaseAmount);
+
         if (this.glowAlpha <= 0) {
             this.glowAlpha = 0; // If it goes under or over 0 or 1 it'll wrap back around to being on/off, we don't want that
             if (this.rand.nextFloat() <= startIncreasingChance) {
-                this.glowIncreasing = true;
-                this.spawnAbdomenParticle();
+                this.isGlowIncreasing = true;
             }
         } else if (this.glowAlpha >= 1) {
             this.glowAlpha = 1;
             if (this.rand.nextFloat() <= startDecreasingChance) {
-                this.glowIncreasing = false;
+                this.isGlowIncreasing = false;
                 this.playGlowSound();
             }
         }
     }
 
+    /**
+     * (Client) Update the glow animation, this is done every tick.
+     *
+     * @see FireflyEntity#glowAnimation
+     */
     private void updateGlowAnimation() {
         // Update the glow animation every tick.
         switch (this.abdomenAnimation) {
             case OFF:
                 this.glowAlpha = 0;
-                this.glowIncreasing = false;
+                this.isGlowIncreasing = false;
                 break;
             case ON:
                 this.glowAlpha = 1;
-                this.glowIncreasing = false;
+                this.isGlowIncreasing = false;
                 break;
             case DEFAULT:
                 this.glowAnimation(0.1f, 0.05f, 0.05f, 0.075f);
@@ -264,54 +344,41 @@ public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
         }
     }
 
-    /**
-     * Keeps up with the bobbing animation of the firefly.
-     *
-     * @return the precise position of where the abdomen particle should spawn / move to.
-     */
-    public double[] abdomenParticlePos() {
-        return new double[]{
-                this.getPosX() - -this.getWidth() * 0.35f * MathHelper.sin(this.renderYawOffset * ((float) Math.PI / 180F)),
-                this.getPosYEye() + this.abdomenParticlePositionOffset + 0.3f,
-                this.getPosZ() + -this.getWidth() * 0.35f * MathHelper.cos(this.renderYawOffset * ((float) Math.PI / 180F))
-        };
-    }
-
-    public void spawnAbdomenParticle() {
-        if (this.world.isRemote && !this.isInvisible()) {
-            // Spawn the abdomen particle at the proper position, with range being far as the firefly itself.
-            double[] pos = this.abdomenParticlePos();
-            this.world.addOptionalParticle(this.isRedstoneActivated(true)
-                            ? new FireflyAbdomenRedstoneParticleData(this.getEntityId()) : new FireflyAbdomenParticleData(this.getEntityId()),
-                    true, pos[0], pos[1], pos[2], 0, 0, 0);
-        }
-    }
-
     private Vector3d rotateVector(Vector3d vector3d) {
         Vector3d vector3d1 = vector3d.rotatePitch((float) Math.PI / 180F);
         return vector3d1.rotateYaw(-this.prevRenderYawOffset * ((float) Math.PI / 180F));
     }
 
+    /**
+     * (Client) Spawn falling particles every so often, at the abdomen's position. Falling angle depends on fireflies speed.
+     * This is called every tick.
+     */
     private void spawnFallingDustParticles() {
-        if (this.ticksExisted % 8 == 0 && this.rand.nextFloat() > 0.25f && this.glowAlpha > 0.25f && !this.isInvisible()) {
-            // Spawn falling particles every so often, at the abdomen's position. Falling angle depends on fireflies speed.
-            if (this.isRedstoneActivated(true) && this.rand.nextFloat() > 0.5f)
+        if (this.ticksExisted % 10 == 0 && this.rand.nextFloat() > 0.25f &&this.glowAlpha > 0.25f && !this.isInvisible()) {
+            // Redstone fireflies have less of a chance to spawn particles.
+            if (this.isRedstoneCoated(true) && this.rand.nextFloat() > 0.5f)
                 return;
 
+            // no clue what this does lol
             Vector3d vector3d = this.rotateVector(new Vector3d(0.0D, -1.0D, 0.0D)).add(this.getPosX(), this.getPosY(), this.getPosZ());
             Vector3d vector3d1 = this.rotateVector(new Vector3d(this.rand.nextFloat(), -1.0D, this.rand.nextFloat() * Math.abs(this.getMotion().getZ()) * 10 + 2));
             Vector3d vector3d2 = vector3d1.scale(-5f + this.rand.nextFloat() * 2.0F);
 
+            // Small random offset around the abdomen, baby fireflies don't have it
             float randPos = this.isChild() ? 0f : MathHelper.nextFloat(this.rand, -0.2f, 0.2f);
-            this.world.addParticle(this.isRedstoneActivated(true)
-                            ? Registry.FIREFLY_DUST_REDSTONE_PARTICLE.get() : Registry.FIREFLY_DUST_PARTICLE.get(),
-                    vector3d.x + randPos, vector3d.y + 1.35f + randPos, vector3d.z + randPos,
-                    vector3d2.x, vector3d2.y * -16, vector3d2.z);
+            // also have no clue what these numbers mean
+            this.world.addParticle(
+                    this.isRedstoneCoated(true) ? Registry.FIREFLY_DUST_REDSTONE_PARTICLE.get() : Registry.FIREFLY_DUST_PARTICLE.get(),
+                    vector3d.x + randPos, vector3d.y + 1.35f + randPos, vector3d.z + randPos, vector3d2.x, vector3d2.y * -16, vector3d2.z);
         }
     }
 
+    /**
+     * (Client) Taken from {@link World#calculateInitialSkylight} because {@link World#isDaytime} does not work when called from the client.
+     *
+     * @return Is it currently daytime in this dimension?
+     */
     private boolean isDayTimeClient() {
-        // Taken from World#calculateInitialSkylight(), since I couldn't figure out how to check the skylight from the chunk data :I
         double d0 = 1.0D - (double) (this.world.getRainStrength(1.0F) * 5.0F) / 16.0D;
         double d1 = 1.0D - (double) (this.world.getThunderStrength(1.0F) * 5.0F) / 16.0D;
         double d2 = 0.5D + 2.0D *
@@ -320,8 +387,11 @@ public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
         return !this.world.getDimensionType().doesFixedTimeExist() && skylightSubtracted < 4;
     }
 
+    /**
+     * Activates redstone illumerin blocks in a radius of {@link FireflyEntity#ILLUMERIN_RADIUS}, called every half a second.
+     * Additionally sets the {@link RedstoneIllumerinBlock#LOCKED} property to true so it can't be overridden by other redstone components.
+     */
     private void activateIllumerinBlocks() {
-        // Activate redstone illumerin blocks in a radius
         for (double x = this.getPosX() - ILLUMERIN_RADIUS; x < this.getPosX() + ILLUMERIN_RADIUS; x++) {
             for (double y = this.getPosY() - ILLUMERIN_RADIUS; y < this.getPosY() + ILLUMERIN_RADIUS; y++) {
                 for (double z = this.getPosZ() - ILLUMERIN_RADIUS; z < this.getPosZ() + ILLUMERIN_RADIUS; z++) {
@@ -339,10 +409,13 @@ public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
         }
     }
 
+    /**
+     * Removes any invalid blocks from {@link FireflyEntity#illumerinBlocks}, called every half a second.
+     */
     private void removeInvalidIllumerinBlocks() {
         this.illumerinBlocks.removeIf(pos -> {
             BlockState state = this.world.getBlockState(pos);
-            // Remove if no longer a illumerin block
+            // Remove if no longer an illumerin block
             if (!(state.getBlock() instanceof RedstoneIllumerinBlock)) {
                 return true;
             }
@@ -369,7 +442,8 @@ public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
         super.livingTick();
 
         if (this.world.isRemote) {
-            if (this.isDayTimeClient() && !this.isRedstoneActivated(true)) {
+            // Redstone fireflies are always on, regardless if it's daytime - unlike regular ones.
+            if (this.isDayTimeClient() && !this.isRedstoneCoated(true)) {
                 // Turn off during the day
                 this.setAbdomenAnimation(FireflyAbdomenAnimation.OFF);
                 this.glowAlpha = 0;
@@ -377,30 +451,52 @@ public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
                 this.updateAbdomenAnimation();
                 this.updateGlowAnimation();
                 this.spawnFallingDustParticles();
+            }
+        } else {
+            if (this.isAIDisabled())
+                return;
 
-                // Fix abdomen particle not spawning with synced firefly on first glow cycle
-                if (this.ticksExisted < 3 && this.glowAlpha > 0.1f) {
-                    this.spawnAbdomenParticle();
+            if (this.isRedstoneCoated(true)) {
+                if (this.ticksExisted % 10 == 0) {
+                    this.removeInvalidIllumerinBlocks();
+                    this.activateIllumerinBlocks();
                 }
             }
-        } else if (this.isRedstoneActivated(true)) {
-            if (this.ticksExisted % 10 == 0) {
-                this.removeInvalidIllumerinBlocks();
-                this.activateIllumerinBlocks();
+
+            // Increase underWaterTicks by 1 if in water
+            this.underWaterTicks = this.isInWaterOrBubbleColumn() ? this.underWaterTicks + 1 : 0;
+            // Increase rainedOnTicks by 1 if in water
+            this.rainedOnTicks = this.world.isRainingAt(this.getPosition()) ? this.rainedOnTicks + 1 : 0;
+
+            if (this.underWaterTicks > 20) {
+                // Once we're at 20, start taking damage
+                this.attackEntityFrom(DamageSource.DROWN, 1.0F);
+                // Additionally, try to convert back to a regular firefly
+                if (this.isRedstoneCoated(true)) {
+                    this.removeRedstoneCoated();
+                }
+            }
+
+            // Convert back to regular firefly once we have been rained on for 20 ticks
+            if (this.rainedOnTicks > 20 && this.isRedstoneCoated(true)) {
+                this.removeRedstoneCoated();
             }
         }
     }
 
     @Override
     public boolean isBreedingItem(ItemStack itemStack) {
+        // Fireflies are bred with honey bottles
         return itemStack.getItem() == Items.HONEY_BOTTLE;
     }
 
     @Override
     protected void consumeItemFromStack(PlayerEntity player, ItemStack honeyBottle) {
-        // Don't consume glass bottle
+        // Fix the honey bottle being consumed in it's entirety
         if (!player.abilities.isCreativeMode) {
+            // Consume the honey bottle
             honeyBottle.shrink(1);
+            // Give back a glass bottle
             ItemStack glassBottle = new ItemStack(Items.GLASS_BOTTLE);
             if (!player.inventory.addItemStackToInventory(glassBottle)) {
                 player.dropItem(glassBottle, false);
@@ -426,13 +522,20 @@ public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
             FireflyGlowSync.calmSyncedFireflies.syncedFireflies.remove(this);
             FireflyGlowSync.starryNightSyncedFireflies.syncedFireflies.remove(this);
         } else {
+            // Stop giving a signal to nearby illumerin blocks.
             this.removeInvalidIllumerinBlocks();
         }
     }
 
-    private void spawnRedstoneParticlePuff(int amount, float a) {
+    /**
+     * Spawn a bunch of redstone particles around the firefly.
+     *
+     * @param amount How many particles should be spawned.
+     * @param alpha  Alpha of the particle.
+     */
+    private void spawnRedstoneParticlePuff(int amount, float alpha) {
         for (int i = 0; i < amount; i++) {
-            ((ServerWorld) (this.world)).spawnParticle(new RedstoneParticleData(1f, 0, 0, a),
+            ((ServerWorld) (this.world)).spawnParticle(new RedstoneParticleData(1f, 0, 0, alpha),
                     this.getPosX() + MathHelper.nextFloat(this.rand, -0.6f, 0.6f),
                     this.getPosY() + MathHelper.nextFloat(this.rand, 0f, 0.8f),
                     this.getPosZ() + MathHelper.nextFloat(this.rand, -0.6f, 0.6f),
@@ -444,28 +547,39 @@ public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
     public ActionResultType getEntityInteractionResult(PlayerEntity player, Hand hand) {
         /* Convert to redstone firefly */
         ItemStack itemstack = player.getHeldItem(hand);
-        if (itemstack.getItem() == Items.REDSTONE && !this.isRedstoneActivated(false)) {
-            // Set redstone activated DataParameter.
-            this.setRedstoneActivated(true);
+        if (itemstack.getItem() == Items.REDSTONE && !this.isRedstoneCoated(false)) {
+            // Set redstone coated
+            this.setRedstoneCovered(true);
             if (!this.world.isRemote) {
-                // Remove from inventory if not in creative mode
+                // Remove the redstone dust from players inventory if not in creative mode
                 if (!player.isCreative()) {
                     itemstack.shrink(1);
                 }
-                // Spawn activated redstone dust particles
+                // Spawn powered redstone dust particles
                 this.spawnRedstoneParticlePuff(5 + this.rand.nextInt(5), 1f);
             } else {
                 // Play the conversion sound to the client
                 player.playSound(Registry.FIREFLY_APPLY_REDSTONE.get(), 1f, 1f);
-                // Destroy the current abdomen particle.
-                if (this.abdomenParticle != null) this.abdomenParticle.setExpired();
-                // Spawn the new redstone abdomen particle.
-                this.spawnAbdomenParticle();
             }
             return ActionResultType.SUCCESS;
         }
         return super.getEntityInteractionResult(player, hand);
     }
+
+    @Override
+    public boolean attackEntityFrom(DamageSource source, float amount) {
+        // Puff out some particles on hit, the amount depending on damage.
+        if (this.world.isRemote) {
+            for (int i = 0; i < (int) MathHelper.clamp(amount, 2, 5); i++) {
+                this.world.addParticle(
+                        this.isRedstoneCoated(false) ? Registry.FIREFLY_DUST_REDSTONE_PARTICLE.get() : Registry.FIREFLY_DUST_PARTICLE.get(),
+                        this.getPosX(), this.getPosY(), this.getPosZ(), 0, 0, 0);
+            }
+        }
+        return super.attackEntityFrom(source, amount);
+    }
+
+    //region Basic Overrides
 
     @Override
     protected SoundEvent getAmbientSound() {
@@ -500,19 +614,6 @@ public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
     @Override
     protected void updateFallState(double y, boolean onGround, BlockState blockState, BlockPos blockPos) {
         // Do nothing
-    }
-
-    @Override
-    public boolean attackEntityFrom(DamageSource source, float amount) {
-        // puff out some particles on hit, the amount depending on damage.
-        if (this.world.isRemote) {
-            for (int i = 0; i < (int) MathHelper.clamp(amount, 2, 5); i++) {
-                this.world.addParticle(
-                        this.isRedstoneActivated(false) ? Registry.FIREFLY_DUST_REDSTONE_PARTICLE.get() : Registry.FIREFLY_DUST_PARTICLE.get(),
-                        this.getPosX(), this.getPosY(), this.getPosZ(), 0, 0, 0);
-            }
-        }
-        return super.attackEntityFrom(source, amount);
     }
 
     @Override
@@ -554,6 +655,8 @@ public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
         return distance < d0 * d0;
     }
 
+    //endregion Basic Overrides
+
     /**
      * Adds/removes motion to the current amount.
      */
@@ -561,32 +664,16 @@ public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
         this.setMotion(this.getMotion().add(x, y, z));
     }
 
-    private void removeRedstoneActivated() {
-        // Convert from redstone firefly to regular firefly.
-        this.setRedstoneActivated(false);
-        // Spawn "off" particles
-        this.spawnRedstoneParticlePuff(3 + this.rand.nextInt(3), 0.75f);
+    /**
+     * Convert from redstone firefly to regular firefly.
+     */
+    private void removeRedstoneCoated() {
+        this.setRedstoneCovered(false);
+        // Spawn powered off redstone particles
+        this.spawnRedstoneParticlePuff(3 + this.rand.nextInt(3), 0.7f);
     }
 
-    @Override
-    protected void updateAITasks() {
-        // Note that this will not run if NoAI is set to true. (may seem obvious but I fell to it a couple times)
-        super.updateAITasks();
-
-        this.underWaterTicks = this.isInWaterOrBubbleColumn() ? this.underWaterTicks + 1 : 0;
-        this.isInRain = this.world.isRainingAt(this.getPosition()) ? this.isInRain + 1 : 0;
-
-        if (this.underWaterTicks > 20) {
-            this.attackEntityFrom(DamageSource.DROWN, 1.0F);
-            if (this.isRedstoneActivated(true)) {
-                this.removeRedstoneActivated();
-            }
-        }
-
-        if (this.isInRain > 20 && this.isRedstoneActivated(true)) {
-            this.removeRedstoneActivated();
-        }
-    }
+    //region AI
 
     private static class WanderGoal extends RandomWalkingGoal {
         private final FireflyEntity fireflyEntity;
@@ -601,12 +688,12 @@ public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
 
         @Override
         public boolean shouldExecute() {
-            return !this.fireflyEntity.entrancedByHoney && this.fireflyEntity.ticksExisted % 20 == 0 && super.shouldExecute();
+            return !this.fireflyEntity.isEntrancedByHoney && this.fireflyEntity.ticksExisted % 20 == 0 && super.shouldExecute();
         }
 
         @Override
         public boolean shouldContinueExecuting() {
-            return !this.fireflyEntity.entrancedByHoney && super.shouldContinueExecuting();
+            return !this.fireflyEntity.isEntrancedByHoney && super.shouldContinueExecuting();
         }
 
         @Nullable
@@ -687,7 +774,7 @@ public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
             super.tick();
 
             // Do random accelerations every so often.
-            if (this.fireflyEntity.ticksExisted % 100 == 0 && this.fireflyEntity.rand.nextFloat() > 0.75f && !this.fireflyEntity.entrancedByHoney) {
+            if (this.fireflyEntity.ticksExisted % 100 == 0 && this.fireflyEntity.rand.nextFloat() > 0.75f && !this.fireflyEntity.isEntrancedByHoney) {
                 final float accelAmount = 0.125f;
                 this.fireflyEntity.addMotion(
                         MathHelper.clamp(this.fireflyEntity.getLook(0).getX(), -accelAmount, accelAmount),
@@ -702,7 +789,7 @@ public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
                 this.fireflyEntity.addMotion(0, -0.025f, 0);
             }
 
-            if (this.fireflyEntity.ticksExisted % 20 == 0 && !this.fireflyEntity.entrancedByHoney) {
+            if (this.fireflyEntity.ticksExisted % 20 == 0 && !this.fireflyEntity.isEntrancedByHoney) {
                 // Stay off the ground
                 if (this.world.getBlockState(this.fireflyEntity.getPosition().down()).isSolid() || this.fireflyEntity.isOnGround()) {
                     this.moveForward(1.2f, 1.5f, 0.85f);
@@ -757,13 +844,13 @@ public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
         @Override
         public void startExecuting() {
             super.startExecuting();
-            this.fireflyEntity.entrancedByHoney = true;
+            this.fireflyEntity.isEntrancedByHoney = true;
         }
 
         @Override
         public void resetTask() {
             super.resetTask();
-            this.fireflyEntity.entrancedByHoney = false;
+            this.fireflyEntity.isEntrancedByHoney = false;
         }
 
         @Override
@@ -785,7 +872,7 @@ public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
         @Override
         protected boolean shouldMoveTo(IWorldReader worldReader, BlockPos blockPos) {
             if (this.world.getBlockState(blockPos).getBlock() instanceof HoneyBlock && this.isHoneyBlockVisible(blockPos)) {
-                this.fireflyEntity.entrancedByHoney = true;
+                this.fireflyEntity.isEntrancedByHoney = true;
                 return true;
             }
             return false;
@@ -798,4 +885,5 @@ public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
                     destinationBlockCentered.getX(), destinationBlockCentered.getY(), destinationBlockCentered.getZ(), this.movementSpeed);
         }
     }
+    //endregion AI
 }

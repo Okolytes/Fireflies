@@ -36,6 +36,7 @@ public class FireflyGlowSync {
         if (!starryNightSyncedFireflies.syncedFireflies.isEmpty()) {
             boolean starryNightSyncedTryStartIncreasing = Math.random() <= 0.075f;
             boolean starryNightSyncedTryStartDecreasing = Math.random() <= 0.9f;
+
             for (FireflyEntity fireflyEntity : starryNightSyncedFireflies.syncedFireflies) {
                 if (shouldUpdateGlowAnimation(fireflyEntity)) {
                     starryNightSyncedFireflies.glowAnimation(fireflyEntity, 0.3f, 0.25f, starryNightSyncedTryStartIncreasing, starryNightSyncedTryStartDecreasing);

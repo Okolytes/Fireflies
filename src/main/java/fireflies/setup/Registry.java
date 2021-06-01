@@ -3,8 +3,6 @@ package fireflies.setup;
 import fireflies.Fireflies;
 import fireflies.block.IllumerinBlock;
 import fireflies.block.RedstoneIllumerinBlock;
-import fireflies.entity.firefly.FireflyAbdomenParticleData;
-import fireflies.entity.firefly.FireflyAbdomenRedstoneParticleData;
 import fireflies.entity.firefly.FireflyEntity;
 import net.minecraft.block.Block;
 import net.minecraft.block.DispenserBlock;
@@ -38,13 +36,13 @@ public class Registry {
     private static final DeferredRegister<ParticleType<?>> PARTICLES = DeferredRegister.create(ForgeRegistries.PARTICLE_TYPES, Fireflies.MOD_ID);
     private static final DeferredRegister<SoundEvent> SOUNDS = DeferredRegister.create(ForgeRegistries.SOUND_EVENTS, Fireflies.MOD_ID);
 
-    //region Blocks / Tiles / BlockItems
+    //region Blocks / BlockItems
     public static final RegistryObject<Block> ILLUMERIN_BLOCK = BLOCKS.register("illumerin_block", IllumerinBlock::new);
     public static final RegistryObject<Item> ILLUMERIN_BLOCKITEM = ITEMS.register("illumerin_block", () -> new BlockItem(ILLUMERIN_BLOCK.get(), new Item.Properties().group(ItemGroup.DECORATIONS)));
 
     public static final RegistryObject<Block> REDSTONE_ILLUMERIN_BLOCK = BLOCKS.register("redstone_illumerin_block", RedstoneIllumerinBlock::new);
     public static final RegistryObject<Item> REDSTONE_ILLUMERIN_BLOCKITEM = ITEMS.register("redstone_illumerin_block", () -> new BlockItem(REDSTONE_ILLUMERIN_BLOCK.get(), new Item.Properties().group(ItemGroup.REDSTONE)));
-    //endregion Blocks / Tiles / BlockItems
+    //endregion Blocks / BlockItems
 
     //region Items
     public static final RegistryObject<Item> ILLUMERIN = ITEMS.register("illumerin", () -> new Item(new Item.Properties().group(ItemGroup.MATERIALS)));
@@ -64,19 +62,18 @@ public class Registry {
     //region Particles
     public static final RegistryObject<BasicParticleType> FIREFLY_DUST_PARTICLE = PARTICLES.register("firefly_dust_particle", () -> new BasicParticleType(false));
     public static final RegistryObject<BasicParticleType> FIREFLY_DUST_REDSTONE_PARTICLE = PARTICLES.register("firefly_dust_redstone_particle", () -> new BasicParticleType(false));
-    public static final RegistryObject<ParticleType<FireflyAbdomenParticleData>> FIREFLY_ABDOMEN_PARTICLE = PARTICLES.register("firefly_abdomen_particle", FireflyAbdomenParticleData::get);
-    public static final RegistryObject<ParticleType<FireflyAbdomenRedstoneParticleData>> FIREFLY_ABDOMEN_REDSTONE_PARTICLE = PARTICLES.register("firefly_abdomen_redstone_particle", FireflyAbdomenRedstoneParticleData::get);
     //endregion Particles
 
     //region Sounds
     public static final RegistryObject<SoundEvent> FIREFLY_HURT = registerSoundEvent("firefly_hurt");
     public static final RegistryObject<SoundEvent> FIREFLY_DEATH = registerSoundEvent("firefly_death");
-    public static final RegistryObject<SoundEvent> FIREFLY_GLOW = registerSoundEvent("firefly_glow");
+    //public static final RegistryObject<SoundEvent> FIREFLY_GLOW = registerSoundEvent("firefly_glow");
     public static final RegistryObject<SoundEvent> FIREFLY_FLIGHT_LOOP = registerSoundEvent("firefly_flight_loop");
     public static final RegistryObject<SoundEvent> FIREFLY_APPLY_REDSTONE = registerSoundEvent("firefly_apply_redstone");
     //endregion Sounds
 
     public static void init() {
+        // Register all of our stuffs
         final IEventBus iEventBus = FMLJavaModLoadingContext.get().getModEventBus();
         BLOCKS.register(iEventBus);
         ITEMS.register(iEventBus);
@@ -88,6 +85,7 @@ public class Registry {
 
     @SubscribeEvent
     public static void registerSpawnEggs(final RegistryEvent.Register<Item> event) {
+        // Register all of our spawn eggs.
         event.getRegistry().registerAll(
                 FIREFLY_SPAWN_EGG
         );
@@ -95,9 +93,7 @@ public class Registry {
         // Registers the spawn egg's dispenser behaviour.
         // Taken from IDispenseItemBehavior#init L192
         DispenserBlock.registerDispenseBehavior(FIREFLY_SPAWN_EGG, new DefaultDispenseItemBehavior() {
-            /**
-             * Dispense the specified stack, play the dispense sound and spawn particles.
-             */
+            // Dispense the specified stack, play the dispense sound and spawn particles.
             public ItemStack dispenseStack(IBlockSource source, ItemStack stack) {
                 Direction direction = source.getBlockState().get(DispenserBlock.FACING);
                 EntityType<?> entityType = ((SpawnEggItem) stack.getItem()).getType(stack.getTag());
@@ -109,7 +105,6 @@ public class Registry {
     }
 
     private static RegistryObject<SoundEvent> registerSoundEvent(String name) {
-        // Less C+P
         return SOUNDS.register(name, () -> new SoundEvent(new ResourceLocation(Fireflies.MOD_ID, name)));
     }
 }

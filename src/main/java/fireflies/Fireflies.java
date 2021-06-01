@@ -10,7 +10,6 @@ import org.apache.logging.log4j.Logger;
 
 @Mod(Fireflies.MOD_ID)
 public class Fireflies {
-
     public static final String MOD_ID = "fireflies";
     public static final Logger LOGGER = LogManager.getLogger(MOD_ID);
 

@@ -25,7 +25,7 @@ public class FireflyAbdomenLayer<T extends FireflyEntity, M extends EntityModel<
 
     @Override
     protected ResourceLocation getEntityTexture(T fireflyEntity) {
-        return fireflyEntity.isRedstoneActivated(true) ? ABDOMEN_REDSTONE : ABDOMEN;
+        return fireflyEntity.isRedstoneCoated(true) ? ABDOMEN_REDSTONE : ABDOMEN;
     }
 
     @Override
