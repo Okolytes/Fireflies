@@ -1,0 +1,19 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "XXX",
+    "X#X",
+    "XXX"
+  ],
+  "key": {
+    "#": {
+      "item": "minecraft:glowstone"
+    },
+    "X": {
+      "item": "fireflies:ecto_illumerin"
+    }
+  },
+  "result": {
+    "item": "fireflies:illumerin_block"
+  }
+}

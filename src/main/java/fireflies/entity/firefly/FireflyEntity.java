@@ -80,11 +80,11 @@ public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
     /**
      * The radius (spherical) of which redstone illumerin blocks can be activated.
      */
-    private static final int ILLUMERIN_RADIUS = 5;
+    private int illumerinRadius = 5;
     /**
      * A list of redstone illumerin blocks this firefly is currently activating.
      */
-    private final ArrayList<BlockPos> illumerinBlocks = new ArrayList<>(ILLUMERIN_RADIUS * ILLUMERIN_RADIUS * ILLUMERIN_RADIUS);
+    private final ArrayList<BlockPos> illumerinBlocks = new ArrayList<>(illumerinRadius * illumerinRadius * illumerinRadius);
     /**
      * DataParameter for if this firefly is redstone activated or not.
      */
@@ -397,15 +397,17 @@ public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
     }
 
     /**
-     * Activates redstone illumerin blocks in a radius of {@link FireflyEntity#ILLUMERIN_RADIUS}, called every half a second.
+     * Activates redstone illumerin blocks in a radius of {@link FireflyEntity#illumerinRadius}, called every half a second.
      * Additionally sets the {@link RedstoneIllumerinBlock#LOCKED} property to true so it can't be overridden by other redstone components.
      */
     private void activateIllumerinBlocks() {
-        for (double x = this.getPosX() - ILLUMERIN_RADIUS; x < this.getPosX() + ILLUMERIN_RADIUS; x++) {
-            for (double y = this.getPosY() - ILLUMERIN_RADIUS; y < this.getPosY() + ILLUMERIN_RADIUS; y++) {
-                for (double z = this.getPosZ() - ILLUMERIN_RADIUS; z < this.getPosZ() + ILLUMERIN_RADIUS; z++) {
+        // Baby fireflies have a smaller radius
+        if (this.isChild()) illumerinRadius = 3;
+        for (double x = this.getPosX() - illumerinRadius; x < this.getPosX() + illumerinRadius; x++) {
+            for (double y = this.getPosY() - illumerinRadius; y < this.getPosY() + illumerinRadius; y++) {
+                for (double z = this.getPosZ() - illumerinRadius; z < this.getPosZ() + illumerinRadius; z++) {
                     BlockPos pos = new BlockPos(x, y, z);
-                    if (!pos.withinDistance(this.getPosition(), ILLUMERIN_RADIUS))
+                    if (!pos.withinDistance(this.getPosition(), illumerinRadius))
                         continue;
 
                     BlockState state = this.world.getBlockState(pos);
@@ -430,7 +432,7 @@ public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
             }
 
             // Remove if out of range
-            if (pos.distanceSq(this.getPosition()) > ILLUMERIN_RADIUS * ILLUMERIN_RADIUS) {
+            if (pos.distanceSq(this.getPosition()) > illumerinRadius * illumerinRadius) {
                 this.world.setBlockState(pos, state.with(RedstoneIllumerinBlock.LOCKED, Boolean.FALSE), 3);
                 this.world.getPendingBlockTicks().scheduleTick(pos, state.getBlock(), 1);
                 return true;

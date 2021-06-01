@@ -1,0 +1,32 @@
+{
+  "parent": "minecraft:recipes/root",
+  "rewards": {
+    "recipes": [
+      "fireflies:ecto_illumerin_block"
+    ]
+  },
+  "criteria": {
+    "has_glowstone": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "item": "fireflies:ecto_illumerin"
+          }
+        ]
+      }
+    },
+    "has_the_recipe": {
+      "trigger": "minecraft:recipe_unlocked",
+      "conditions": {
+        "recipe": "fireflies:ecto_illumerin_block"
+      }
+    }
+  },
+  "requirements": [
+    [
+      "has_glowstone",
+      "has_the_recipe"
+    ]
+  ]
+}

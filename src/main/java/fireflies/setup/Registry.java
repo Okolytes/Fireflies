@@ -50,6 +50,7 @@ public class Registry {
 
     //region Items
     public static final RegistryObject<Item> ILLUMERIN = ITEMS.register("illumerin", () -> new Item(new Item.Properties().group(ItemGroup.MATERIALS)));
+    public static final RegistryObject<Item> ECTO_ILLUMERIN = ITEMS.register("ecto_illumerin", () -> new Item(new Item.Properties().group(ItemGroup.MATERIALS)));
     //endregion Items
 
     //region Entities / Spawn Eggs
