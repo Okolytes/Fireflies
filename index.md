@@ -7,4 +7,4 @@ permalink: /
 
 
 # Fireflies
-// TODO.. description 
+![](assets/images/fireflies_logo.png)
