@@ -1,6 +1,7 @@
 package fireflies.setup;
 
 import fireflies.Fireflies;
+import fireflies.block.EctoIllumerinBlock;
 import fireflies.block.IllumerinBlock;
 import fireflies.block.RedstoneIllumerinBlock;
 import fireflies.entity.firefly.FireflyEntity;
@@ -42,6 +43,9 @@ public class Registry {
 
     public static final RegistryObject<Block> REDSTONE_ILLUMERIN_BLOCK = BLOCKS.register("redstone_illumerin_block", RedstoneIllumerinBlock::new);
     public static final RegistryObject<Item> REDSTONE_ILLUMERIN_BLOCKITEM = ITEMS.register("redstone_illumerin_block", () -> new BlockItem(REDSTONE_ILLUMERIN_BLOCK.get(), new Item.Properties().group(ItemGroup.REDSTONE)));
+
+    public static final RegistryObject<Block> ECTO_ILLUMERIN_BLOCK = BLOCKS.register("ecto_illumerin_block", EctoIllumerinBlock::new);
+    public static final RegistryObject<Item> ECTO_ILLUMERIN_BLOCKITEM = ITEMS.register("ecto_illumerin_block", () -> new BlockItem(ECTO_ILLUMERIN_BLOCK.get(), new Item.Properties().group(ItemGroup.DECORATIONS)));
     //endregion Blocks / BlockItems
 
     //region Items

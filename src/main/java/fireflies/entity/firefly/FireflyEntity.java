@@ -377,7 +377,8 @@ public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
             // also have no clue what these numbers mean
             this.world.addParticle(
                     this.isRedstoneCoated(true) ? Registry.FIREFLY_DUST_REDSTONE_PARTICLE.get() : Registry.FIREFLY_DUST_PARTICLE.get(),
-                    vector3d.x + randPos, vector3d.y + 1.35f + randPos, vector3d.z + randPos, vector3d2.x, vector3d2.y * -16, vector3d2.z);
+                    vector3d.x + randPos, vector3d.y + (this.isChild() ? 1.1f : 1.35f) + randPos, vector3d.z + randPos,
+                    vector3d2.x, vector3d2.y * -16, vector3d2.z);
         }
     }
 
@@ -488,6 +489,7 @@ public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
             // Convert back to regular firefly once we have been rained on for 20 ticks
             if (this.rainedOnTicks > 20 && this.isRedstoneCoated(true)) {
                 this.removeRedstoneCoated();
+                this.rainedOnTicks = 0;
             }
         }
     }
@@ -679,7 +681,7 @@ public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
     private void removeRedstoneCoated() {
         this.setRedstoneCovered(false);
         // Spawn powered off redstone particles
-        this.spawnRedstoneParticlePuff(3 + this.rand.nextInt(3), 0.7f);
+        this.spawnRedstoneParticlePuff(4 + this.rand.nextInt(5), 0.7f);
     }
 
     //region AI

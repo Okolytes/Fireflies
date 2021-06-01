@@ -1,28 +1,10 @@
 {
   "variants": {
-    "powered=false,axis=x": {
-      "model": "fireflies:block/redstone_illumerin_block_horizontal",
-      "x": 90,
-      "y": 90
-    },
-    "powered=false,axis=y": {
+    "powered=false": {
       "model": "fireflies:block/redstone_illumerin_block"
     },
-    "powered=false,axis=z": {
-      "model": "fireflies:block/redstone_illumerin_block_horizontal",
-      "x": 90
-    },
-    "powered=true,axis=x": {
-      "model": "fireflies:block/redstone_illumerin_block_on_horizontal",
-      "x": 90,
-      "y": 90
-    },
-    "powered=true,axis=y": {
+    "powered=true": {
       "model": "fireflies:block/redstone_illumerin_block_on"
-    },
-    "powered=true,axis=z": {
-      "model": "fireflies:block/redstone_illumerin_block_on_horizontal",
-      "x": 90
     }
   }
 }

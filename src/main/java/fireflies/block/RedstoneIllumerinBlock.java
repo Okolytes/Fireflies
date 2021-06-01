@@ -2,6 +2,8 @@ package fireflies.block;
 
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
+import net.minecraft.block.SoundType;
+import net.minecraft.block.material.Material;
 import net.minecraft.item.BlockItemUseContext;
 import net.minecraft.state.BooleanProperty;
 import net.minecraft.state.StateContainer;
@@ -11,15 +13,26 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.IBlockReader;
 import net.minecraft.world.World;
 import net.minecraft.world.server.ServerWorld;
+import net.minecraftforge.common.ToolType;
 
 import java.util.Random;
 
-public class RedstoneIllumerinBlock extends IllumerinBlock {
+public class RedstoneIllumerinBlock extends Block {
     public static final BooleanProperty POWERED = BlockStateProperties.POWERED;
+    /**
+     * When the block is activated by a redstone firefly, it cannot be overridden by other signals
+     */
     public static final BooleanProperty LOCKED = BlockStateProperties.LOCKED;
 
     public RedstoneIllumerinBlock() {
-        this.setDefaultState(this.stateContainer.getBaseState().with(AXIS, Direction.Axis.Y).with(POWERED, Boolean.FALSE).with(LOCKED, Boolean.FALSE));
+        super(Properties.create(Material.IRON).hardnessAndResistance(1f).sound(SoundType.GLASS).harvestTool(ToolType.PICKAXE)
+                .setAllowsSpawn((a, b, c, d) -> false).setEmmisiveRendering(RedstoneIllumerinBlock::isEmissive).setNeedsPostProcessing(RedstoneIllumerinBlock::isEmissive));
+
+        this.setDefaultState(this.stateContainer.getBaseState().with(POWERED, Boolean.FALSE).with(LOCKED, Boolean.FALSE));
+    }
+
+    private static boolean isEmissive(BlockState state, IBlockReader iBlockReader, BlockPos blockPos) {
+        return state.get(RedstoneIllumerinBlock.POWERED);
     }
 
     private void updatePower(BlockPos pos, World world, BlockState state) {

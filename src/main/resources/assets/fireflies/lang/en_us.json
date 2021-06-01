@@ -1,6 +1,7 @@
 {
-  "block.fireflies.redstone_illumerin_block": "Block of Redstone Illumerin",
-  "block.fireflies.illumerin_block": "Block of Illumerin",
+  "block.fireflies.illumerin_block": "Illumerin Block",
+  "block.fireflies.redstone_illumerin_block": "Redstone Illumerin Block",
+  "block.fireflies.ecto_illumerin_block": "Ecto Illumerin Block",
 
   "item.fireflies.illumerin": "Illumerin",
   "item.fireflies.firefly_spawn_egg": "Firefly Spawn Egg",

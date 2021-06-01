@@ -1,7 +1,6 @@
 {
-  "parent": "minecraft:block/cube_column",
+  "parent": "minecraft:block/cube_all",
   "textures": {
-    "end": "fireflies:block/redstone_illumerin_block_top",
-    "side": "fireflies:block/redstone_illumerin_block_side"
+    "all": "fireflies:block/redstone_illumerin_block"
   }
 }
