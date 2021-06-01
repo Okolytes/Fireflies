@@ -543,10 +543,11 @@ public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
      */
     private void spawnRedstoneParticlePuff(int amount, float alpha) {
         for (int i = 0; i < amount; i++) {
+            float randPos = this.isChild() ? 0.22f : 0.66f;
             ((ServerWorld) (this.world)).spawnParticle(new RedstoneParticleData(1f, 0, 0, alpha),
-                    this.getPosX() + MathHelper.nextFloat(this.rand, -0.6f, 0.6f),
-                    this.getPosY() + MathHelper.nextFloat(this.rand, 0f, 0.8f),
-                    this.getPosZ() + MathHelper.nextFloat(this.rand, -0.6f, 0.6f),
+                    this.getPosX() + MathHelper.nextFloat(this.rand, -randPos, randPos),
+                    this.getPosY() + MathHelper.nextFloat(this.rand, 0f, randPos * 1.33f),
+                    this.getPosZ() + MathHelper.nextFloat(this.rand, -randPos, randPos),
                     0, 0, 0, 0, 0);
         }
     }

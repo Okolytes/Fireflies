@@ -25,7 +25,7 @@ public class FireflyDustParticle extends SpriteTexturedParticle {
             int i = (int)(8.0D / (Math.random() * 0.8D + 0.2D));
             this.maxAge = (int)Math.max((float)i * 2.5f, 1.0F);
             float f = (float) (Math.random() * 0.4F + 0.6F);
-            float r = 0.99f;
+            float r = 0.97f;
             float g = 0.02f;
             float b = 0.01f;
             this.particleRed = ((float) (Math.random() * 0.2F) + 0.8F) * r * f;

@@ -42,9 +42,9 @@ public class FireflyRenderer extends MobRenderer<FireflyEntity, FireflyModel<Fir
         matrixStackIn.push();
 
         // Position at the abdomen
-        float x = (float) -fireflyEntity.getLookVec().normalize().getX() * (fireflyEntity.isChild() ? 0.075f : 0.175f);
-        float y = this.entityModel.abdomen.rotateAngleX + fireflyEntity.getEyeHeight() + (fireflyEntity.isChild() ? 0.25f : 0.275f);
-        float z = (float) -fireflyEntity.getLookVec().normalize().getZ() * (fireflyEntity.isChild() ? 0.075f : 0.175f);
+        float x = fireflyEntity.getWidth() * 0.35f * MathHelper.sin(fireflyEntity.renderYawOffset * (float) Math.PI / 180F);
+        float y = this.entityModel.abdomen.rotateAngleX + fireflyEntity.getEyeHeight() + 0.275f;
+        float z = -(fireflyEntity.getWidth() * 0.35f * MathHelper.cos(fireflyEntity.renderYawOffset * (float) Math.PI / 180F));
         matrixStackIn.translate(x, y, z);
 
         // Rotate to face camera
