@@ -51,6 +51,7 @@ public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
     /**
      * (Client) The current animation this firefly has.
      */
+    @Nullable
     public FireflyAbdomenAnimation abdomenAnimation;
     /**
      * (Client) The current alpha of the abdomen overlay on the firefly.
@@ -201,24 +202,28 @@ public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
      * @see FireflyEntity#abdomenAnimation
      */
     private void setAbdomenAnimation(FireflyAbdomenAnimation newAnimation) {
-        // Don't access / update the lists if there's no need to !
-        if (newAnimation != this.abdomenAnimation) {
-            switch (newAnimation) {
-                case CALM_SYNCHRONIZED:
-                    FireflyGlowSync.starryNightSyncedFireflies.syncedFireflies.remove(this);
-                    if (!FireflyGlowSync.calmSyncedFireflies.syncedFireflies.contains(this)) {
-                        FireflyGlowSync.calmSyncedFireflies.syncedFireflies.add(this);
-                    }
-                    break;
-                case STARRY_NIGHT_SYNCHRONIZED:
-                    FireflyGlowSync.calmSyncedFireflies.syncedFireflies.remove(this);
-                    if (!FireflyGlowSync.starryNightSyncedFireflies.syncedFireflies.contains(this)) {
-                        FireflyGlowSync.starryNightSyncedFireflies.syncedFireflies.add(this);
-                    }
-                    break;
-            }
-            this.abdomenAnimation = newAnimation;
+        if (this.abdomenAnimation == newAnimation) // Dont access the lists if we don't have to!
+            return;
+
+        switch (newAnimation) {
+            case CALM_SYNCHRONIZED:
+                FireflyGlowSync.starryNightSyncedFireflies.syncedFireflies.remove(this);
+                if (!FireflyGlowSync.calmSyncedFireflies.syncedFireflies.contains(this)) {
+                    FireflyGlowSync.calmSyncedFireflies.syncedFireflies.add(this);
+                }
+                break;
+            case STARRY_NIGHT_SYNCHRONIZED:
+                FireflyGlowSync.calmSyncedFireflies.syncedFireflies.remove(this);
+                if (!FireflyGlowSync.starryNightSyncedFireflies.syncedFireflies.contains(this)) {
+                    FireflyGlowSync.starryNightSyncedFireflies.syncedFireflies.add(this);
+                }
+                break;
+            default:
+                FireflyGlowSync.calmSyncedFireflies.syncedFireflies.remove(this);
+                FireflyGlowSync.starryNightSyncedFireflies.syncedFireflies.remove(this);
+                break;
         }
+        this.abdomenAnimation = newAnimation;
     }
 
     /**
@@ -317,7 +322,7 @@ public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
      */
     private void updateGlowAnimation() {
         // Update the glow animation every tick.
-        switch (this.abdomenAnimation) {
+        switch (Objects.requireNonNull(this.abdomenAnimation)) {
             case OFF:
                 this.glowAlpha = 0;
                 this.isGlowIncreasing = false;
@@ -341,6 +346,9 @@ public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
             case FRANTIC:
                 this.glowAnimation(0.35f, 0.4f, 0.2f, 0.35f);
                 break;
+            case SLOW:
+                this.glowAnimation(0.05f, 0.015f, 0.025f, 0.025f);
+                break;
         }
     }
 
@@ -354,7 +362,7 @@ public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
      * This is called every tick.
      */
     private void spawnFallingDustParticles() {
-        if (this.ticksExisted % 10 == 0 && this.rand.nextFloat() > 0.25f &&this.glowAlpha > 0.25f && !this.isInvisible()) {
+        if (this.ticksExisted % 10 == 0 && this.rand.nextFloat() > 0.25f && this.glowAlpha > 0.25f && !this.isInvisible()) {
             // Redstone fireflies have less of a chance to spawn particles.
             if (this.isRedstoneCoated(true) && this.rand.nextFloat() > 0.5f)
                 return;
