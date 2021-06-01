@@ -4,12 +4,16 @@ color_scheme: "dark"
 search_enabled: false
 
 # Set a path/url to a logo that will be displayed instead of the title
-logo: "/assets/images/fireflies_logo.png"
+# (this looks silly because it's so small)
+#logo: "/assets/images/fireflies_logo.png" 
 
 # Aux links for the upper right navigation
 aux_links:
+  "Download Fireflies":
+    - "//example.com"
   "Fireflies on GitHub":
     - "//github.com/Okolytes/Fireflies"
+
 
 last_edit_timestamp: true # show or hide edit time - page must have `last_modified_date` defined in the frontmatter
 last_edit_time_format: "%b %e %Y at %I:%M %p" # uses ruby's time format: https://ruby-doc.org/stdlib-2.7.0/libdoc/time/rdoc/Time.html

@@ -6,5 +6,8 @@ permalink: /
 ---
 
 
-# Fireflies
-// TODO.. description 
+![](assets/images/fireflies_logo_background.png)
+[Download from CurseForge](http://example.com/){: .btn .btn-purple }
+[View on GitHub](https://github.com/Okolytes/Fireflies){: .btn }
+
+Description here...
