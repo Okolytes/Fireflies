@@ -6,5 +6,4 @@ permalink: /
 ---
 
 
-# Fireflies
 ![](assets/images/fireflies_logo.png)
