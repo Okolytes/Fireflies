@@ -11,6 +11,7 @@ import fireflies.setup.ClientSetup;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.Atlases;
 import net.minecraft.client.renderer.IRenderTypeBuffer;
+import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.entity.EntityRendererManager;
 import net.minecraft.client.renderer.entity.MobRenderer;
 import net.minecraft.client.renderer.texture.AtlasTexture;
@@ -40,7 +41,6 @@ public class FireflyRenderer extends MobRenderer<FireflyEntity, FireflyModel<Fir
             return;
 
         matrixStackIn.push();
-
         // Position at the abdomen
         float x = fireflyEntity.getWidth() * 0.35f * MathHelper.sin(fireflyEntity.renderYawOffset * (float) Math.PI / 180F);
         float y = this.entityModel.abdomen.rotateAngleX + fireflyEntity.getEyeHeight() + 0.275f;
@@ -55,10 +55,8 @@ public class FireflyRenderer extends MobRenderer<FireflyEntity, FireflyModel<Fir
             vector3f1[i].mul(scale);
         }
 
-        TextureAtlasSprite sprite = Minecraft.getInstance().getAtlasSpriteGetter(AtlasTexture.LOCATION_BLOCKS_TEXTURE)
-                .apply(fireflyEntity.isRedstoneCoated(true) ? ClientSetup.REDSTONE_ABDOMEN_LIGHT : ClientSetup.ABDOMEN_LIGHT);
-
-        IVertexBuilder buffer = bufferIn.getBuffer(Atlases.getItemEntityTranslucentCullType());
+        TextureAtlasSprite sprite = Minecraft.getInstance().getAtlasSpriteGetter(AtlasTexture.LOCATION_BLOCKS_TEXTURE).apply(fireflyEntity.isRedstoneCoated(true) ? ClientSetup.REDSTONE_ABDOMEN_LIGHT : ClientSetup.ABDOMEN_LIGHT);
+        IVertexBuilder buffer = bufferIn.getBuffer(Minecraft.isFabulousGraphicsEnabled() ? Atlases.getItemEntityTranslucentCullType() : RenderType.getTranslucentNoCrumbling());
         MatrixStack.Entry entry = matrixStackIn.getLast();
         float minU = sprite.getMinU();
         float maxU = sprite.getMaxU();
@@ -69,7 +67,6 @@ public class FireflyRenderer extends MobRenderer<FireflyEntity, FireflyModel<Fir
         buffer.pos(entry.getMatrix(), vector3f1[1].getX(), vector3f1[1].getY(), vector3f1[1].getZ()).color(1f, 1f, 1f, fireflyEntity.glowAlpha).tex(maxU, minV).overlay(0, 10).lightmap(light).normal(entry.getNormal(), 0.0F, 1.0F, 0.0F).endVertex();
         buffer.pos(entry.getMatrix(), vector3f1[2].getX(), vector3f1[2].getY(), vector3f1[2].getZ()).color(1f, 1f, 1f, fireflyEntity.glowAlpha).tex(minU, minV).overlay(0, 10).lightmap(light).normal(entry.getNormal(), 0.0F, 1.0F, 0.0F).endVertex();
         buffer.pos(entry.getMatrix(), vector3f1[3].getX(), vector3f1[3].getY(), vector3f1[3].getZ()).color(1f, 1f, 1f, fireflyEntity.glowAlpha).tex(minU, maxV).overlay(0, 10).lightmap(light).normal(entry.getNormal(), 0.0F, 1.0F, 0.0F).endVertex();
-
         matrixStackIn.pop();
     }
 

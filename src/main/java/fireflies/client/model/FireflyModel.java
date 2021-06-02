@@ -20,8 +20,6 @@ public class FireflyModel<T extends FireflyEntity> extends AgeableModel<T> {
     private final ModelRenderer legs1;
     private final ModelRenderer legs2;
 
-    private static final float legsRotateAngleX = 0.25F;
-
     public FireflyModel() {
         textureWidth = 32;
         textureHeight = 32;
@@ -60,13 +58,13 @@ public class FireflyModel<T extends FireflyEntity> extends AgeableModel<T> {
         legs1 = new ModelRenderer(this);
         legs1.setRotationPoint(0.0F, 1.5F, -1.0F);
         head.addChild(legs1);
-        setRotationAngle(legs1, legsRotateAngleX, 0.0F, 0.0F);
+        setRotationAngle(legs1, 0.25f, 0.0F, 0.0F);
         legs1.setTextureOffset(17, 0).addBox(-2.0F, 0.5F, -1.0F, 4.0F, 2.0F, 0.0F, 0.0F, false);
 
         legs2 = new ModelRenderer(this);
         legs2.setRotationPoint(0.0F, 2.5F, -3.0F);
         head.addChild(legs2);
-        setRotationAngle(legs2, legsRotateAngleX, 0.0F, 0.0F);
+        setRotationAngle(legs2, 0.25f, 0.0F, 0.0F);
         legs2.setTextureOffset(26, 0).addBox(-1.5F, -0.5F, 0.0F, 3.0F, 2.0F, 0.0F, 0.0F, false);
     }
 
@@ -83,8 +81,8 @@ public class FireflyModel<T extends FireflyEntity> extends AgeableModel<T> {
         this.leftWing.rotateAngleZ = -this.rightWing.rotateAngleZ;
 
         // Swag legs
-        this.legs1.rotateAngleX = (legsRotateAngleX - animSpeed(ageInTicks, 0.2F) * (float) Math.PI * 0.0075F);
-        this.legs2.rotateAngleX = (legsRotateAngleX - animSpeed(ageInTicks, 0.2F) * (float) Math.PI * 0.005F);
+        this.legs1.rotateAngleX = (0.25f - animSpeed(ageInTicks, 0.2F) * (float) Math.PI * 0.0075F);
+        this.legs2.rotateAngleX = (0.25f - animSpeed(ageInTicks, 0.2F) * (float) Math.PI * 0.005F);
     }
 
     private float animSpeed(float ageInTicks, float speed) {

@@ -9,6 +9,7 @@ import net.minecraft.block.material.Material;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityClassification;
 import net.minecraft.entity.SpawnReason;
+import net.minecraft.entity.passive.BatEntity;
 import net.minecraft.util.Direction;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.IBlockReader;
@@ -44,8 +45,8 @@ public class IllumerinBlock extends RotatedPillarBlock {
         if (e.getSpawnReason() != SpawnReason.NATURAL && e.getSpawnReason() != SpawnReason.SPAWNER)
             return;
 
-        // Only disable monster spawns
-        if (!e.getEntity().getType().getClassification().equals(EntityClassification.MONSTER))
+        // Only disable monster spawns and bats
+        if (!e.getEntity().getType().getClassification().equals(EntityClassification.MONSTER) && !(e.getEntity() instanceof BatEntity))
             return;
 
         // Cancel the spawn if an illumerin / powered illumerin block is within radius
