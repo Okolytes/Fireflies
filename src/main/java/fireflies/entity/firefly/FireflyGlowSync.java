@@ -1,7 +1,7 @@
 package fireflies.entity.firefly;
 
 import fireflies.Fireflies;
-import fireflies.client.DoClientStuff;
+import fireflies.client.ClientStuff;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
@@ -14,8 +14,7 @@ public class FireflyGlowSync {
 
     @SubscribeEvent
     public static void clientTickEvent(TickEvent.ClientTickEvent event) {
-        if (event.phase == TickEvent.Phase.END // Runs on both START and END
-                || new DoClientStuff().isGamePaused())
+        if (event.phase == TickEvent.Phase.END /* Runs on both START and END */ || ClientStuff.isGamePaused())
             return;
 
         if (!calmSyncedFireflies.syncedFireflies.isEmpty()) {

@@ -1,7 +1,7 @@
 package fireflies.entity.firefly;
 
 import fireflies.block.RedstoneIllumerinBlock;
-import fireflies.client.DoClientStuff;
+import fireflies.client.ClientStuff;
 import fireflies.setup.Registry;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.HoneyBlock;
@@ -328,7 +328,7 @@ public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
                 this.isGlowIncreasing = false;
                 break;
             case ON:
-                this.glowAlpha = 1;
+                this.glowAlpha = 1f;
                 this.isGlowIncreasing = false;
                 break;
             case DEFAULT:
@@ -521,8 +521,7 @@ public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
         super.onAddedToWorld();
         if (this.world.isRemote) {
             // Start playing the flight loop sound
-            DoClientStuff doClientStuff = new DoClientStuff();
-            doClientStuff.playFireflyLoopSound(this);
+            ClientStuff.playFireflyLoopSound(this);
         }
     }
 
@@ -545,10 +544,10 @@ public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
      * @param amount How many particles should be spawned.
      * @param alpha  Alpha of the particle.
      */
-    private void spawnRedstoneParticlePuff(int amount, float alpha) {
+    private void spawnRedstoneParticlePuff(boolean lowPowered, int amount, float alpha) {
         for (int i = 0; i < amount; i++) {
             float randPos = this.isChild() ? 0.22f : 0.66f;
-            ((ServerWorld) (this.world)).spawnParticle(new RedstoneParticleData(1f, 0, 0, alpha),
+            ((ServerWorld) (this.world)).spawnParticle(new RedstoneParticleData(lowPowered ? 0.5f : 1f, 0, 0, alpha),
                     this.getPosX() + MathHelper.nextFloat(this.rand, -randPos, randPos),
                     this.getPosY() + MathHelper.nextFloat(this.rand, 0f, randPos * 1.33f),
                     this.getPosZ() + MathHelper.nextFloat(this.rand, -randPos, randPos),
@@ -569,7 +568,7 @@ public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
                     itemstack.shrink(1);
                 }
                 // Spawn powered redstone dust particles
-                this.spawnRedstoneParticlePuff(5 + this.rand.nextInt(5), 1f);
+                this.spawnRedstoneParticlePuff(false, 5 + this.rand.nextInt(5), 1f);
             } else {
                 // Play the conversion sound to the client
                 player.playSound(Registry.FIREFLY_APPLY_REDSTONE.get(), 1f, 1f);
@@ -683,7 +682,8 @@ public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
     private void removeRedstoneCoated() {
         this.setRedstoneCovered(false);
         // Spawn powered off redstone particles
-        this.spawnRedstoneParticlePuff(4 + this.rand.nextInt(5), 0.7f);
+        this.spawnRedstoneParticlePuff(true,5 + this.rand.nextInt(5), 0.5f);
+        this.playSound(Registry.FIREFLY_APPLY_REDSTONE.get(), 1f, 1f); // temp sound
     }
 
     //region AI

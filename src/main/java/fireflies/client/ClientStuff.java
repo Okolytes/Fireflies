@@ -15,19 +15,19 @@ import java.util.Random;
 
 // Java classloading forces us to put calls to the Minecraft class in here I guess...
 @Mod.EventBusSubscriber(modid = Fireflies.MOD_ID, value = Dist.CLIENT)
-public class DoClientStuff {
-    public void playFireflyLoopSound(FireflyEntity fireflyEntity) {
+public class ClientStuff {
+    public static void playFireflyLoopSound(FireflyEntity fireflyEntity) {
         Minecraft.getInstance().getSoundHandler().playOnNextTick(new FireflyFlightLoopSound(fireflyEntity));
     }
 
-    public boolean isGamePaused() {
+    public static boolean isGamePaused() {
         return Minecraft.getInstance().isGamePaused();
     }
 
     @SubscribeEvent
     public static void changeSplashText(GuiOpenEvent event) {
         if (event.getGui() instanceof MainMenuScreen) {
-            if (Math.random() > 0.99f) {
+            if (Math.random() > 0.99f) { // 1 in 100 chance - this is run every time the main menu screen is opened, not when the game opens, but who cares
                 String[] splashes = {
                         "You would not believe your eyes...",
                         "If ten million fireflies...",
@@ -36,8 +36,7 @@ public class DoClientStuff {
                 String newSplashText = splashes[new Random().nextInt(splashes.length)];
 
                 try {
-                    ObfuscationReflectionHelper.setPrivateValue(
-                            MainMenuScreen.class, (MainMenuScreen) event.getGui(), newSplashText, "field_73975_c");
+                    ObfuscationReflectionHelper.setPrivateValue(MainMenuScreen.class, (MainMenuScreen) event.getGui(), newSplashText, "field_73975_c");
                 } catch (ObfuscationReflectionHelper.UnableToAccessFieldException | ObfuscationReflectionHelper.UnableToFindFieldException e) {
                     Fireflies.LOGGER.error("Failed miserably at setting the splash text.", e);
                 }

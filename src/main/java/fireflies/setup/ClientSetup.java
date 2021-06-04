@@ -20,7 +20,6 @@ import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
 public class ClientSetup {
     public static ResourceLocation ABDOMEN_LIGHT = new ResourceLocation(Fireflies.MOD_ID, "entity/firefly_abdomen_light");
     public static ResourceLocation REDSTONE_ABDOMEN_LIGHT = new ResourceLocation(Fireflies.MOD_ID, "entity/firefly_abdomen_redstone_light");
-    public static ResourceLocation ECTO_ABDOMEN_LIGHT = new ResourceLocation(Fireflies.MOD_ID, "entity/ecto_firefly_abdomen_light");
 
     public static void init(final FMLClientSetupEvent event) {
         RenderingRegistry.registerEntityRenderingHandler(Registry.FIREFLY.get(), FireflyRenderer::new);
@@ -40,7 +39,6 @@ public class ClientSetup {
         if (event.getMap().getTextureLocation().equals(AtlasTexture.LOCATION_BLOCKS_TEXTURE)) {
             event.addSprite(ABDOMEN_LIGHT);
             event.addSprite(REDSTONE_ABDOMEN_LIGHT);
-            event.addSprite(ECTO_ABDOMEN_LIGHT);
         }
     }
 }
