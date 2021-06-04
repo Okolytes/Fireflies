@@ -19,6 +19,7 @@ public class FireflySyncedAnimation {
             this.glowAlpha = 0; // If it goes under or over 0 or 1 it'll wrap back around to being on/off, we don't want that
             if (tryStartIncreasing) {
                 this.glowIncreasing = true;
+                fireflyEntity.spawnAbdomenParticle();
             }
         } else if (this.glowAlpha >= 1) {
             this.glowAlpha = 1;

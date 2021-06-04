@@ -2,6 +2,9 @@ package fireflies.entity.firefly;
 
 import fireflies.block.RedstoneIllumerinBlock;
 import fireflies.client.ClientStuff;
+import fireflies.client.particle.FireflyAbdomenParticle;
+import fireflies.misc.FireflyAbdomenParticleData;
+import fireflies.misc.FireflyAbdomenRedstoneParticleData;
 import fireflies.setup.Registry;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.HoneyBlock;
@@ -54,6 +57,15 @@ public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
     @Nullable
     public FireflyAbdomenAnimation abdomenAnimation;
     /**
+     * (Client) The current abdomen particle this firefly has. (if any)
+     */
+    @Nullable
+    public FireflyAbdomenParticle abdomenParticle;
+    /**
+     * (Client) the Y offset of where the abdomen particle should spawn / be at any given moment.
+     */
+    public float abdomenParticlePositionOffset;
+    /**
      * (Client) The current alpha of the abdomen overlay on the firefly.
      */
     public float glowAlpha;
@@ -61,6 +73,10 @@ public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
      * (Client) Is the glow alpha increasing or decreasing?
      */
     public boolean isGlowIncreasing;
+    /**
+     * (Client) Is the abdomen animation being set every tick
+     */
+    public boolean isAnimationOverridden;
     /**
      * How many ticks this firefly has been underwater for, used to start taking damage & converting from redstone firefly after 20 ticks.
      */
@@ -232,6 +248,9 @@ public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
      * @see FireflyEntity#abdomenAnimation
      */
     private void updateAbdomenAnimation() {
+        if (this.isAnimationOverridden)
+            return;
+
         // The redstone firefly always has its abdomen on.
         if (this.isRedstoneCoated(true)) {
             this.setAbdomenAnimation(FireflyAbdomenAnimation.ON);
@@ -305,6 +324,7 @@ public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
             this.glowAlpha = 0; // If it goes under or over 0 or 1 it'll wrap back around to being on/off, we don't want that
             if (this.rand.nextFloat() <= startIncreasingChance) {
                 this.isGlowIncreasing = true;
+                this.spawnAbdomenParticle();
             }
         } else if (this.glowAlpha >= 1) {
             this.glowAlpha = 1;
@@ -349,6 +369,32 @@ public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
             case SLOW:
                 this.glowAnimation(0.05f, 0.015f, 0.025f, 0.025f);
                 break;
+        }
+    }
+
+    /**
+     * (Client) Keeps up with the bobbing animation of the firefly.
+     *
+     * @return the precise position of where the abdomen particle should spawn / move to.
+     */
+    public double[] abdomenParticlePos() {
+        return new double[] {
+                this.getPosX() - -this.getWidth() * 0.35f * MathHelper.sin(this.renderYawOffset * ((float) Math.PI / 180F)),
+                this.getPosYEye() + this.abdomenParticlePositionOffset + 0.3f,
+                this.getPosZ() + -this.getWidth() * 0.35f * MathHelper.cos(this.renderYawOffset * ((float) Math.PI / 180F))
+        };
+    }
+
+
+    /**
+     * (Client) Spawns the abdomen particle at the precise location of the abdomen, with range being far as the firefly itself.
+     */
+    public void spawnAbdomenParticle() {
+        if (this.world.isRemote && !this.isInvisible()) {
+            double[] pos = this.abdomenParticlePos();
+            this.world.addOptionalParticle(this.isRedstoneCoated(true)
+                            ? new FireflyAbdomenRedstoneParticleData(this.getEntityId()) : new FireflyAbdomenParticleData(this.getEntityId()),
+                    true, pos[0], pos[1], pos[2], 0, 0, 0);
         }
     }
 
@@ -398,7 +444,6 @@ public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
 
     /**
      * Activates redstone illumerin blocks in a radius of {@link FireflyEntity#illumerinRadius}, called every half a second.
-     * Additionally sets the {@link RedstoneIllumerinBlock#LOCKED} property to true so it can't be overridden by other redstone components.
      */
     private void activateIllumerinBlocks() {
         // Baby fireflies have a smaller radius
@@ -411,8 +456,8 @@ public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
                         continue;
 
                     BlockState state = this.world.getBlockState(pos);
-                    if (state.getBlock() instanceof RedstoneIllumerinBlock && !state.get(RedstoneIllumerinBlock.LOCKED)) {
-                        this.world.setBlockState(pos, state.with(RedstoneIllumerinBlock.LOCKED, Boolean.TRUE).with(RedstoneIllumerinBlock.POWERED, Boolean.TRUE), 3);
+                    if (state.getBlock() instanceof RedstoneIllumerinBlock && !state.get(RedstoneIllumerinBlock.POWERED)) {
+                        this.world.setBlockState(pos, state.with(RedstoneIllumerinBlock.POWERED, Boolean.TRUE), 3);
                         this.illumerinBlocks.add(pos);
                     }
                 }
@@ -433,15 +478,15 @@ public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
 
             // Remove if out of range
             if (pos.distanceSq(this.getPosition()) > illumerinRadius * illumerinRadius) {
-                this.world.setBlockState(pos, state.with(RedstoneIllumerinBlock.LOCKED, Boolean.FALSE), 3);
-                this.world.getPendingBlockTicks().scheduleTick(pos, state.getBlock(), 1);
+                this.world.setBlockState(pos, state.with(RedstoneIllumerinBlock.POWERED, Boolean.FALSE), 3);
+                //this.world.getPendingBlockTicks().scheduleTick(pos, state.getBlock(), 1);
                 return true;
             }
 
             // Remove if we dead
             if (!this.isAlive()) {
-                this.world.setBlockState(pos, state.with(RedstoneIllumerinBlock.LOCKED, Boolean.FALSE), 3);
-                this.world.getPendingBlockTicks().scheduleTick(pos, state.getBlock(), 1);
+                this.world.setBlockState(pos, state.with(RedstoneIllumerinBlock.POWERED, Boolean.FALSE), 3);
+                //this.world.getPendingBlockTicks().scheduleTick(pos, state.getBlock(), 1);
             }
 
             return false;
@@ -462,6 +507,11 @@ public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
                 this.updateAbdomenAnimation();
                 this.updateGlowAnimation();
                 this.spawnFallingDustParticles();
+
+                // Fix abdomen particle not spawning with synced firefly on first glow cycle
+                if (this.ticksExisted < 3 && this.glowAlpha > 0.1f) {
+                    this.spawnAbdomenParticle();
+                }
             }
         } else {
             if (this.isAIDisabled())
@@ -572,6 +622,10 @@ public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
             } else {
                 // Play the conversion sound to the client
                 player.playSound(Registry.FIREFLY_APPLY_REDSTONE.get(), 1f, 1f);
+                // Destroy the current abdomen particle.
+                if (this.abdomenParticle != null) this.abdomenParticle.setExpired();
+                // Spawn the new redstone abdomen particle.
+                this.spawnAbdomenParticle();
             }
             return ActionResultType.SUCCESS;
         }
@@ -682,7 +736,7 @@ public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
     private void removeRedstoneCoated() {
         this.setRedstoneCovered(false);
         // Spawn powered off redstone particles
-        this.spawnRedstoneParticlePuff(true,5 + this.rand.nextInt(5), 0.5f);
+        this.spawnRedstoneParticlePuff(true, 5 + this.rand.nextInt(5), 0.5f);
         this.playSound(Registry.FIREFLY_APPLY_REDSTONE.get(), 1f, 1f); // temp sound
     }
 

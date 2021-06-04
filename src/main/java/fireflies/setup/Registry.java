@@ -5,6 +5,8 @@ import fireflies.block.EctoIllumerinBlock;
 import fireflies.block.IllumerinBlock;
 import fireflies.block.RedstoneIllumerinBlock;
 import fireflies.entity.firefly.FireflyEntity;
+import fireflies.misc.FireflyAbdomenParticleData;
+import fireflies.misc.FireflyAbdomenRedstoneParticleData;
 import net.minecraft.block.Block;
 import net.minecraft.block.DispenserBlock;
 import net.minecraft.dispenser.DefaultDispenseItemBehavior;
@@ -67,6 +69,8 @@ public class Registry {
     //region Particles
     public static final RegistryObject<BasicParticleType> FIREFLY_DUST_PARTICLE = PARTICLES.register("firefly_dust_particle", () -> new BasicParticleType(false));
     public static final RegistryObject<BasicParticleType> FIREFLY_DUST_REDSTONE_PARTICLE = PARTICLES.register("firefly_dust_redstone_particle", () -> new BasicParticleType(false));
+    public static final RegistryObject<ParticleType<FireflyAbdomenParticleData>> FIREFLY_ABDOMEN_PARTICLE = PARTICLES.register("firefly_abdomen_particle", FireflyAbdomenParticleData::get);
+    public static final RegistryObject<ParticleType<FireflyAbdomenRedstoneParticleData>> FIREFLY_ABDOMEN_REDSTONE_PARTICLE = PARTICLES.register("firefly_abdomen_redstone_particle", FireflyAbdomenRedstoneParticleData::get);
     //endregion Particles
 
     //region Sounds
