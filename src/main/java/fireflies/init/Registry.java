@@ -64,14 +64,11 @@ public class Registry {
     //region Potions
     public static final RegistryObject<Potion> FIREFLY_MASTER = POTION_TYPES.register("firefly_master", () -> new FireflyMasterPotion(new EffectInstance(Effects.GLOWING, 320), new EffectInstance(Effects.POISON, 320)));
     public static final RegistryObject<Potion> LONG_FIREFLY_MASTER = POTION_TYPES.register("long_firefly_master", () -> new FireflyMasterPotion(new EffectInstance(Effects.GLOWING, 640), new EffectInstance(Effects.POISON, 640)));
-    public static final RegistryObject<Potion> STRONG_FIREFLY_MASTER = POTION_TYPES.register("strong_firefly_master", () -> new FireflyMasterPotion(new EffectInstance(Effects.GLOWING, 160, 1), new EffectInstance(Effects.POISON, 160, 1)));
+    public static final RegistryObject<Potion> STRONG_FIREFLY_MASTER = POTION_TYPES.register("strong_firefly_master", () -> new FireflyMasterPotion(new EffectInstance(Effects.GLOWING, 180, 1), new EffectInstance(Effects.POISON, 180, 1)));
     //endregion Potions
 
     //region Entities / Spawn Eggs
-    private static final EntityType<FireflyEntity> FIREFLY_BUILDER = EntityType.Builder.create(FireflyEntity::new, EntityClassification.CREATURE)
-            .size(0.5f, 0.5f)
-            .trackingRange(10)
-            .build("firefly");
+    private static final EntityType<FireflyEntity> FIREFLY_BUILDER = EntityType.Builder.create(FireflyEntity::new, EntityClassification.CREATURE).size(0.5f, 0.5f).trackingRange(10).build("firefly");
 
     private static final Item FIREFLY_SPAWN_EGG = new SpawnEggItem(FIREFLY_BUILDER, 0x5B1313, 0xF7DD36, new Item.Properties().group(ItemGroup.MISC)).setRegistryName(Fireflies.MOD_ID, "firefly_spawn_egg");
 

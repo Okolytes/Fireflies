@@ -6,9 +6,7 @@ import fireflies.client.particle.FireflyAbdomenParticle;
 import fireflies.init.Registry;
 import fireflies.misc.FireflyAbdomenParticleData;
 import fireflies.misc.FireflyAbdomenRedstoneParticleData;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.HoneyBlock;
-import net.minecraft.block.LeavesBlock;
+import net.minecraft.block.*;
 import net.minecraft.entity.*;
 import net.minecraft.entity.ai.RandomPositionGenerator;
 import net.minecraft.entity.ai.attributes.AttributeModifierMap;
@@ -31,15 +29,13 @@ import net.minecraft.pathfinding.FlyingPathNavigator;
 import net.minecraft.pathfinding.PathNavigator;
 import net.minecraft.pathfinding.PathNodeType;
 import net.minecraft.tags.ITag;
-import net.minecraft.util.ActionResultType;
-import net.minecraft.util.DamageSource;
-import net.minecraft.util.Hand;
-import net.minecraft.util.SoundEvent;
+import net.minecraft.util.*;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.BlockRayTraceResult;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.RayTraceContext;
 import net.minecraft.util.math.vector.Vector3d;
+import net.minecraft.world.GameRules;
 import net.minecraft.world.IWorldReader;
 import net.minecraft.world.World;
 import net.minecraft.world.server.ServerWorld;
@@ -80,6 +76,14 @@ public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
      * (Client) Is the abdomen animation being set every tick
      */
     public boolean isAnimationOverridden;
+    /**
+     * Can this firefly drop illumerin in to jars?
+     */
+    private boolean hasIllumerin;
+    /**
+     * How many ticks have passed since this firefly has eaten some compost.
+     */
+    private int compostEatenTicks;
     /**
      * How many ticks this firefly has been underwater for, used to start taking damage & converting from redstone firefly after 20 ticks.
      */
@@ -186,11 +190,17 @@ public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
 
     @Override
     protected void registerGoals() {
-        // Register all of our fireflies AI goals.
-        this.goalSelector.addGoal(0, new BreedGoal(this, 1f));
+        // Register all of our fireflies AI goals. (0 being highest priority, of course -_-)
+        this.goalSelector.addGoal(0, new BreedGoal(this, 1f) {
+            @Override
+            public boolean shouldExecute() { // Only breed in darkness
+                return super.shouldExecute() && this.world.getLight(this.animal.getPosition()) <= 5;
+            }
+        });
         this.goalSelector.addGoal(1, new TemptGoal(this, 1.15f, Ingredient.fromItems(Items.HONEY_BOTTLE, Items.HONEY_BLOCK), false));
         this.goalSelector.addGoal(2, new FireflyEntity.EntrancedByHoneyGoal(this, 1.15f, 8));
         this.goalSelector.addGoal(3, new FollowParentGoal(this, 1.15f));
+        this.goalSelector.addGoal(3, new FireflyEntity.EatCompostGoal(this, 1f, 16));
         this.goalSelector.addGoal(4, new FireflyEntity.WanderGoal(this, 1f, 1, false));
         this.goalSelector.addGoal(5, new SwimGoal(this));
     }
@@ -362,6 +372,14 @@ public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
                 if (this.ticksExisted < 3 && this.glowAlpha > 0.1f) {
                     this.spawnAbdomenParticle();
                 }
+
+                if (this.ticksExisted % 100 == 0 && this.isRedstoneCoated(true)) {
+                    // Sometimes particles can disappear to various things, so every 5s we'll try to destroy and add it again
+                    if (this.abdomenParticle != null) {
+                        this.abdomenParticle.setExpired();
+                    }
+                    this.spawnAbdomenParticle();
+                }
             }
         } else {
             if (this.isAIDisabled())
@@ -430,8 +448,8 @@ public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
         super.onRemovedFromWorld();
         if (this.world.isRemote) {
             // Remove ourselves from all the synced lists, if any.
-            FireflyGlowSync.calmSyncedFireflies.syncedFireflies.remove(this);
-            FireflyGlowSync.starryNightSyncedFireflies.syncedFireflies.remove(this);
+            FireflyGlowSyncHandler.calmSyncedFireflies.syncedFireflies.remove(this);
+            FireflyGlowSyncHandler.starryNightSyncedFireflies.syncedFireflies.remove(this);
         } else {
             // Stop giving a signal to nearby illumerin blocks.
             this.removeInvalidIllumerinBlocks();
@@ -491,6 +509,8 @@ public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
                         this.isRedstoneCoated(false) ? Registry.FIREFLY_DUST_REDSTONE_PARTICLE.get() : Registry.FIREFLY_DUST_PARTICLE.get(),
                         this.getPosX(), this.getPosY(), this.getPosZ(), 0, 0, 0);
             }
+        } else {
+            this.hasIllumerin = false;
         }
         return super.attackEntityFrom(source, amount);
     }
@@ -656,8 +676,9 @@ public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
                 // Avoid leaves.. They float to the top of trees which is unwanted.
                 if (this.world.getBlockState(blockPos.down()).getBlock() instanceof LeavesBlock) {
                     for (int i = 0; i < 3; i++) {
-                        if (!(this.world.getBlockState(blockPos.down(i)).getBlock() instanceof LeavesBlock))
+                        if (!(this.world.getBlockState(blockPos.down(i)).getBlock() instanceof LeavesBlock)) {
                             position = position.add(0, -i, 0);
+                        }
                     }
                 }
             }
@@ -775,13 +796,10 @@ public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
             super.tick();
             Vector3d destinationBlockCentered = this.getDestinationBlockCentered();
             // Stare at the honey block.
-            this.fireflyEntity.getLookController()
-                    .setLookPosition(destinationBlockCentered.getX(), destinationBlockCentered.getY(), destinationBlockCentered.getZ(),
-                            this.fireflyEntity.getHorizontalFaceSpeed(), this.fireflyEntity.getVerticalFaceSpeed());
+            this.fireflyEntity.getLookController().setLookPosition(destinationBlockCentered);
 
             // Keep close to the honey block.
-            if (this.fireflyEntity.ticksExisted % 20 == 0 && this.fireflyEntity
-                    .getDistanceSq(destinationBlockCentered.getX(), destinationBlockCentered.getY(), destinationBlockCentered.getZ()) > 3f) {
+            if (this.fireflyEntity.ticksExisted % 20 == 0 && this.fireflyEntity.getDistanceSq(destinationBlockCentered) > 3f) {
                 this.attemptToMove();
             }
         }
@@ -802,5 +820,77 @@ public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
                     destinationBlockCentered.getX(), destinationBlockCentered.getY(), destinationBlockCentered.getZ(), this.movementSpeed);
         }
     }
+
+    private static class EatCompostGoal extends MoveToBlockGoal {
+        private final FireflyEntity fireflyEntity;
+        private final World world;
+        private int startEatingTicks;
+
+        public EatCompostGoal(FireflyEntity fireflyEntity, double speedIn, int length) {
+            super(fireflyEntity, speedIn, length);
+            this.fireflyEntity = fireflyEntity;
+            this.world = fireflyEntity.world;
+        }
+
+        @Override
+        public boolean shouldMove() {
+            return this.timeoutCounter % 100 == 0;
+        }
+
+        @Override
+        protected boolean shouldMoveTo(IWorldReader worldIn, BlockPos pos) {
+            BlockState state = worldIn.getBlockState(pos);
+            return state.matchesBlock(Blocks.COMPOSTER) && state.get(ComposterBlock.LEVEL) > 0;
+        }
+
+        private void lookAtCompost() {
+            this.fireflyEntity.getLookController().setLookPosition(this.destinationBlock.getX() + 0.5f, this.destinationBlock.getY() + 0.5f, this.destinationBlock.getZ() + 0.5f);
+        }
+
+        @Override
+        public void tick() {
+            if (this.destinationBlock.withinDistance(this.fireflyEntity.getPosition(), 3f)) {
+                this.lookAtCompost();
+                if (this.startEatingTicks >= 100) {
+                    this.eatCompost();
+                } else {
+                    ++this.startEatingTicks;
+                }
+            }
+
+            super.tick();
+        }
+
+        private void eatCompost() {
+            if (!this.world.getGameRules().getBoolean(GameRules.MOB_GRIEFING))
+                return;
+
+            BlockState state = this.world.getBlockState(this.destinationBlock);
+            if (state.matchesBlock(Blocks.COMPOSTER)) {
+                this.fireflyEntity.playSound(SoundEvents.BLOCK_COMPOSTER_EMPTY, 1.0F, 1.0F);
+                int i = state.get(ComposterBlock.LEVEL);
+                this.world.setBlockState(this.destinationBlock, state.with(ComposterBlock.LEVEL, i - (i == 8 ? 2 : 1)), 3);
+                this.fireflyEntity.hasIllumerin = true;
+            }
+        }
+
+        @Override
+        public boolean shouldExecute() {
+            return super.shouldExecute() && !this.fireflyEntity.hasIllumerin;
+        }
+
+        @Override
+        public boolean shouldContinueExecuting() {
+            return super.shouldContinueExecuting() && !this.fireflyEntity.hasIllumerin;
+        }
+
+        @Override
+        public void startExecuting() {
+            this.startEatingTicks = 0;
+            this.lookAtCompost();
+            super.startExecuting();
+        }
+    }
+
     //endregion AI
 }

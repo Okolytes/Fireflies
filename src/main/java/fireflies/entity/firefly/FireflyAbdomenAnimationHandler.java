@@ -119,7 +119,7 @@ public class FireflyAbdomenAnimationHandler {
                 this.glowAnimation(0.05f, 0.015f, 0.025f, 0.025f);
                 break;
             case QUICK_BLINKS:
-                this.quickBlinksAnimation(0.3f, 0.25f, 0.25f, 0.025f);
+                this.quickBlinksAnimation(0.3f, 0.25f, 0.275f, 0.035f);
                 break;
         }
     }
@@ -137,20 +137,20 @@ public class FireflyAbdomenAnimationHandler {
 
         switch (newAnimation) {
             case CALM_SYNCHRONIZED:
-                FireflyGlowSync.starryNightSyncedFireflies.syncedFireflies.remove(firefly);
-                if (!FireflyGlowSync.calmSyncedFireflies.syncedFireflies.contains(firefly)) {
-                    FireflyGlowSync.calmSyncedFireflies.syncedFireflies.add(firefly);
+                FireflyGlowSyncHandler.starryNightSyncedFireflies.syncedFireflies.remove(firefly);
+                if (!FireflyGlowSyncHandler.calmSyncedFireflies.syncedFireflies.contains(firefly)) {
+                    FireflyGlowSyncHandler.calmSyncedFireflies.syncedFireflies.add(firefly);
                 }
                 break;
             case STARRY_NIGHT_SYNCHRONIZED:
-                FireflyGlowSync.calmSyncedFireflies.syncedFireflies.remove(firefly);
-                if (!FireflyGlowSync.starryNightSyncedFireflies.syncedFireflies.contains(firefly)) {
-                    FireflyGlowSync.starryNightSyncedFireflies.syncedFireflies.add(firefly);
+                FireflyGlowSyncHandler.calmSyncedFireflies.syncedFireflies.remove(firefly);
+                if (!FireflyGlowSyncHandler.starryNightSyncedFireflies.syncedFireflies.contains(firefly)) {
+                    FireflyGlowSyncHandler.starryNightSyncedFireflies.syncedFireflies.add(firefly);
                 }
                 break;
             default:
-                FireflyGlowSync.calmSyncedFireflies.syncedFireflies.remove(firefly);
-                FireflyGlowSync.starryNightSyncedFireflies.syncedFireflies.remove(firefly);
+                FireflyGlowSyncHandler.calmSyncedFireflies.syncedFireflies.remove(firefly);
+                FireflyGlowSyncHandler.starryNightSyncedFireflies.syncedFireflies.remove(firefly);
                 break;
         }
         firefly.abdomenAnimation = newAnimation;
