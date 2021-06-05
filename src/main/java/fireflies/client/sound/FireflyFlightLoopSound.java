@@ -1,7 +1,7 @@
 package fireflies.client.sound;
 
 import fireflies.entity.firefly.FireflyEntity;
-import fireflies.setup.Registry;
+import fireflies.init.Registry;
 import net.minecraft.client.audio.TickableSound;
 import net.minecraft.entity.Entity;
 import net.minecraft.util.SoundCategory;

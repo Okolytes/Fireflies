@@ -7,6 +7,11 @@
   "item.fireflies.ecto_illumerin": "Ecto Illumerin",
   "item.fireflies.firefly_spawn_egg": "Firefly Spawn Egg",
 
+  "item.minecraft.tipped_arrow.effect.firefly_master": "Arrow of the Firefly Master",
+  "item.minecraft.potion.effect.firefly_master": "Potion of the Firefly Master",
+  "item.minecraft.splash_potion.effect.firefly_master": "Splash Potion of the Firefly Master",
+  "item.minecraft.lingering_potion.effect.firefly_master": "Lingering Potion of the Firefly Master",
+
   "entity.fireflies.firefly": "Firefly",
   "subtitle.fireflies.firefly_hurt": "Firefly hurts",
   "subtitle.fireflies.firefly_death": "Firefly dies",

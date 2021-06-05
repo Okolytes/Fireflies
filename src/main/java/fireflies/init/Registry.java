@@ -1,4 +1,4 @@
-package fireflies.setup;
+package fireflies.init;
 
 import fireflies.Fireflies;
 import fireflies.block.EctoIllumerinBlock;
@@ -7,6 +7,7 @@ import fireflies.block.RedstoneIllumerinBlock;
 import fireflies.entity.firefly.FireflyEntity;
 import fireflies.misc.FireflyAbdomenParticleData;
 import fireflies.misc.FireflyAbdomenRedstoneParticleData;
+import fireflies.misc.FireflyMasterPotion;
 import net.minecraft.block.Block;
 import net.minecraft.block.DispenserBlock;
 import net.minecraft.dispenser.DefaultDispenseItemBehavior;
@@ -17,6 +18,9 @@ import net.minecraft.entity.SpawnReason;
 import net.minecraft.item.*;
 import net.minecraft.particles.BasicParticleType;
 import net.minecraft.particles.ParticleType;
+import net.minecraft.potion.EffectInstance;
+import net.minecraft.potion.Effects;
+import net.minecraft.potion.Potion;
 import net.minecraft.tileentity.TileEntityType;
 import net.minecraft.util.Direction;
 import net.minecraft.util.ResourceLocation;
@@ -30,10 +34,12 @@ import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import net.minecraftforge.registries.DeferredRegister;
 import net.minecraftforge.registries.ForgeRegistries;
 
+@SuppressWarnings("unused")
 @Mod.EventBusSubscriber(modid = Fireflies.MOD_ID, bus = Mod.EventBusSubscriber.Bus.MOD)
 public class Registry {
     private static final DeferredRegister<Block> BLOCKS = DeferredRegister.create(ForgeRegistries.BLOCKS, Fireflies.MOD_ID);
     private static final DeferredRegister<Item> ITEMS = DeferredRegister.create(ForgeRegistries.ITEMS, Fireflies.MOD_ID);
+    private static final DeferredRegister<Potion> POTION_TYPES = DeferredRegister.create(ForgeRegistries.POTION_TYPES, Fireflies.MOD_ID);
     private static final DeferredRegister<TileEntityType<?>> TILE_ENTITIES = DeferredRegister.create(ForgeRegistries.TILE_ENTITIES, Fireflies.MOD_ID);
     private static final DeferredRegister<EntityType<?>> ENTITIES = DeferredRegister.create(ForgeRegistries.ENTITIES, Fireflies.MOD_ID);
     private static final DeferredRegister<ParticleType<?>> PARTICLES = DeferredRegister.create(ForgeRegistries.PARTICLE_TYPES, Fireflies.MOD_ID);
@@ -41,19 +47,25 @@ public class Registry {
 
     //region Blocks / BlockItems
     public static final RegistryObject<Block> ILLUMERIN_BLOCK = BLOCKS.register("illumerin_block", IllumerinBlock::new);
-    public static final RegistryObject<Item> ILLUMERIN_BLOCKITEM = ITEMS.register("illumerin_block", () -> new BlockItem(ILLUMERIN_BLOCK.get(), new Item.Properties().group(ItemGroup.DECORATIONS)));
-
     public static final RegistryObject<Block> REDSTONE_ILLUMERIN_BLOCK = BLOCKS.register("redstone_illumerin_block", RedstoneIllumerinBlock::new);
-    public static final RegistryObject<Item> REDSTONE_ILLUMERIN_BLOCKITEM = ITEMS.register("redstone_illumerin_block", () -> new BlockItem(REDSTONE_ILLUMERIN_BLOCK.get(), new Item.Properties().group(ItemGroup.REDSTONE)));
-
     public static final RegistryObject<Block> ECTO_ILLUMERIN_BLOCK = BLOCKS.register("ecto_illumerin_block", EctoIllumerinBlock::new);
-    public static final RegistryObject<Item> ECTO_ILLUMERIN_BLOCKITEM = ITEMS.register("ecto_illumerin_block", () -> new BlockItem(ECTO_ILLUMERIN_BLOCK.get(), new Item.Properties().group(ItemGroup.DECORATIONS)));
+
+    public static final RegistryObject<Item> ILLUMERIN_BLOCKITEM = ITEMS.register("illumerin_block", () -> new BlockItem(ILLUMERIN_BLOCK.get(), new Item.Properties().group(ItemGroup.DECORATIONS)));
+    public static final RegistryObject<Item> REDSTONE_ILLUMERIN_BLOCKITEM = ITEMS.register("redstone_illumerin_block", () -> new BlockItem(REDSTONE_ILLUMERIN_BLOCK.get(), new Item.Properties().group(ItemGroup.REDSTONE)));
+    public static final RegistryObject<Item> ECTO_ILLUMERIN_BLOCKITEM = ITEMS.register("ecto_illumerin_block", () -> new BlockItem(ILLUMERIN_BLOCK.get(), new Item.Properties().group(ItemGroup.DECORATIONS)));
     //endregion Blocks / BlockItems
 
     //region Items
     public static final RegistryObject<Item> ILLUMERIN = ITEMS.register("illumerin", () -> new Item(new Item.Properties().group(ItemGroup.MATERIALS)));
     public static final RegistryObject<Item> ECTO_ILLUMERIN = ITEMS.register("ecto_illumerin", () -> new Item(new Item.Properties().group(ItemGroup.MATERIALS)));
+
     //endregion Items
+
+    //region Potions
+    public static final RegistryObject<Potion> FIREFLY_MASTER = POTION_TYPES.register("firefly_master", () -> new FireflyMasterPotion(new EffectInstance(Effects.GLOWING, 320), new EffectInstance(Effects.POISON, 320)));
+    public static final RegistryObject<Potion> LONG_FIREFLY_MASTER = POTION_TYPES.register("long_firefly_master", () -> new FireflyMasterPotion(new EffectInstance(Effects.GLOWING, 640), new EffectInstance(Effects.POISON, 640)));
+    public static final RegistryObject<Potion> STRONG_FIREFLY_MASTER = POTION_TYPES.register("strong_firefly_master", () -> new FireflyMasterPotion(new EffectInstance(Effects.GLOWING, 160, 1), new EffectInstance(Effects.POISON, 160, 1)));
+    //endregion Potions
 
     //region Entities / Spawn Eggs
     private static final EntityType<FireflyEntity> FIREFLY_BUILDER = EntityType.Builder.create(FireflyEntity::new, EntityClassification.CREATURE)
@@ -83,13 +95,14 @@ public class Registry {
 
     public static void init() {
         // Register all of our stuffs
-        final IEventBus iEventBus = FMLJavaModLoadingContext.get().getModEventBus();
-        BLOCKS.register(iEventBus);
-        ITEMS.register(iEventBus);
-        TILE_ENTITIES.register(iEventBus);
-        ENTITIES.register(iEventBus);
-        PARTICLES.register(iEventBus);
-        SOUNDS.register(iEventBus);
+        final IEventBus bus = FMLJavaModLoadingContext.get().getModEventBus();
+        BLOCKS.register(bus);
+        ITEMS.register(bus);
+        POTION_TYPES.register(bus);
+        TILE_ENTITIES.register(bus);
+        ENTITIES.register(bus);
+        PARTICLES.register(bus);
+        SOUNDS.register(bus);
     }
 
     @SubscribeEvent

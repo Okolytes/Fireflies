@@ -1,4 +1,4 @@
-package fireflies.setup;
+package fireflies.init;
 
 import fireflies.Fireflies;
 import fireflies.client.particle.FireflyAbdomenParticle;

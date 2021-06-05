@@ -10,4 +10,5 @@ public enum FireflyAbdomenAnimation {
     STARRY_NIGHT_SYNCHRONIZED, // fast synchronized flashing
     FRANTIC, // very fast random flashing
     SLOW, // very slow random flashing
+    QUICK_BLINKS // two fast flashes followed by a short period of nothing
 }

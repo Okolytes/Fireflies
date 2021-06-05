@@ -3,9 +3,9 @@ package fireflies.entity.firefly;
 import fireflies.block.RedstoneIllumerinBlock;
 import fireflies.client.ClientStuff;
 import fireflies.client.particle.FireflyAbdomenParticle;
+import fireflies.init.Registry;
 import fireflies.misc.FireflyAbdomenParticleData;
 import fireflies.misc.FireflyAbdomenRedstoneParticleData;
-import fireflies.setup.Registry;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.HoneyBlock;
 import net.minecraft.block.LeavesBlock;
@@ -31,7 +31,10 @@ import net.minecraft.pathfinding.FlyingPathNavigator;
 import net.minecraft.pathfinding.PathNavigator;
 import net.minecraft.pathfinding.PathNodeType;
 import net.minecraft.tags.ITag;
-import net.minecraft.util.*;
+import net.minecraft.util.ActionResultType;
+import net.minecraft.util.DamageSource;
+import net.minecraft.util.Hand;
+import net.minecraft.util.SoundEvent;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.BlockRayTraceResult;
 import net.minecraft.util.math.MathHelper;
@@ -39,18 +42,18 @@ import net.minecraft.util.math.RayTraceContext;
 import net.minecraft.util.math.vector.Vector3d;
 import net.minecraft.world.IWorldReader;
 import net.minecraft.world.World;
-import net.minecraft.world.biome.Biome;
-import net.minecraft.world.biome.Biomes;
 import net.minecraft.world.server.ServerWorld;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
-import java.util.Objects;
-import java.util.Optional;
 
 public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
+    /**
+     * (Client) Helper class for handling the firefly abdomen animations.
+     */
+    private final FireflyAbdomenAnimationHandler animationHandler;
     /**
      * (Client) The current animation this firefly has.
      */
@@ -108,6 +111,7 @@ public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
 
     public FireflyEntity(EntityType<? extends FireflyEntity> entityType, World world) {
         super(entityType, world);
+        this.animationHandler = new FireflyAbdomenAnimationHandler(this);
         this.moveController = new FireflyEntity.FlyingMovementHelper(this, 20, true);
         this.setPathPriority(PathNodeType.DANGER_FIRE, -1.0F);
         this.setPathPriority(PathNodeType.WATER, -1.0F);
@@ -212,165 +216,12 @@ public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
     }
 
     /**
-     * (Client) Set the fireflies abdomen animation, also changes the sync lists accordingly.
-     *
-     * @param newAnimation The new animation to change to.
-     * @see FireflyEntity#abdomenAnimation
-     */
-    private void setAbdomenAnimation(FireflyAbdomenAnimation newAnimation) {
-        if (this.abdomenAnimation == newAnimation) // Dont access the lists if we don't have to!
-            return;
-
-        switch (newAnimation) {
-            case CALM_SYNCHRONIZED:
-                FireflyGlowSync.starryNightSyncedFireflies.syncedFireflies.remove(this);
-                if (!FireflyGlowSync.calmSyncedFireflies.syncedFireflies.contains(this)) {
-                    FireflyGlowSync.calmSyncedFireflies.syncedFireflies.add(this);
-                }
-                break;
-            case STARRY_NIGHT_SYNCHRONIZED:
-                FireflyGlowSync.calmSyncedFireflies.syncedFireflies.remove(this);
-                if (!FireflyGlowSync.starryNightSyncedFireflies.syncedFireflies.contains(this)) {
-                    FireflyGlowSync.starryNightSyncedFireflies.syncedFireflies.add(this);
-                }
-                break;
-            default:
-                FireflyGlowSync.calmSyncedFireflies.syncedFireflies.remove(this);
-                FireflyGlowSync.starryNightSyncedFireflies.syncedFireflies.remove(this);
-                break;
-        }
-        this.abdomenAnimation = newAnimation;
-    }
-
-    /**
-     * (Client) Update the abdomen animation based on the biome it's in, among other conditions, every tick.
-     *
-     * @see FireflyEntity#abdomenAnimation
-     */
-    private void updateAbdomenAnimation() {
-        if (this.isAnimationOverridden)
-            return;
-
-        // The redstone firefly always has its abdomen on.
-        if (this.isRedstoneCoated(true)) {
-            this.setAbdomenAnimation(FireflyAbdomenAnimation.ON);
-            return;
-        }
-
-        // It's scary in the void...
-        if (this.getPosition().getY() <= 0 || this.getPosition().getY() >= 256) {
-            this.setAbdomenAnimation(FireflyAbdomenAnimation.FRANTIC);
-            return;
-        }
-
-        // Set the animation based on the current biome.
-        Biome currentBiome = this.world.getBiome(this.getPosition());
-        switch (currentBiome.getCategory()) {
-            case SWAMP:
-                this.setAbdomenAnimation(FireflyAbdomenAnimation.CALM);
-                break;
-            case FOREST:
-                Optional<RegistryKey<Biome>> biomeRegistryKey = this.world.func_242406_i(this.getPosition());
-                if (Objects.equals(biomeRegistryKey, Optional.of(Biomes.DARK_FOREST)) || Objects.equals(biomeRegistryKey, Optional.of(Biomes.DARK_FOREST_HILLS))) {
-                    this.setAbdomenAnimation(FireflyAbdomenAnimation.CALM_SYNCHRONIZED);
-                } else {
-                    this.setAbdomenAnimation(FireflyAbdomenAnimation.STARRY_NIGHT_SYNCHRONIZED);
-                }
-                break;
-            case JUNGLE:
-            case TAIGA:
-                this.setAbdomenAnimation(FireflyAbdomenAnimation.STARRY_NIGHT_SYNCHRONIZED);
-                break;
-            case PLAINS:
-                this.setAbdomenAnimation(FireflyAbdomenAnimation.STARRY_NIGHT);
-                break;
-            case NETHER:
-            case THEEND:
-                this.setAbdomenAnimation(FireflyAbdomenAnimation.FRANTIC);
-                break;
-            case DESERT:
-                this.setAbdomenAnimation(FireflyAbdomenAnimation.SLOW);
-                break;
-            default:
-                this.setAbdomenAnimation(FireflyAbdomenAnimation.DEFAULT);
-                break;
-        }
-    }
-
-    /**
      * (Client) Unused for now - play a sound when the firefly starts glowing.
      */
-    private void playGlowSound() {
+    public void playGlowSound() {
         //this.world.playSound(this.getPosX(), this.getPosY(), this.getPosZ(), FirefliesRegistration.FIREFLY_GLOW.get(), SoundCategory.NEUTRAL, 0.33f, 1, false);
     }
 
-    /**
-     * (Client) Handle logic for the abdomen animation
-     *
-     * @param increaseAmount           The amount in which the glow alpha should increase
-     * @param decreaseAmount           The amount in which the glow alpha should decrease
-     * @param startIncreasingChance    The chance for the glow alpha to begin increasing, once it's at 0.
-     * @param startDecreasingChanceThe The chance for the glow alpha to begin decreasing, once it's at 1.
-     * @see FireflyEntity#abdomenAnimation
-     * @see FireflyEntity#glowAlpha
-     * @see FireflyEntity#isGlowIncreasing
-     */
-    private void glowAnimation(float increaseAmount, float decreaseAmount, float startIncreasingChance, float startDecreasingChance) {
-        // Add / deplete the glow alpha, baby fireflies go a little faster.
-        this.glowAlpha += this.isGlowIncreasing
-                ? (this.isChild() ? increaseAmount * 1.25f : increaseAmount) : (this.isChild() ? -decreaseAmount * 1.25f : -decreaseAmount);
-
-        if (this.glowAlpha <= 0) {
-            this.glowAlpha = 0; // If it goes under or over 0 or 1 it'll wrap back around to being on/off, we don't want that
-            if (this.rand.nextFloat() <= startIncreasingChance) {
-                this.isGlowIncreasing = true;
-                this.spawnAbdomenParticle();
-            }
-        } else if (this.glowAlpha >= 1) {
-            this.glowAlpha = 1;
-            if (this.rand.nextFloat() <= startDecreasingChance) {
-                this.isGlowIncreasing = false;
-                this.playGlowSound();
-            }
-        }
-    }
-
-    /**
-     * (Client) Update the glow animation, this is done every tick.
-     *
-     * @see FireflyEntity#glowAnimation
-     */
-    private void updateGlowAnimation() {
-        // Update the glow animation every tick.
-        switch (Objects.requireNonNull(this.abdomenAnimation)) {
-            case OFF:
-                this.glowAlpha = 0;
-                this.isGlowIncreasing = false;
-                break;
-            case ON:
-                this.glowAlpha = 1f;
-                this.isGlowIncreasing = false;
-                break;
-            case DEFAULT:
-                this.glowAnimation(0.1f, 0.05f, 0.05f, 0.075f);
-                break;
-            case CALM:
-                boolean isMiddling = this.glowAlpha < 0.75f && this.glowAlpha > 0.25f;
-                float increaseAmount = isMiddling ? 0.02f : 0.075f;
-                float decreaseAmount = isMiddling ? 0.01f : 0.05f;
-                this.glowAnimation(increaseAmount, decreaseAmount, 0.075f, 0.05f);
-                break;
-            case STARRY_NIGHT:
-                this.glowAnimation(0.3f, 0.25f, 0.075f, 0.95f);
-                break;
-            case FRANTIC:
-                this.glowAnimation(0.35f, 0.4f, 0.2f, 0.35f);
-                break;
-            case SLOW:
-                this.glowAnimation(0.05f, 0.015f, 0.025f, 0.025f);
-                break;
-        }
-    }
 
     /**
      * (Client) Keeps up with the bobbing animation of the firefly.
@@ -479,14 +330,13 @@ public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
             // Remove if out of range
             if (pos.distanceSq(this.getPosition()) > illumerinRadius * illumerinRadius) {
                 this.world.setBlockState(pos, state.with(RedstoneIllumerinBlock.POWERED, Boolean.FALSE), 3);
-                //this.world.getPendingBlockTicks().scheduleTick(pos, state.getBlock(), 1);
                 return true;
             }
 
             // Remove if we dead
             if (!this.isAlive()) {
                 this.world.setBlockState(pos, state.with(RedstoneIllumerinBlock.POWERED, Boolean.FALSE), 3);
-                //this.world.getPendingBlockTicks().scheduleTick(pos, state.getBlock(), 1);
+                return true;
             }
 
             return false;
@@ -501,11 +351,11 @@ public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
             // Redstone fireflies are always on, regardless if it's daytime - unlike regular ones.
             if (this.isDayTimeClient() && !this.isRedstoneCoated(true)) {
                 // Turn off during the day
-                this.setAbdomenAnimation(FireflyAbdomenAnimation.OFF);
+                animationHandler.setAbdomenAnimation(FireflyAbdomenAnimation.OFF);
                 this.glowAlpha = 0;
             } else {
-                this.updateAbdomenAnimation();
-                this.updateGlowAnimation();
+                animationHandler.updateAbdomenAnimation();
+                animationHandler.updateGlowAnimation();
                 this.spawnFallingDustParticles();
 
                 // Fix abdomen particle not spawning with synced firefly on first glow cycle
