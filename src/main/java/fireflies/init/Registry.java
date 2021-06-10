@@ -51,12 +51,12 @@ public class Registry {
 
     //region Blocks / BlockItems
     public static final RegistryObject<Block> ILLUMERIN_BLOCK = BLOCKS.register("illumerin_block", IllumerinBlock::new);
-    public static final RegistryObject<Block> REDSTONE_ILLUMERIN_BLOCK = BLOCKS.register("redstone_illumerin_block", RedstoneIllumerinBlock::new);
+    public static final RegistryObject<Block> ILLUMERIN_LAMP = BLOCKS.register("illumerin_lamp", IllumerinLamp::new);
     public static final RegistryObject<Block> ECTO_ILLUMERIN_BLOCK = BLOCKS.register("ecto_illumerin_block", EctoIllumerinBlock::new);
     public static final RegistryObject<Block> GLASS_JAR = BLOCKS.register("glass_jar", GlassJarBlock::new);
 
     public static final RegistryObject<Item> ILLUMERIN_BLOCKITEM = ITEMS.register("illumerin_block", () -> new BlockItem(ILLUMERIN_BLOCK.get(), new Item.Properties().group(ItemGroup.DECORATIONS)));
-    public static final RegistryObject<Item> REDSTONE_ILLUMERIN_BLOCKITEM = ITEMS.register("redstone_illumerin_block", () -> new BlockItem(REDSTONE_ILLUMERIN_BLOCK.get(), new Item.Properties().group(ItemGroup.REDSTONE)));
+    public static final RegistryObject<Item> ILLUMERIN_LAMP_BLOCKITEM = ITEMS.register("illumerin_lamp", () -> new BlockItem(ILLUMERIN_LAMP.get(), new Item.Properties().group(ItemGroup.REDSTONE)));
     public static final RegistryObject<Item> ECTO_ILLUMERIN_BLOCKITEM = ITEMS.register("ecto_illumerin_block", () -> new BlockItem(ECTO_ILLUMERIN_BLOCK.get(), new Item.Properties().group(ItemGroup.DECORATIONS)));
     public static final RegistryObject<Item> GLASS_JAR_BLOCKITEM = ITEMS.register("glass_jar", () -> new BlockItem(GLASS_JAR.get(), new Item.Properties().group(ItemGroup.REDSTONE)));
     //endregion Blocks / BlockItems

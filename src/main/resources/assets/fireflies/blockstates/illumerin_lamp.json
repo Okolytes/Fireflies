@@ -1,0 +1,10 @@
+{
+  "variants": {
+    "powered=false": {
+      "model": "fireflies:block/illumerin_lamp"
+    },
+    "powered=true": {
+      "model": "fireflies:block/illumerin_lamp_on"
+    }
+  }
+}

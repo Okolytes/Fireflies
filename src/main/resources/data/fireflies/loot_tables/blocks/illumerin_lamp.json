@@ -6,7 +6,7 @@
       "entries": [
         {
           "type": "minecraft:item",
-          "name": "fireflies:redstone_illumerin_block"
+          "name": "fireflies:illumerin_lamp"
         }
       ],
       "conditions": [

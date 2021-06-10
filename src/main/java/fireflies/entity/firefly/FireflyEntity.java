@@ -1,7 +1,7 @@
 package fireflies.entity.firefly;
 
 import fireflies.block.GlassJarBlock;
-import fireflies.block.RedstoneIllumerinBlock;
+import fireflies.block.IllumerinLamp;
 import fireflies.client.ClientStuff;
 import fireflies.client.particle.FireflyAbdomenParticle;
 import fireflies.init.Registry;
@@ -99,11 +99,11 @@ public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
      */
     private boolean isEntrancedByHoney;
     /**
-     * The radius (spherical) of which redstone illumerin blocks can be activated.
+     * The radius (spherical) of which illumerin lamps can be activated.
      */
     private int illumerinRadius = 5;
     /**
-     * A list of redstone illumerin blocks this firefly is currently activating.
+     * A list of illumerin lamps this firefly is currently activating.
      */
     private final ArrayList<BlockPos> illumerinBlocks = new ArrayList<>(illumerinRadius * illumerinRadius * illumerinRadius);
     /**
@@ -300,7 +300,7 @@ public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
     }
 
     /**
-     * Activates redstone illumerin blocks in a radius of {@link FireflyEntity#illumerinRadius}, called every half a second.
+     * Activates illumerin lamps in a radius of {@link FireflyEntity#illumerinRadius}, called every half a second.
      */
     private void activateIllumerinBlocks() {
         // Baby fireflies have a smaller radius
@@ -313,8 +313,8 @@ public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
                         continue;
 
                     BlockState state = this.world.getBlockState(pos);
-                    if (state.getBlock() instanceof RedstoneIllumerinBlock && !state.get(RedstoneIllumerinBlock.POWERED)) {
-                        this.world.setBlockState(pos, state.with(RedstoneIllumerinBlock.POWERED, Boolean.TRUE), 3);
+                    if (state.getBlock() instanceof IllumerinLamp && !state.get(IllumerinLamp.POWERED)) {
+                        this.world.setBlockState(pos, state.with(IllumerinLamp.POWERED, Boolean.TRUE), 3);
                         this.illumerinBlocks.add(pos);
                     }
                 }
@@ -329,19 +329,19 @@ public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
         this.illumerinBlocks.removeIf(pos -> {
             BlockState state = this.world.getBlockState(pos);
             // Remove if no longer an illumerin block
-            if (!(state.getBlock() instanceof RedstoneIllumerinBlock)) {
+            if (!(state.getBlock() instanceof IllumerinLamp)) {
                 return true;
             }
 
             // Remove if out of range
             if (pos.distanceSq(this.getPosition()) > illumerinRadius * illumerinRadius) {
-                this.world.setBlockState(pos, state.with(RedstoneIllumerinBlock.POWERED, Boolean.FALSE), 3);
+                this.world.setBlockState(pos, state.with(IllumerinLamp.POWERED, Boolean.FALSE), 3);
                 return true;
             }
 
             // Remove if we dead
             if (!this.isAlive()) {
-                this.world.setBlockState(pos, state.with(RedstoneIllumerinBlock.POWERED, Boolean.FALSE), 3);
+                this.world.setBlockState(pos, state.with(IllumerinLamp.POWERED, Boolean.FALSE), 3);
                 return true;
             }
 

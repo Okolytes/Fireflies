@@ -15,19 +15,19 @@ import net.minecraft.world.server.ServerWorld;
 
 import java.util.Random;
 
-public class RedstoneIllumerinBlock extends Block {
+public class IllumerinLamp extends Block {
     /**
      * Only powerable by a firefly.
      */
     public static final BooleanProperty POWERED = BlockStateProperties.POWERED;
 
-    public RedstoneIllumerinBlock() {
-        super(Properties.create(Material.IRON).hardnessAndResistance(0.3f).sound(SoundType.GLASS).setAllowsSpawn((a, b, c, d) -> false).setEmmisiveRendering(RedstoneIllumerinBlock::isEmissive).setNeedsPostProcessing(RedstoneIllumerinBlock::isEmissive));
+    public IllumerinLamp() {
+        super(Properties.create(Material.IRON).hardnessAndResistance(0.3f).sound(SoundType.GLASS).setAllowsSpawn((a, b, c, d) -> false).setEmmisiveRendering(IllumerinLamp::isEmissive).setNeedsPostProcessing(IllumerinLamp::isEmissive));
         this.setDefaultState(this.stateContainer.getBaseState().with(POWERED, Boolean.FALSE));
     }
 
     private static boolean isEmissive(BlockState state, IBlockReader iBlockReader, BlockPos blockPos) {
-        return state.get(RedstoneIllumerinBlock.POWERED);
+        return state.get(IllumerinLamp.POWERED);
     }
 
     @SuppressWarnings("deprecation")

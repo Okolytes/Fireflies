@@ -2,7 +2,7 @@
   "parent": "minecraft:recipes/root",
   "rewards": {
     "recipes": [
-      "fireflies:redstone_illumerin_block"
+      "fireflies:illumerin_lamp"
     ]
   },
   "criteria": {
@@ -19,7 +19,7 @@
     "has_the_recipe": {
       "trigger": "minecraft:recipe_unlocked",
       "conditions": {
-        "recipe": "fireflies:redstone_illumerin_block"
+        "recipe": "fireflies:illumerin_lamp"
       }
     }
   },

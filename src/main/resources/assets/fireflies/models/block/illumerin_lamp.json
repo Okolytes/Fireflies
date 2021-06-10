@@ -1,6 +1,6 @@
 {
   "parent": "minecraft:block/cube_all",
   "textures": {
-    "all": "fireflies:block/redstone_illumerin_block_on"
+    "all": "fireflies:block/illumerin_lamp"
   }
 }

@@ -60,7 +60,7 @@ public class IllumerinBlock extends RotatedPillarBlock {
 
                     BlockState state = e.getWorld().getBlockState(blockPos);
                     Block block = state.getBlock();
-                    if (block instanceof IllumerinBlock || (block instanceof RedstoneIllumerinBlock && state.get(RedstoneIllumerinBlock.POWERED))) {
+                    if (block instanceof IllumerinBlock || (block instanceof IllumerinLamp && state.get(IllumerinLamp.POWERED))) {
                         if (block instanceof EctoIllumerinBlock && !blockPos.withinDistance(mobPos, ECTO_ILLUMERIN_RADIUS))
                             continue;
 
