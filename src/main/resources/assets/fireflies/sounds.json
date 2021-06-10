@@ -11,7 +11,11 @@
   "firefly_death": {
     "category": "entity",
     "subtitle": "subtitle.fireflies.firefly_death",
-    "sounds": [ "fireflies:firefly_death" ]
+    "sounds": [
+      "fireflies:firefly_death_0",
+      "fireflies:firefly_death_1",
+      "fireflies:firefly_death_2"
+    ]
   },
   "firefly_glow": {
     "category": "entity",
@@ -26,11 +30,22 @@
   "firefly_flight_loop": {
     "category": "entity",
     "subtitle": "subtitle.fireflies.firefly_flight_loop",
-    "sounds": [ "fireflies:firefly_flight_loop" ]
+    "sounds": [
+      "fireflies:firefly_flight_loop"
+    ]
   },
   "firefly_apply_redstone": {
     "category": "entity",
     "subtitle": "subtitle.fireflies.firefly_apply_redstone",
-    "sounds": [ "fireflies:firefly_apply_redstone" ]
+    "sounds": [
+      "fireflies:firefly_apply_redstone"
+    ]
+  },
+  "glass_jar_open": {
+    "category": "block",
+    "subtitle": "subtitle.fireflies.glass_jar_open",
+    "sounds": [
+      "fireflies:glass_jar_open_0"
+    ]
   }
 }

@@ -33,9 +33,7 @@ public class FireflyMasterPotion extends Potion
             }
 
             ItemStack itemStack = new ItemStack(input.getItem());
-            CompoundNBT nbt = new CompoundNBT();
-            nbt.putInt("CustomPotionColor", 0xfff700);
-            itemStack.setTag(nbt);
+            itemStack.setTag(new CompoundNBT());
             PotionUtils.addPotionToItemStack(itemStack, Registry.FIREFLY_MASTER.get());
             return itemStack;
         }

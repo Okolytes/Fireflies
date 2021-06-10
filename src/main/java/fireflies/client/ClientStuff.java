@@ -13,7 +13,7 @@ import net.minecraftforge.fml.common.ObfuscationReflectionHelper;
 
 import java.util.Random;
 
-// Java classloading forces us to put calls to the Minecraft class in here I guess...
+// Java classloading forces us to put calls to the Minecraft class in here
 @Mod.EventBusSubscriber(modid = Fireflies.MOD_ID, value = Dist.CLIENT)
 public class ClientStuff {
     public static void playFireflyLoopSound(FireflyEntity fireflyEntity) {
@@ -27,7 +27,7 @@ public class ClientStuff {
     @SubscribeEvent
     public static void changeSplashText(GuiOpenEvent event) {
         if (event.getGui() instanceof MainMenuScreen) {
-            if (Math.random() > 0.99f) { // 1 in 100 chance - this is run every time the main menu screen is opened, not when the game opens, but who cares
+            if (Math.random() > 0.99f) { // 1 in 100 chance - this is run every time the main menu screen is opened, not when the game opens - not intentional but oh well!
                 String[] splashes = {
                         "You would not believe your eyes...",
                         "If ten million fireflies...",

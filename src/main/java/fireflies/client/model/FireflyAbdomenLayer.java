@@ -30,11 +30,11 @@ public class FireflyAbdomenLayer<T extends FireflyEntity, M extends EntityModel<
 
     @Override
     public void render(MatrixStack matrixStack, IRenderTypeBuffer buffer, int packedLight, T fireflyEntity, float limbSwing, float limbSwingAmount, float partialTicks, float ageInTicks, float netHeadYaw, float headPitch) {
-        if (fireflyEntity.isInvisible())
+        if (fireflyEntity.isInvisible() || fireflyEntity.glowAlpha <= 0)
             return;
 
         float glowAlpha = fireflyEntity.glowAlpha;
-        this.getEntityModel().render(matrixStack, buffer.getBuffer(RenderType.getEyes(this.getEntityTexture(fireflyEntity))), 15728640,
-                OverlayTexture.NO_OVERLAY, glowAlpha, glowAlpha, glowAlpha, glowAlpha);
+        this.getEntityModel().render(matrixStack, buffer.getBuffer(RenderType.getEyes(this.getEntityTexture(fireflyEntity))),
+                15728640, OverlayTexture.NO_OVERLAY, glowAlpha, glowAlpha, glowAlpha, glowAlpha);
     }
 }

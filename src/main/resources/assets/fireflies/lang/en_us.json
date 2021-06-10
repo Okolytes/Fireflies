@@ -2,6 +2,7 @@
   "block.fireflies.illumerin_block": "Illumerin Block",
   "block.fireflies.redstone_illumerin_block": "Illumerin Lamp",
   "block.fireflies.ecto_illumerin_block": "Ecto Illumerin Block",
+  "block.fireflies.glass_jar": "Glass Jar",
 
   "item.fireflies.illumerin": "Illumerin",
   "item.fireflies.ecto_illumerin": "Ecto Illumerin",
@@ -17,5 +18,8 @@
   "subtitle.fireflies.firefly_death": "Firefly dies",
   "subtitle.fireflies.firefly_glow": "Firefly glows",
   "subtitle.fireflies.firefly_flight_loop": "Firefly buzzes",
-  "subtitle.fireflies.firefly_apply_redstone": "Firefly transforms"
+  "subtitle.fireflies.firefly_apply_redstone": "Firefly transforms",
+
+  "stat.fireflies.fill_glass_jar": "Glass Jars Filled",
+  "stat.fireflies.use_glass_jar": "Fluid Taken from Glass Jar"
 }

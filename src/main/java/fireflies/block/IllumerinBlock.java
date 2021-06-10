@@ -25,9 +25,7 @@ public class IllumerinBlock extends RotatedPillarBlock {
     private static final int ECTO_ILLUMERIN_RADIUS = 5;
 
     public IllumerinBlock() {
-        super(Properties.create(Material.IRON).hardnessAndResistance(2f).sound(SoundType.BASALT).harvestTool(ToolType.PICKAXE)
-                .setAllowsSpawn((a, b, c, d) -> false).setEmmisiveRendering((a, b, c) -> true).setNeedsPostProcessing((a, b, c) -> true));
-
+        super(Properties.create(Material.IRON).hardnessAndResistance(2f).sound(SoundType.BASALT).harvestTool(ToolType.PICKAXE).setAllowsSpawn((a, b, c, d) -> false).setEmmisiveRendering((a, b, c) -> true).setNeedsPostProcessing((a, b, c) -> true));
         this.setDefaultState(this.stateContainer.getBaseState().with(AXIS, Direction.Axis.Y));
     }
 

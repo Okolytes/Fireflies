@@ -33,7 +33,7 @@ public class FireflyDustParticle extends SpriteTexturedParticle {
             this.particleBlue = ((float) (Math.random() * 0.2F) + 0.8F) * b * f;
             this.selectSpriteWithAge(spriteWithAge);
         } else {
-            this.maxAge = (int) (20f / (this.rand.nextFloat() * 0.8f + 0.2f)) + 16;
+            this.maxAge = (int) (20f / (this.rand.nextFloat() * 0.8f + 0.2f)) + 32;
             this.particleScale = 0.1F * (this.rand.nextFloat() * 0.25F + 0.1F);
             this.selectSpriteRandomly(spriteWithAge);
         }

@@ -1,5 +1,6 @@
 package fireflies.entity.firefly;
 
+import fireflies.block.GlassJarBlock;
 import fireflies.block.RedstoneIllumerinBlock;
 import fireflies.client.ClientStuff;
 import fireflies.client.particle.FireflyAbdomenParticle;
@@ -81,9 +82,10 @@ public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
      */
     private boolean hasIllumerin;
     /**
-     * How many ticks have passed since this firefly has eaten some compost.
+     * The position of the current glass jar that the firefly is filling, if any.
      */
-    private int compostEatenTicks;
+    @Nullable
+    private BlockPos currentGlassJar;
     /**
      * How many ticks this firefly has been underwater for, used to start taking damage & converting from redstone firefly after 20 ticks.
      */
@@ -97,10 +99,6 @@ public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
      */
     private boolean isEntrancedByHoney;
     /**
-     * Used for checking if the current firefly is redstone coated, this is updated every 20 ticks.
-     */
-    private boolean prevIsRedstoneCoated;
-    /**
      * The radius (spherical) of which redstone illumerin blocks can be activated.
      */
     private int illumerinRadius = 5;
@@ -112,11 +110,15 @@ public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
      * DataParameter for if this firefly is redstone activated or not.
      */
     private static final DataParameter<Boolean> IS_REDSTONE_COATED = EntityDataManager.createKey(FireflyEntity.class, DataSerializers.BOOLEAN);
+    /**
+     * Used for checking if the current firefly is redstone coated, this is updated every 20 ticks.
+     */
+    private boolean cachedIsRedstoneCoated;
 
     public FireflyEntity(EntityType<? extends FireflyEntity> entityType, World world) {
         super(entityType, world);
         this.animationHandler = new FireflyAbdomenAnimationHandler(this);
-        this.moveController = new FireflyEntity.FlyingMovementHelper(this, 20, true);
+        this.moveController = new FireflyEntity.FlyingMovementHelper(20, true);
         this.setPathPriority(PathNodeType.DANGER_FIRE, -1.0F);
         this.setPathPriority(PathNodeType.WATER, -1.0F);
         this.setPathPriority(PathNodeType.WATER_BORDER, 16.0F);
@@ -146,19 +148,19 @@ public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
     /**
      * Get the value of {@link FireflyEntity#IS_REDSTONE_COATED}
      *
-     * @param delayed If true, this method will return the cached value of {@link FireflyEntity#IS_REDSTONE_COATED}, the cache is updated every 20 ticks.
-     * @return The DataParameter's value or the cached value, depending on the delayed parameter.
+     * @param getCached If true, this method will return the cached value of {@link FireflyEntity#IS_REDSTONE_COATED}, the cache is updated every 20 ticks.
+     * @return The DataParameter's value or the cached value, depending on the getCached parameter.
      */
-    public boolean isRedstoneCoated(boolean delayed) {
+    public boolean isRedstoneCoated(boolean getCached) {
         // I don't know what the performance implications are of getting a DataParameter value every frame & tick,
         // so I'm doing this just to be on the safe side ¯\_(ツ)_/¯
-        if (delayed) {
+        if (getCached) {
             // Update the cached value
             // For the first 3 ticks it will return the actual current value, so things don't look screwy.
             if (this.ticksExisted % 20 == 0 || this.ticksExisted < 3) {
-                this.prevIsRedstoneCoated = this.dataManager.get(IS_REDSTONE_COATED);
+                this.cachedIsRedstoneCoated = this.dataManager.get(IS_REDSTONE_COATED);
             }
-            return this.prevIsRedstoneCoated;
+            return this.cachedIsRedstoneCoated;
         }
 
         return this.dataManager.get(IS_REDSTONE_COATED);
@@ -170,7 +172,7 @@ public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
      * @param b The new value to set the DataParameter to.
      */
     private void setRedstoneCovered(boolean b) {
-        this.prevIsRedstoneCoated = b;
+        this.cachedIsRedstoneCoated = b;
         this.dataManager.set(IS_REDSTONE_COATED, b);
     }
 
@@ -191,17 +193,12 @@ public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
     @Override
     protected void registerGoals() {
         // Register all of our fireflies AI goals. (0 being highest priority, of course -_-)
-        this.goalSelector.addGoal(0, new BreedGoal(this, 1f) {
-            @Override
-            public boolean shouldExecute() { // Only breed in darkness
-                return super.shouldExecute() && this.world.getLight(this.animal.getPosition()) <= 5;
-            }
-        });
+        this.goalSelector.addGoal(0, new FireflyEntity.MateGoal(1f));
         this.goalSelector.addGoal(1, new TemptGoal(this, 1.15f, Ingredient.fromItems(Items.HONEY_BOTTLE, Items.HONEY_BLOCK), false));
-        this.goalSelector.addGoal(2, new FireflyEntity.EntrancedByHoneyGoal(this, 1.15f, 8));
+        this.goalSelector.addGoal(2, new FireflyEntity.EntrancedByHoneyGoal(1.15f, 8));
         this.goalSelector.addGoal(3, new FollowParentGoal(this, 1.15f));
-        this.goalSelector.addGoal(3, new FireflyEntity.EatCompostGoal(this, 1f, 16));
-        this.goalSelector.addGoal(4, new FireflyEntity.WanderGoal(this, 1f, 1, false));
+        this.goalSelector.addGoal(3, new FireflyEntity.EatCompostGoal(1f, 22));
+        this.goalSelector.addGoal(4, new FireflyEntity.WanderGoal(1f, 1, false));
         this.goalSelector.addGoal(5, new SwimGoal(this));
     }
 
@@ -231,7 +228,6 @@ public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
     public void playGlowSound() {
         //this.world.playSound(this.getPosX(), this.getPosY(), this.getPosZ(), FirefliesRegistration.FIREFLY_GLOW.get(), SoundCategory.NEUTRAL, 0.33f, 1, false);
     }
-
 
     /**
      * (Client) Keeps up with the bobbing animation of the firefly.
@@ -353,6 +349,55 @@ public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
         });
     }
 
+    private void doRainRelatedLogic() {
+
+        // Increase underWaterTicks by 1 if in water
+        this.underWaterTicks = this.isInWaterOrBubbleColumn() ? this.underWaterTicks + 1 : 0;
+        // Increase rainedOnTicks by 1 if in water
+        this.rainedOnTicks = this.world.isRainingAt(this.getPosition()) ? this.rainedOnTicks + 1 : 0;
+
+        if (this.underWaterTicks > 20) {
+            // Once we're at 20, start taking damage
+            this.attackEntityFrom(DamageSource.DROWN, 1.0F);
+            // Additionally, try to convert back to a regular firefly
+            if (this.isRedstoneCoated(true)) {
+                this.removeRedstoneCoated();
+            }
+        }
+
+        // Convert back to regular firefly once we have been rained on for 20 ticks
+        if (this.rainedOnTicks > 20 && this.isRedstoneCoated(true)) {
+            this.removeRedstoneCoated();
+            this.rainedOnTicks = 0;
+        }
+    }
+
+    @Nullable
+    private BlockPos isOverJar() {
+        for (int i = 1; i < 4; i++) {
+            BlockPos pos = this.getPosition().down(i);
+            if (this.world.getBlockState(pos).getBlock() instanceof GlassJarBlock) {
+                this.currentGlassJar = pos;
+                return pos;
+            }
+        }
+        return null;
+    }
+
+    private void doJarLogic() {
+        if (!this.hasIllumerin)
+            return;
+
+        BlockPos pos = this.isOverJar();
+        if (pos != null && this.ticksExisted % 60 == 0) {
+            BlockState state = this.world.getBlockState(pos);
+            if (state.getBlock() instanceof GlassJarBlock) {
+                GlassJarBlock block = (GlassJarBlock) state.getBlock();
+                // TODO
+            }
+        }
+    }
+
     @Override
     public void livingTick() {
         super.livingTick();
@@ -392,25 +437,8 @@ public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
                 }
             }
 
-            // Increase underWaterTicks by 1 if in water
-            this.underWaterTicks = this.isInWaterOrBubbleColumn() ? this.underWaterTicks + 1 : 0;
-            // Increase rainedOnTicks by 1 if in water
-            this.rainedOnTicks = this.world.isRainingAt(this.getPosition()) ? this.rainedOnTicks + 1 : 0;
-
-            if (this.underWaterTicks > 20) {
-                // Once we're at 20, start taking damage
-                this.attackEntityFrom(DamageSource.DROWN, 1.0F);
-                // Additionally, try to convert back to a regular firefly
-                if (this.isRedstoneCoated(true)) {
-                    this.removeRedstoneCoated();
-                }
-            }
-
-            // Convert back to regular firefly once we have been rained on for 20 ticks
-            if (this.rainedOnTicks > 20 && this.isRedstoneCoated(true)) {
-                this.removeRedstoneCoated();
-                this.rainedOnTicks = 0;
-            }
+            this.doJarLogic();
+            this.doRainRelatedLogic();
         }
     }
 
@@ -577,6 +605,15 @@ public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
         this.addMotion(0f, 0.01f, 0f);
     }
 
+    private boolean isDarkEnoughToBreed() {
+        return this.world.getLight(this.getPosition()) <= 5;
+    }
+
+    @Override
+    public boolean canFallInLove() {
+        return this.isDarkEnoughToBreed() && super.canFallInLove();
+    }
+
     @OnlyIn(Dist.CLIENT)
     @Override
     public Vector3d getLeashStartPosition() {
@@ -612,25 +649,23 @@ public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
 
     //region AI
 
-    private static class WanderGoal extends RandomWalkingGoal {
-        private final FireflyEntity fireflyEntity;
+    private class WanderGoal extends RandomWalkingGoal {
         private final World world;
-        private static final EntityPredicate FIREFLY_PREDICATE = (new EntityPredicate()).setDistance(8f).allowFriendlyFire().allowInvulnerable().setIgnoresLineOfSight();
+        private final EntityPredicate FIREFLY_PREDICATE = (new EntityPredicate()).setDistance(8f).allowFriendlyFire().allowInvulnerable().setIgnoresLineOfSight();
 
-        private WanderGoal(FireflyEntity fireflyEntity, double speed, int chance, boolean stopWhenIdle) {
-            super(fireflyEntity, speed, chance, stopWhenIdle);
-            this.fireflyEntity = fireflyEntity;
-            this.world = fireflyEntity.world;
+        private WanderGoal(double speed, int chance, boolean stopWhenIdle) {
+            super(FireflyEntity.this, speed, chance, stopWhenIdle);
+            this.world = FireflyEntity.this.world;
         }
 
         @Override
         public boolean shouldExecute() {
-            return !this.fireflyEntity.isEntrancedByHoney && this.fireflyEntity.ticksExisted % 20 == 0 && super.shouldExecute();
+            return !FireflyEntity.this.isEntrancedByHoney && FireflyEntity.this.ticksExisted % 20 == 0 && super.shouldExecute();
         }
 
         @Override
         public boolean shouldContinueExecuting() {
-            return !this.fireflyEntity.isEntrancedByHoney && super.shouldContinueExecuting();
+            return !FireflyEntity.this.isEntrancedByHoney && super.shouldContinueExecuting();
         }
 
         @Nullable
@@ -639,20 +674,20 @@ public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
             Vector3d position;
 
             // Find some place to go in the air.
-            position = RandomPositionGenerator.findAirTarget(this.fireflyEntity, 3, 1,
-                    this.fireflyEntity.getLook(0), (float) (Math.PI / 2f), 2, 1);
+            position = RandomPositionGenerator.findAirTarget(FireflyEntity.this, 3, 1,
+                    FireflyEntity.this.getLook(0), (float) (Math.PI / 2f), 2, 1);
 
             // Try again...
             if (position == null) {
-                position = RandomPositionGenerator.findRandomTarget(this.fireflyEntity, 3, 1);
+                position = RandomPositionGenerator.findRandomTarget(FireflyEntity.this, 3, 1);
             }
 
             // Ok, we'll just try to go to another firefly then.
             if (position == null) {
                 // Search within 8 block radius.
-                FireflyEntity closestFirefly = this.world.getClosestEntityWithinAABB(FireflyEntity.class, FIREFLY_PREDICATE, this.fireflyEntity,
-                        this.fireflyEntity.getPosX(), this.fireflyEntity.getPosY(), this.fireflyEntity.getPosZ(),
-                        this.fireflyEntity.getBoundingBox().grow(8f, 2.5f, 8f));
+                FireflyEntity closestFirefly = this.world.getClosestEntityWithinAABB(FireflyEntity.class, FIREFLY_PREDICATE, FireflyEntity.this,
+                        FireflyEntity.this.getPosX(), FireflyEntity.this.getPosY(), FireflyEntity.this.getPosZ(),
+                        FireflyEntity.this.getBoundingBox().grow(8f, 2.5f, 8f));
 
                 if (closestFirefly != null) {
                     position = closestFirefly.getPositionVec();
@@ -669,8 +704,8 @@ public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
                 }
 
                 // Don't go too high.
-                if (position.getY() - this.fireflyEntity.getPosY() > 2f) {
-                    position = position.add(0, -(position.getY() - this.fireflyEntity.getPosY() - 1f), 0);
+                if (position.getY() - FireflyEntity.this.getPosY() > 2f) {
+                    position = position.add(0, -(position.getY() - FireflyEntity.this.getPosY() - 1f), 0);
                 }
 
                 // Avoid leaves.. They float to the top of trees which is unwanted.
@@ -687,24 +722,22 @@ public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
         }
     }
 
-    private static class FlyingMovementHelper extends FlyingMovementController {
-        private final FireflyEntity fireflyEntity;
+    private class FlyingMovementHelper extends FlyingMovementController {
         private final World world;
         private boolean isHighUp;
         private BlockPos prevBlockPos;
 
-        private FlyingMovementHelper(FireflyEntity fireflyEntity, int maximumRotateAngle, boolean affectedByGravity) {
-            super(fireflyEntity, maximumRotateAngle, affectedByGravity);
-            this.fireflyEntity = fireflyEntity;
-            this.world = fireflyEntity.world;
-            this.prevBlockPos = fireflyEntity.getPosition();
+        private FlyingMovementHelper(int maximumRotateAngle, boolean affectedByGravity) {
+            super(FireflyEntity.this, maximumRotateAngle, affectedByGravity);
+            this.world = FireflyEntity.this.world;
+            this.prevBlockPos = FireflyEntity.this.getPosition();
         }
 
         private void moveForward(float multiplier, float y, float speed) {
-            this.fireflyEntity.navigator.tryMoveToXYZ(
-                    this.fireflyEntity.getPosX() + this.fireflyEntity.getLookVec().getX() * multiplier,
-                    this.fireflyEntity.getPosY() + y,
-                    this.fireflyEntity.getPosZ() + this.fireflyEntity.getLookVec().getZ() * multiplier, speed);
+            FireflyEntity.this.navigator.tryMoveToXYZ(
+                    FireflyEntity.this.getPosX() + FireflyEntity.this.getLookVec().getX() * multiplier,
+                    FireflyEntity.this.getPosY() + y,
+                    FireflyEntity.this.getPosZ() + FireflyEntity.this.getLookVec().getZ() * multiplier, speed);
         }
 
         @Override
@@ -712,30 +745,30 @@ public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
             super.tick();
 
             // Do random accelerations every so often.
-            if (this.fireflyEntity.ticksExisted % 100 == 0 && this.fireflyEntity.rand.nextFloat() > 0.75f && !this.fireflyEntity.isEntrancedByHoney) {
+            if (FireflyEntity.this.ticksExisted % 100 == 0 && FireflyEntity.this.rand.nextFloat() > 0.75f && !FireflyEntity.this.isEntrancedByHoney) {
                 final float accelAmount = 0.125f;
-                this.fireflyEntity.addMotion(
-                        MathHelper.clamp(this.fireflyEntity.getLook(0).getX(), -accelAmount, accelAmount),
-                        this.world.isAirBlock(this.fireflyEntity.getPosition().down()) ? 0f : 0.075f,
-                        MathHelper.clamp(this.fireflyEntity.getLook(0).getZ(), -accelAmount, accelAmount));
+                FireflyEntity.this.addMotion(
+                        MathHelper.clamp(FireflyEntity.this.getLook(0).getX(), -accelAmount, accelAmount),
+                        this.world.isAirBlock(FireflyEntity.this.getPosition().down()) ? 0f : 0.075f,
+                        MathHelper.clamp(FireflyEntity.this.getLook(0).getZ(), -accelAmount, accelAmount));
             }
 
             // Don't vertically too quickly.
-            if (this.fireflyEntity.getMotion().getY() < -0.04f) {
-                this.fireflyEntity.addMotion(0, 0.025f, 0);
-            } else if (this.fireflyEntity.getMotion().getY() > 0.04f) {
-                this.fireflyEntity.addMotion(0, -0.025f, 0);
+            if (FireflyEntity.this.getMotion().getY() < -0.04f) {
+                FireflyEntity.this.addMotion(0, 0.025f, 0);
+            } else if (FireflyEntity.this.getMotion().getY() > 0.04f) {
+                FireflyEntity.this.addMotion(0, -0.025f, 0);
             }
 
-            if (this.fireflyEntity.ticksExisted % 20 == 0 && !this.fireflyEntity.isEntrancedByHoney) {
+            if (FireflyEntity.this.ticksExisted % 20 == 0 && !FireflyEntity.this.isEntrancedByHoney) {
                 // Stay off the ground
-                if (this.world.getBlockState(this.fireflyEntity.getPosition().down()).isSolid() || this.fireflyEntity.isOnGround()) {
+                if (this.world.getBlockState(FireflyEntity.this.getPosition().down()).isSolid() || FireflyEntity.this.isOnGround()) {
                     this.moveForward(1.2f, 1.5f, 0.85f);
                 }
 
                 // And also don't stay too high in the air
                 for (int i = 1; i < 4; i++) {
-                    isHighUp = !this.world.getBlockState(this.fireflyEntity.getPosition().down(i)).isSolid();
+                    isHighUp = !this.world.getBlockState(FireflyEntity.this.getPosition().down(i)).isSolid();
                     if (!isHighUp) break;
                 }
                 if (isHighUp) {
@@ -743,22 +776,20 @@ public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
                 }
 
                 // Try to not stay idle for more than a second.
-                if (this.prevBlockPos == this.fireflyEntity.getPosition()) {
-                    this.moveForward(MathHelper.nextFloat(this.fireflyEntity.rand, -3f, 3f), this.fireflyEntity.rand.nextFloat(), 1f);
+                if (this.prevBlockPos == FireflyEntity.this.getPosition()) {
+                    this.moveForward(MathHelper.nextFloat(FireflyEntity.this.rand, -3f, 3f), FireflyEntity.this.rand.nextFloat(), 1f);
                 }
-                this.prevBlockPos = this.fireflyEntity.getPosition();
+                this.prevBlockPos = FireflyEntity.this.getPosition();
             }
         }
     }
 
-    private static class EntrancedByHoneyGoal extends MoveToBlockGoal {
-        private final FireflyEntity fireflyEntity;
+    private class EntrancedByHoneyGoal extends MoveToBlockGoal {
         private final World world;
 
-        private EntrancedByHoneyGoal(FireflyEntity fireflyEntity, double speed, int length) {
-            super(fireflyEntity, speed, length);
-            this.fireflyEntity = fireflyEntity;
-            this.world = fireflyEntity.world;
+        private EntrancedByHoneyGoal(double speed, int length) {
+            super(FireflyEntity.this, speed, length);
+            this.world = FireflyEntity.this.world;
         }
 
         private Vector3d getDestinationBlockCentered() {
@@ -767,28 +798,28 @@ public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
 
         private boolean isHoneyBlockVisible(BlockPos destinationBlock) {
             BlockRayTraceResult rayTraceResult = this.world.rayTraceBlocks(new RayTraceContext(
-                    this.fireflyEntity.getPositionVec().add(0, this.fireflyEntity.getEyeHeight(), 0),
+                    FireflyEntity.this.getPositionVec().add(0, FireflyEntity.this.getEyeHeight(), 0),
                     new Vector3d(destinationBlock.getX() + 0.5f, destinationBlock.getY() + 0.5f, destinationBlock.getZ() + 0.5f),
-                    RayTraceContext.BlockMode.COLLIDER, RayTraceContext.FluidMode.NONE, this.fireflyEntity));
+                    RayTraceContext.BlockMode.COLLIDER, RayTraceContext.FluidMode.NONE, FireflyEntity.this));
 
-            return this.fireflyEntity.world.getBlockState(rayTraceResult.getPos()).getBlock() instanceof HoneyBlock;
+            return FireflyEntity.this.world.getBlockState(rayTraceResult.getPos()).getBlock() instanceof HoneyBlock;
         }
 
         @Override
         protected int getRunDelay(CreatureEntity creatureIn) {
-            return 20 + this.fireflyEntity.rand.nextInt(20);
+            return 20 + FireflyEntity.this.rand.nextInt(20);
         }
 
         @Override
         public void startExecuting() {
             super.startExecuting();
-            this.fireflyEntity.isEntrancedByHoney = true;
+            FireflyEntity.this.isEntrancedByHoney = true;
         }
 
         @Override
         public void resetTask() {
             super.resetTask();
-            this.fireflyEntity.isEntrancedByHoney = false;
+            FireflyEntity.this.isEntrancedByHoney = false;
         }
 
         @Override
@@ -796,10 +827,10 @@ public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
             super.tick();
             Vector3d destinationBlockCentered = this.getDestinationBlockCentered();
             // Stare at the honey block.
-            this.fireflyEntity.getLookController().setLookPosition(destinationBlockCentered);
+            FireflyEntity.this.getLookController().setLookPosition(destinationBlockCentered);
 
             // Keep close to the honey block.
-            if (this.fireflyEntity.ticksExisted % 20 == 0 && this.fireflyEntity.getDistanceSq(destinationBlockCentered) > 3f) {
+            if (FireflyEntity.this.ticksExisted % 20 == 0 && FireflyEntity.this.getDistanceSq(destinationBlockCentered) > 3f) {
                 this.attemptToMove();
             }
         }
@@ -807,7 +838,7 @@ public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
         @Override
         protected boolean shouldMoveTo(IWorldReader worldReader, BlockPos blockPos) {
             if (this.world.getBlockState(blockPos).getBlock() instanceof HoneyBlock && this.isHoneyBlockVisible(blockPos)) {
-                this.fireflyEntity.isEntrancedByHoney = true;
+                FireflyEntity.this.isEntrancedByHoney = true;
                 return true;
             }
             return false;
@@ -816,20 +847,29 @@ public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
         @Override
         protected void attemptToMove() {
             Vector3d destinationBlockCentered = this.getDestinationBlockCentered();
-            this.fireflyEntity.getNavigator().tryMoveToXYZ(
+            FireflyEntity.this.getNavigator().tryMoveToXYZ(
                     destinationBlockCentered.getX(), destinationBlockCentered.getY(), destinationBlockCentered.getZ(), this.movementSpeed);
         }
     }
 
-    private static class EatCompostGoal extends MoveToBlockGoal {
-        private final FireflyEntity fireflyEntity;
+    private class MateGoal extends BreedGoal {
+        public MateGoal(double speedIn) {
+            super(FireflyEntity.this, speedIn);
+        }
+
+        @Override
+        public boolean shouldExecute() {
+            return FireflyEntity.this.isDarkEnoughToBreed() && super.shouldExecute();
+        }
+    }
+
+    private class EatCompostGoal extends MoveToBlockGoal {
         private final World world;
         private int startEatingTicks;
 
-        public EatCompostGoal(FireflyEntity fireflyEntity, double speedIn, int length) {
-            super(fireflyEntity, speedIn, length);
-            this.fireflyEntity = fireflyEntity;
-            this.world = fireflyEntity.world;
+        public EatCompostGoal(double speedIn, int length) {
+            super(FireflyEntity.this, speedIn, length);
+            this.world = FireflyEntity.this.world;
         }
 
         @Override
@@ -844,12 +884,12 @@ public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
         }
 
         private void lookAtCompost() {
-            this.fireflyEntity.getLookController().setLookPosition(this.destinationBlock.getX() + 0.5f, this.destinationBlock.getY() + 0.5f, this.destinationBlock.getZ() + 0.5f);
+            FireflyEntity.this.getLookController().setLookPosition(this.destinationBlock.getX() + 0.5f, this.destinationBlock.getY() + 0.5f, this.destinationBlock.getZ() + 0.5f);
         }
 
         @Override
         public void tick() {
-            if (this.destinationBlock.withinDistance(this.fireflyEntity.getPosition(), 3f)) {
+            if (this.destinationBlock.withinDistance(FireflyEntity.this.getPosition(), 3f)) {
                 this.lookAtCompost();
                 if (this.startEatingTicks >= 100) {
                     this.eatCompost();
@@ -867,21 +907,21 @@ public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
 
             BlockState state = this.world.getBlockState(this.destinationBlock);
             if (state.matchesBlock(Blocks.COMPOSTER)) {
-                this.fireflyEntity.playSound(SoundEvents.BLOCK_COMPOSTER_EMPTY, 1.0F, 1.0F);
+                FireflyEntity.this.playSound(SoundEvents.BLOCK_COMPOSTER_EMPTY, 1.0F, 1.0F);
                 int i = state.get(ComposterBlock.LEVEL);
                 this.world.setBlockState(this.destinationBlock, state.with(ComposterBlock.LEVEL, i - (i == 8 ? 2 : 1)), 3);
-                this.fireflyEntity.hasIllumerin = true;
+                FireflyEntity.this.hasIllumerin = true;
             }
         }
 
         @Override
         public boolean shouldExecute() {
-            return super.shouldExecute() && !this.fireflyEntity.hasIllumerin;
+            return !FireflyEntity.this.hasIllumerin && super.shouldExecute();
         }
 
         @Override
         public boolean shouldContinueExecuting() {
-            return super.shouldContinueExecuting() && !this.fireflyEntity.hasIllumerin;
+            return !FireflyEntity.this.hasIllumerin && super.shouldContinueExecuting();
         }
 
         @Override
