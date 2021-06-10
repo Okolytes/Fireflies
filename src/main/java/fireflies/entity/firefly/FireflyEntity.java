@@ -418,8 +418,8 @@ public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
                     this.spawnAbdomenParticle();
                 }
 
+                // Sometimes particles can disappear to various things, so every 5s we'll try to destroy and add it again
                 if (this.ticksExisted % 100 == 0 && this.isRedstoneCoated(true)) {
-                    // Sometimes particles can disappear to various things, so every 5s we'll try to destroy and add it again
                     if (this.abdomenParticle != null) {
                         this.abdomenParticle.setExpired();
                     }

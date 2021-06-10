@@ -20,7 +20,7 @@ public class FireflyAbdomenParticleData implements IParticleData {
     }
 
     public static ParticleType<FireflyAbdomenParticleData> get() {
-        return new ParticleType<FireflyAbdomenParticleData>(false, new FireflyAbdomenParticleData.Deserializer()) {
+        return new ParticleType<FireflyAbdomenParticleData>(true, new FireflyAbdomenParticleData.Deserializer()) {
             @Override
             public Codec<FireflyAbdomenParticleData> func_230522_e_() {
                 return FireflyAbdomenParticleData.fireflyAbdomenParticleDataCodec();

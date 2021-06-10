@@ -47,5 +47,12 @@
     "sounds": [
       "fireflies:glass_jar_open_0"
     ]
+  },
+  "glass_jar_close": {
+    "category": "block",
+    "subtitle": "subtitle.fireflies.glass_jar_close",
+    "sounds": [
+      "fireflies:glass_jar_close_0"
+    ]
   }
 }

@@ -16,6 +16,7 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.item.SoupItem;
 import net.minecraft.nbt.CompoundNBT;
+import net.minecraft.particles.ParticleTypes;
 import net.minecraft.pathfinding.PathType;
 import net.minecraft.potion.PotionUtils;
 import net.minecraft.potion.Potions;
@@ -40,14 +41,15 @@ import net.minecraftforge.fluids.capability.templates.FluidTank;
 import net.minecraftforge.registries.ForgeRegistries;
 
 import javax.annotation.Nullable;
+import java.util.Random;
 
 public class GlassJarBlock extends Block {
     public static final IntegerProperty LEVEL = IntegerProperty.create("level", 0, 4);
-    public static final BooleanProperty LOCKED = BlockStateProperties.LOCKED;
+    public static final BooleanProperty OPEN = BlockStateProperties.OPEN;
 
     public GlassJarBlock() {
         super(Properties.create(Material.GLASS).hardnessAndResistance(0.3f).sound(SoundType.GLASS).setAllowsSpawn((a, b, c, d) -> false).notSolid().setAllowsSpawn((a, b, c, d) -> false).setOpaque((a, b, c) -> false).setSuffocates((a, b, c) -> false).setBlocksVision((a, b, c) -> false));
-        this.setDefaultState(this.stateContainer.getBaseState().with(LEVEL, 0).with(LOCKED, Boolean.FALSE));
+        this.setDefaultState(this.stateContainer.getBaseState().with(LEVEL, 0).with(OPEN, Boolean.FALSE));
     }
 
     @SuppressWarnings("deprecation")
@@ -58,9 +60,9 @@ public class GlassJarBlock extends Block {
         // Make sure the tile is actually there
         GlassJarTile glassJar = this.getTile(world, pos);
         if (glassJar == null) return ActionResultType.PASS;
-        // Unlock the jar if it's locked
-        if (state.get(LOCKED)) {
-            this.cycleLocked(world, state, pos);
+        // Open the jar if it's closed
+        if (!state.get(OPEN)) {
+            this.cycleOpened(world, state, pos);
             return ActionResultType.CONSUME;
         }
 
@@ -72,7 +74,7 @@ public class GlassJarBlock extends Block {
         else if (this.fillWithFluid(world, pos, player, hand, tank, item, itemStack)) return ActionResultType.CONSUME;
         else if (this.emptyFluid(world, pos, player, hand, tank, item, itemStack)) return ActionResultType.CONSUME;
 
-        this.cycleLocked(world, state, pos);
+        this.cycleOpened(world, state, pos);
         return ActionResultType.CONSUME;
     }
 
@@ -96,7 +98,7 @@ public class GlassJarBlock extends Block {
             fluidStack = new FluidStack(itemStack.getItem().equals(Items.RABBIT_STEW) ? Registry.RABBIT_STEW_FLUID.get() : itemStack.getItem().equals(Items.SUSPICIOUS_STEW) ? Registry.SUS_STEW_FLUID.get() : Registry.GENERIC_SOUP_FLUID.get(), ((GlassJarFluid) Registry.GENERIC_SOUP_FLUID.get()).getVolume(), copiedStack.getTag());
             empty = Items.BOWL.getDefaultInstance();
         } else return false;
-        if (!this.canFill(tank, fluidStack)) return false;
+        if (tank.fill(fluidStack, IFluidHandler.FluidAction.SIMULATE) <= 0) return false;
 
         this.changeFluidContainer(player, itemStack, empty, hand);
         player.addStat(Registry.FILL_GLASS_JAR_STAT);
@@ -144,13 +146,13 @@ public class GlassJarBlock extends Block {
         return true;
     }
 
-    private void changeFluidContainer(PlayerEntity player, ItemStack itemStack, ItemStack newItemStack, Hand hand) {
+    private void changeFluidContainer(PlayerEntity player, ItemStack oldStack, ItemStack newStack, Hand hand) {
         if (!player.isCreative()) {
-            itemStack.shrink(1);
-            if (itemStack.isEmpty()) {
-                player.setHeldItem(hand, newItemStack);
-            } else if (!player.inventory.addItemStackToInventory(newItemStack)) {
-                player.dropItem(newItemStack, false);
+            oldStack.shrink(1);
+            if (oldStack.isEmpty()) {
+                player.setHeldItem(hand, newStack);
+            } else if (!player.inventory.addItemStackToInventory(newStack)) {
+                player.dropItem(newStack, false);
             } else if (player instanceof ServerPlayerEntity) {
                 ((ServerPlayerEntity) player).sendContainerToPlayer(player.container);
             }
@@ -161,17 +163,13 @@ public class GlassJarBlock extends Block {
         return !tank.isEmpty() && tank.getFluid().getFluid().isEquivalentTo(fluid);
     }
 
-    private boolean canFill(FluidTank tank, FluidStack fluidStack) {
-        return tank.fill(fluidStack, IFluidHandler.FluidAction.SIMULATE) != 0;
-    }
-
     private boolean canDrain(FluidTank tank, int amount) {
         return tank.drain(amount, IFluidHandler.FluidAction.SIMULATE).getAmount() != 0;
     }
 
-    private void cycleLocked(World world, BlockState state, BlockPos pos) {
-        world.setBlockState(pos, state.cycleValue(LOCKED), 3);
-        world.playSound(null, pos, Registry.GLASS_JAR_OPEN.get(), SoundCategory.BLOCKS, 0.5F, MathHelper.nextFloat(world.rand, 0.85f, 1.15f));
+    private void cycleOpened(World world, BlockState state, BlockPos pos) {
+        world.setBlockState(pos, state.cycleValue(OPEN), 3);
+        world.playSound(null, pos, state.get(OPEN) ? Registry.GLASS_JAR_CLOSE.get() : Registry.GLASS_JAR_OPEN.get(), SoundCategory.BLOCKS, 0.5F, MathHelper.nextFloat(world.rand, 0.85f, 1.15f));
     }
 
     @Override
@@ -240,6 +238,26 @@ public class GlassJarBlock extends Block {
 
     @Override
     protected void fillStateContainer(StateContainer.Builder<Block, BlockState> builder) {
-        builder.add(LEVEL, LOCKED);
+        builder.add(LEVEL, OPEN);
+    }
+
+    @OnlyIn(Dist.CLIENT)
+    @Override
+    public void animateTick(BlockState stateIn, World worldIn, BlockPos pos, Random rand) {
+        GlassJarTile tile = this.getTile(worldIn, pos);
+        if (tile != null && this.hasFluid(tile.getTank(), Registry.DRAGON_BREATH_FLUID.get())) {
+            for (int i = 0; i < stateIn.get(LEVEL); ++i) {
+                // Taken from ender chest code
+                int j = rand.nextInt(2) * 2 - 1;
+                int k = rand.nextInt(2) * 2 - 1;
+                double d0 = (double) pos.getX() + 0.5D + 0.25D * (double) j;
+                double d1 = (float) pos.getY() + rand.nextFloat();
+                double d2 = (double) pos.getZ() + 0.5D + (stateIn.get(OPEN) ? 0.5f : 0.25f) * (double) k;
+                double d3 = rand.nextFloat() * (float) j;
+                double d4 = ((double) rand.nextFloat() - 0.5D) * 0.125D;
+                double d5 = rand.nextFloat() * (float) k;
+                worldIn.addParticle(ParticleTypes.PORTAL, d0, d1, d2, d3, d4, d5);
+            }
+        }
     }
 }

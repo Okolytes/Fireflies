@@ -2,37 +2,39 @@
 	"credit": "Made with Blockbench",
 	"texture_size": [32, 32],
 	"textures": {
-		"1": "fireflies:block/glass_jar",
+		"1": "fireflies:block/glass_jar_open",
 		"particle": "minecraft:block/glass"
 	},
 	"elements": [
 		{
 			"name": "cap",
-			"from": [5, 14, 5],
-			"to": [11, 16, 11],
+			"from": [1, 0, -0.001],
+			"to": [7, 2, 5.999],
 			"faces": {
-				"north": {"uv": [10, 6, 13, 7], "texture": "#1"},
-				"east": {"uv": [10, 6, 13, 7], "texture": "#1"},
-				"south": {"uv": [10, 6, 13, 7], "texture": "#1"},
-				"west": {"uv": [10, 6, 13, 7], "texture": "#1"},
-				"up": {"uv": [8, 15.5, 5, 12.5], "texture": "#1", "cullface": "up"}
+				"north": {"uv": [10.5, 5, 13.5, 6], "texture": "#1", "cullface": "north"},
+				"east": {"uv": [10.5, 5, 13.5, 6], "texture": "#1"},
+				"south": {"uv": [10.5, 5, 13.5, 6], "texture": "#1"},
+				"west": {"uv": [10.5, 5, 13.5, 6], "texture": "#1"},
+				"up": {"uv": [8, 15.5, 5, 12.5], "texture": "#1"},
+				"down": {"uv": [8, 12.5, 5, 15.5], "texture": "#1", "cullface": "down"}
 			}
 		},
 		{
 			"name": "neck",
-			"from": [5, 13, 5],
-			"to": [11, 14, 11],
+			"from": [6, 13, 8],
+			"to": [12, 15, 14],
 			"faces": {
-				"north": {"uv": [5.5, 6.5, 8.5, 7], "texture": "#1"},
-				"east": {"uv": [5.5, 6.5, 8.5, 7], "texture": "#1"},
-				"south": {"uv": [5.5, 6.5, 8.5, 7], "texture": "#1"},
-				"west": {"uv": [5.5, 6.5, 8.5, 7], "texture": "#1"}
+				"north": {"uv": [5, 8.5, 8, 9.5], "texture": "#1"},
+				"east": {"uv": [5, 8.5, 8, 9.5], "texture": "#1"},
+				"south": {"uv": [5, 8.5, 8, 9.5], "texture": "#1"},
+				"west": {"uv": [5, 8.5, 8, 9.5], "texture": "#1"},
+				"up": {"uv": [8, 12.5, 5, 9.5], "texture": "#1"}
 			}
 		},
 		{
 			"name": "side1",
-			"from": [3, 0, 3],
-			"to": [3, 13, 13],
+			"from": [4, 0, 6],
+			"to": [4, 13, 16],
 			"faces": {
 				"east": {"uv": [8, 9.5, 13, 16], "texture": "#1"},
 				"west": {"uv": [8, 9.5, 13, 16], "texture": "#1"}
@@ -40,8 +42,8 @@
 		},
 		{
 			"name": "side2",
-			"from": [13, 0, 3],
-			"to": [13, 13, 13],
+			"from": [14, 0, 6],
+			"to": [14, 13, 16],
 			"faces": {
 				"east": {"uv": [8, 9.5, 13, 16], "texture": "#1"},
 				"west": {"uv": [8, 9.5, 13, 16], "texture": "#1"}
@@ -49,8 +51,8 @@
 		},
 		{
 			"name": "side3",
-			"from": [3, 0, 3],
-			"to": [13, 13, 3],
+			"from": [4, 0, 6],
+			"to": [14, 13, 6],
 			"faces": {
 				"north": {"uv": [8, 9.5, 13, 16], "texture": "#1"},
 				"south": {"uv": [8, 9.5, 13, 16], "texture": "#1"}
@@ -58,17 +60,17 @@
 		},
 		{
 			"name": "side4",
-			"from": [3, 0, 13],
-			"to": [13, 13, 13],
+			"from": [4, 0, 16],
+			"to": [14, 13, 16],
 			"faces": {
-				"north": {"uv": [8, 9.5, 13, 16], "texture": "#1"},
-				"south": {"uv": [8, 9.5, 13, 16], "texture": "#1"}
+				"north": {"uv": [8, 9.5, 13, 16], "texture": "#1", "cullface": "south"},
+				"south": {"uv": [8, 9.5, 13, 16], "texture": "#1", "cullface": "south"}
 			}
 		},
 		{
 			"name": "base1",
-			"from": [3, 13, 3],
-			"to": [13, 13, 13],
+			"from": [4, 13, 6],
+			"to": [14, 13, 16],
 			"faces": {
 				"up": {"uv": [0, 11, 5, 16], "texture": "#1"},
 				"down": {"uv": [0, 11, 5, 16], "texture": "#1"}
@@ -76,8 +78,8 @@
 		},
 		{
 			"name": "base2",
-			"from": [3, 0.001, 3],
-			"to": [13, 0.001, 13],
+			"from": [4, 0.001, 6],
+			"to": [14, 0.001, 16],
 			"faces": {
 				"up": {"uv": [0, 6, 5, 11], "texture": "#1"},
 				"down": {"uv": [0, 6, 5, 11], "texture": "#1"}
@@ -86,7 +88,7 @@
 	],
 	"groups": [
 		{
-			"name": "glassJar",
+			"name": "glassJarOpen",
 			"origin": [8, 8, 8],
 			"children": [
 				{

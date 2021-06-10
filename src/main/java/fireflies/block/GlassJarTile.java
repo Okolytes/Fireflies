@@ -64,14 +64,12 @@ public class GlassJarTile extends TileEntity {
     public void read(BlockState state, CompoundNBT nbt) {
         super.read(state, nbt);
         this.fluidTank.readFromNBT(nbt);
-        this.fluidTank.setCapacity(nbt.getInt("capacity"));
     }
 
     @Override
     public CompoundNBT write(CompoundNBT nbt) {
         nbt = super.write(nbt);
         this.fluidTank.writeToNBT(nbt);
-        nbt.putInt("capacity", this.fluidTank.getCapacity());
         return nbt;
     }
 

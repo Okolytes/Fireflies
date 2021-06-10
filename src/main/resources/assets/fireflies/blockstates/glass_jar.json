@@ -1,6 +1,9 @@
 {
   "variants": {
-    "": {
+    "open=true": {
+      "model": "fireflies:block/glass_jar_open"
+    },
+    "open=false": {
       "model": "fireflies:block/glass_jar"
     }
   }
