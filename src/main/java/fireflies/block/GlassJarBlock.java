@@ -11,16 +11,14 @@ import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.fluid.Fluid;
 import net.minecraft.fluid.Fluids;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.Items;
-import net.minecraft.item.SoupItem;
+import net.minecraft.item.*;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.particles.ParticleTypes;
 import net.minecraft.pathfinding.PathType;
 import net.minecraft.potion.PotionUtils;
 import net.minecraft.potion.Potions;
 import net.minecraft.state.BooleanProperty;
+import net.minecraft.state.DirectionProperty;
 import net.minecraft.state.IntegerProperty;
 import net.minecraft.state.StateContainer;
 import net.minecraft.state.properties.BlockStateProperties;
@@ -46,10 +44,11 @@ import java.util.Random;
 public class GlassJarBlock extends Block {
     public static final IntegerProperty LEVEL = IntegerProperty.create("level", 0, 4);
     public static final BooleanProperty OPEN = BlockStateProperties.OPEN;
+    public static final DirectionProperty HORIZONTAL_FACING = BlockStateProperties.HORIZONTAL_FACING;
 
     public GlassJarBlock() {
-        super(Properties.create(Material.GLASS).hardnessAndResistance(0.3f).sound(SoundType.GLASS).setAllowsSpawn((a, b, c, d) -> false).notSolid().setAllowsSpawn((a, b, c, d) -> false).setOpaque((a, b, c) -> false).setSuffocates((a, b, c) -> false).setBlocksVision((a, b, c) -> false));
-        this.setDefaultState(this.stateContainer.getBaseState().with(LEVEL, 0).with(OPEN, Boolean.FALSE));
+        super(Properties.create(Material.GLASS).hardnessAndResistance(0.3f).sound(SoundType.GLASS).setAllowsSpawn((a, b, c, d) -> false).notSolid());
+        this.setDefaultState(this.stateContainer.getBaseState().with(LEVEL, 0).with(OPEN, Boolean.FALSE).with(HORIZONTAL_FACING, Direction.NORTH));
     }
 
     @SuppressWarnings("deprecation")
@@ -174,12 +173,11 @@ public class GlassJarBlock extends Block {
 
     @Override
     public int getLightValue(BlockState state, IBlockReader world, BlockPos pos) {
-        // FIXME
         GlassJarTile glassJar = this.getTile(world, pos);
         if (glassJar != null) {
-            return glassJar.getTank().getFluid().getFluid().getAttributes().getLuminosity();
+            return glassJar.luminosity;
         }
-        return super.getLightValue(state, world, pos);
+        return 0;
     }
 
     @Nullable
@@ -236,9 +234,13 @@ public class GlassJarBlock extends Block {
         return blockState.get(LEVEL);
     }
 
+    public BlockState getStateForPlacement(BlockItemUseContext context) {
+        return this.getDefaultState().with(HORIZONTAL_FACING, context.getPlacementHorizontalFacing().getOpposite());
+    }
+
     @Override
     protected void fillStateContainer(StateContainer.Builder<Block, BlockState> builder) {
-        builder.add(LEVEL, OPEN);
+        builder.add(LEVEL, OPEN, HORIZONTAL_FACING);
     }
 
     @OnlyIn(Dist.CLIENT)

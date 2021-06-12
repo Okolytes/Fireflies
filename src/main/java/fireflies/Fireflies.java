@@ -5,6 +5,7 @@ import fireflies.init.ClientSetup;
 import fireflies.init.Registry;
 import fireflies.misc.FireflyMasterPotion;
 import net.minecraft.entity.ai.attributes.GlobalEntityTypeAttributes;
+import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.brewing.BrewingRecipeRegistry;
 import net.minecraftforge.fml.DeferredWorkQueue;
 import net.minecraftforge.fml.common.Mod;
@@ -22,6 +23,7 @@ public class Fireflies {
         Registry.init();
         FMLJavaModLoadingContext.get().getModEventBus().addListener(this::setup);
         FMLJavaModLoadingContext.get().getModEventBus().addListener(ClientSetup::init);
+        MinecraftForge.EVENT_BUS.register(this);
     }
 
     @SuppressWarnings("deprecation") // TODO

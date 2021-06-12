@@ -2,7 +2,6 @@ package fireflies.client.render;
 
 import com.mojang.blaze3d.matrix.MatrixStack;
 import com.mojang.blaze3d.vertex.IVertexBuilder;
-import fireflies.block.GlassJarBlock;
 import fireflies.block.GlassJarTile;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.IRenderTypeBuffer;
@@ -31,6 +30,7 @@ public class GlassJarRenderer extends TileEntityRenderer<GlassJarTile> {
     @Override
     public void render(GlassJarTile glassJar, float partialTicks, MatrixStack matrixStackIn, IRenderTypeBuffer bufferIn, int light, int combinedOverlayIn) {
         if (glassJar.isRemoved() || glassJar.getTank().isEmpty() || glassJar.getWorld() == null) return;
+        long startTime = System.nanoTime();
 
         FluidStack fluidStack = glassJar.getTank().getFluid();
         FluidAttributes fluidAttributes = fluidStack.getFluid().getAttributes();
@@ -41,18 +41,41 @@ public class GlassJarRenderer extends TileEntityRenderer<GlassJarTile> {
         Matrix4f matrix4f = matrixStackIn.getLast().getMatrix();
         IVertexBuilder buffer = bufferIn.getBuffer(RenderType.getText(sprite.getAtlasTexture().getTextureLocation()));
 
-        if (glassJar.getBlockState().get(GlassJarBlock.OPEN)) matrixStackIn.translate(0.0625f, 0, 0.1875f);
-        float x = 0.2f;
-        float y = 0.7f * fluidStack.getAmount() / glassJar.getTank().getCapacity();
-        float z = 0.8f;
+        if (glassJar.cachedOpen) {
+            float x = 0.0625f;
+            float z = 0.1875f;
+            switch (glassJar.cachedDirection) {
+                case NORTH:
+                    matrixStackIn.translate(x, 0, z);
+                    break;
+                case SOUTH:
+                    matrixStackIn.translate(-x, 0, -z);
+                    break;
+                case WEST:
+                    matrixStackIn.translate(z, 0, -x);
+                    break;
+                case EAST:
+                    matrixStackIn.translate(-z, 0, x);
+                    break;
+            }
+        }
+        float margin = 0.2f;
+        float yScale = 0.69f * fluidStack.getAmount() / glassJar.getTank().getCapacity();
+        float offset = 0.8f;
 
         float minU = sprite.getMinU() + 0.00055f;
         float maxU = Math.min(minU + (sprite.getMaxU() - minU) * 0.575f, sprite.getMaxU());
         float minV = sprite.getMinV() + 0.00195f;
-        float maxV = Math.min(minV + (sprite.getMaxV() - minV) * y, sprite.getMaxV());
+        float maxV = Math.min(minV + (sprite.getMaxV() - minV) * yScale, sprite.getMaxV());
 
-        // If it's a potion we'll use its color, if it's beetroot soup we'll use a custom colour
-        int color = fluidStack.getTag() == null ? fluidAttributes.getColor(glassJar.getWorld(), glassJar.getPos()) : fluidStack.getTag().contains("Potion") ? PotionUtils.getPotionColor(PotionUtils.getPotionTypeFromNBT(fluidStack.getTag())) : fluidStack.getTag().getString("Soup").equals(BEETROOT_SOUP) ? 0xFFA4272C : fluidAttributes.getColor();
+        int color;
+        if (glassJar.cachedFluidColor == -69) {
+            // If it's a potion we'll use its color, if it's beetroot soup we'll use a custom colour
+            color = (fluidStack.getTag() == null) ? fluidAttributes.getColor(glassJar.getWorld(), glassJar.getPos()) : (fluidStack.getTag().contains("Potion") ? PotionUtils.getPotionColor(PotionUtils.getPotionTypeFromNBT(fluidStack.getTag())) : (fluidStack.getTag().getString("Soup").equals(BEETROOT_SOUP) ? 0xFFA4272C : fluidAttributes.getColor()));
+            glassJar.cachedFluidColor = color;
+        } else {
+            color = glassJar.cachedFluidColor;
+        }
         float r = (color >> 16 & 0xff) / 255f;
         float g = (color >> 8 & 0xff) / 255f;
         float b = (color & 0xff) / 255f;
@@ -60,36 +83,37 @@ public class GlassJarRenderer extends TileEntityRenderer<GlassJarTile> {
         if (a <= 0) a = 1f;
 
         // Top
-        buffer.pos(matrix4f, x, y, x).color(r, g, b, a).tex(minU, minV).lightmap(light).endVertex();
-        buffer.pos(matrix4f, x, y, z).color(r, g, b, a).tex(minU, maxV).lightmap(light).endVertex();
-        buffer.pos(matrix4f, z, y, z).color(r, g, b, a).tex(maxU, maxV).lightmap(light).endVertex();
-        buffer.pos(matrix4f, z, y, x).color(r, g, b, a).tex(maxU, minV).lightmap(light).endVertex();
+        buffer.pos(matrix4f, margin, yScale, margin).color(r, g, b, a).tex(minU, minV).lightmap(light).endVertex();
+        buffer.pos(matrix4f, margin, yScale, offset).color(r, g, b, a).tex(minU, maxV).lightmap(light).endVertex();
+        buffer.pos(matrix4f, offset, yScale, offset).color(r, g, b, a).tex(maxU, maxV).lightmap(light).endVertex();
+        buffer.pos(matrix4f, offset, yScale, margin).color(r, g, b, a).tex(maxU, minV).lightmap(light).endVertex();
 
         // North
-        float yOffset = 0.001f; // Because the model is JANK!
-        buffer.pos(matrix4f, x, y, z).color(r, g, b, a).tex(minU, minV).lightmap(light).endVertex();
-        buffer.pos(matrix4f, x, yOffset, z).color(r, g, b, a).tex(minU, maxV).lightmap(light).endVertex();
-        buffer.pos(matrix4f, z, yOffset, z).color(r, g, b, a).tex(maxU, maxV).lightmap(light).endVertex();
-        buffer.pos(matrix4f, z, y, z).color(r, g, b, a).tex(maxU, minV).lightmap(light).endVertex();
+        float yOfset = 0.001f; // Because the model is JANK!
+        buffer.pos(matrix4f, margin, yScale, offset).color(r, g, b, a).tex(minU, minV).lightmap(light).endVertex();
+        buffer.pos(matrix4f, margin, yOfset, offset).color(r, g, b, a).tex(minU, maxV).lightmap(light).endVertex();
+        buffer.pos(matrix4f, offset, yOfset, offset).color(r, g, b, a).tex(maxU, maxV).lightmap(light).endVertex();
+        buffer.pos(matrix4f, offset, yScale, offset).color(r, g, b, a).tex(maxU, minV).lightmap(light).endVertex();
 
         // South
-        buffer.pos(matrix4f, z, y, x).color(r, g, b, a).tex(maxU, minV).lightmap(light).endVertex();
-        buffer.pos(matrix4f, z, yOffset, x).color(r, g, b, a).tex(maxU, maxV).lightmap(light).endVertex();
-        buffer.pos(matrix4f, x, yOffset, x).color(r, g, b, a).tex(minU, maxV).lightmap(light).endVertex();
-        buffer.pos(matrix4f, x, y, x).color(r, g, b, a).tex(minU, minV).lightmap(light).endVertex();
+        buffer.pos(matrix4f, offset, yScale, margin).color(r, g, b, a).tex(maxU, minV).lightmap(light).endVertex();
+        buffer.pos(matrix4f, offset, yOfset, margin).color(r, g, b, a).tex(maxU, maxV).lightmap(light).endVertex();
+        buffer.pos(matrix4f, margin, yOfset, margin).color(r, g, b, a).tex(minU, maxV).lightmap(light).endVertex();
+        buffer.pos(matrix4f, margin, yScale, margin).color(r, g, b, a).tex(minU, minV).lightmap(light).endVertex();
 
         // West
-        buffer.pos(matrix4f, z, y, z).color(r, g, b, a).tex(maxU, minV).lightmap(light).endVertex();
-        buffer.pos(matrix4f, z, yOffset, z).color(r, g, b, a).tex(maxU, maxV).lightmap(light).endVertex();
-        buffer.pos(matrix4f, z, yOffset, x).color(r, g, b, a).tex(minU, maxV).lightmap(light).endVertex();
-        buffer.pos(matrix4f, z, y, x).color(r, g, b, a).tex(minU, minV).lightmap(light).endVertex();
+        buffer.pos(matrix4f, offset, yScale, offset).color(r, g, b, a).tex(maxU, minV).lightmap(light).endVertex();
+        buffer.pos(matrix4f, offset, yOfset, offset).color(r, g, b, a).tex(maxU, maxV).lightmap(light).endVertex();
+        buffer.pos(matrix4f, offset, yOfset, margin).color(r, g, b, a).tex(minU, maxV).lightmap(light).endVertex();
+        buffer.pos(matrix4f, offset, yScale, margin).color(r, g, b, a).tex(minU, minV).lightmap(light).endVertex();
 
         // East
-        buffer.pos(matrix4f, x, y, x).color(r, g, b, a).tex(minU, minV).lightmap(light).endVertex();
-        buffer.pos(matrix4f, x, yOffset, x).color(r, g, b, a).tex(minU, maxV).lightmap(light).endVertex();
-        buffer.pos(matrix4f, x, yOffset, z).color(r, g, b, a).tex(maxU, maxV).lightmap(light).endVertex();
-        buffer.pos(matrix4f, x, y, z).color(r, g, b, a).tex(maxU, minV).lightmap(light).endVertex();
+        buffer.pos(matrix4f, margin, yScale, margin).color(r, g, b, a).tex(minU, minV).lightmap(light).endVertex();
+        buffer.pos(matrix4f, margin, yOfset, margin).color(r, g, b, a).tex(minU, maxV).lightmap(light).endVertex();
+        buffer.pos(matrix4f, margin, yOfset, offset).color(r, g, b, a).tex(maxU, maxV).lightmap(light).endVertex();
+        buffer.pos(matrix4f, margin, yScale, offset).color(r, g, b, a).tex(maxU, minV).lightmap(light).endVertex();
 
         matrixStackIn.pop();
+        System.out.println((System.nanoTime() - startTime) / 1000);
     }
 }

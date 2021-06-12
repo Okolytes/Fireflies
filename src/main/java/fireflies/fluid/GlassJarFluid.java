@@ -8,20 +8,26 @@ import net.minecraftforge.fluids.FluidStack;
 public class GlassJarFluid extends EmptyFluid {
     public static final int BOTTLE_VOLUME = 250;
 
-    private final String stillTexture;
+    private final String textureLocation;
     private final FluidStack fluidStack;
     private final int volume;
     private final int color;
+    private final int luminosity;
 
-    public GlassJarFluid(String stillTexture, int volume) {
-        this(stillTexture, volume, 0xffffffff);
+    public GlassJarFluid(String textureLocation, int volume){
+        this(textureLocation, volume, 0xffffffff, 0);
     }
 
-    public GlassJarFluid(String stillTexture, int volume, int color) {
-        this.stillTexture = stillTexture;
+    public GlassJarFluid(String textureLocation, int volume, int color) {
+        this(textureLocation, volume, color, 0);
+    }
+
+    public GlassJarFluid(String textureLocation, int volume, int color, int luminosity) {
+        this.textureLocation = textureLocation;
         this.volume = volume;
         this.color = color;
         this.fluidStack = new FluidStack(this, volume);
+        this.luminosity = luminosity;
     }
 
     public FluidStack getFluidStack() {
@@ -34,6 +40,6 @@ public class GlassJarFluid extends EmptyFluid {
 
     @Override
     protected FluidAttributes createAttributes() {
-        return FluidAttributes.builder(new ResourceLocation(stillTexture), new ResourceLocation(stillTexture)).color(color).build(this);
+        return FluidAttributes.builder(new ResourceLocation(textureLocation), new ResourceLocation(textureLocation)).color(color).luminosity(luminosity).build(this);
     }
 }

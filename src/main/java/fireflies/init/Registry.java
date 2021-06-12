@@ -18,6 +18,7 @@ import net.minecraft.fluid.Fluid;
 import net.minecraft.item.*;
 import net.minecraft.particles.BasicParticleType;
 import net.minecraft.particles.ParticleType;
+import net.minecraft.potion.Effect;
 import net.minecraft.potion.EffectInstance;
 import net.minecraft.potion.Effects;
 import net.minecraft.potion.Potion;
@@ -66,17 +67,19 @@ public class Registry {
     public static final RegistryObject<Item> ECTO_ILLUMERIN = ITEMS.register("ecto_illumerin", () -> new Item(new Item.Properties().group(ItemGroup.MATERIALS)));
     //endregion Items
 
-    //region Potions
-    public static final RegistryObject<Potion> FIREFLY_MASTER = POTION_TYPES.register("firefly_master", () -> new FireflyMasterPotion(new EffectInstance(Effects.GLOWING, 320), new EffectInstance(Effects.POISON, 320)));
-    public static final RegistryObject<Potion> LONG_FIREFLY_MASTER = POTION_TYPES.register("long_firefly_master", () -> new FireflyMasterPotion(new EffectInstance(Effects.GLOWING, 640), new EffectInstance(Effects.POISON, 640)));
-    public static final RegistryObject<Potion> STRONG_FIREFLY_MASTER = POTION_TYPES.register("strong_firefly_master", () -> new FireflyMasterPotion(new EffectInstance(Effects.GLOWING, 200, 1), new EffectInstance(Effects.POISON, 200, 1)));
-    //endregion Potions
+    //region Potions & Effects
+    private static final Effect HIDDEN_FIREFLY_MASTER_EFFECT = new FireflyMasterPotion.HiddenFireflyMasterEffect().setRegistryName("firefly_master_effect");
+
+    public static final RegistryObject<Potion> FIREFLY_MASTER = POTION_TYPES.register("firefly_master", () -> new FireflyMasterPotion(new EffectInstance(Effects.GLOWING, 320), new EffectInstance(Effects.POISON, 320), new EffectInstance(HIDDEN_FIREFLY_MASTER_EFFECT, 320, 69)));
+    public static final RegistryObject<Potion> LONG_FIREFLY_MASTER = POTION_TYPES.register("long_firefly_master", () -> new FireflyMasterPotion(new EffectInstance(Effects.GLOWING, 640), new EffectInstance(Effects.POISON, 640), new EffectInstance(HIDDEN_FIREFLY_MASTER_EFFECT, 320, 69)));
+    public static final RegistryObject<Potion> STRONG_FIREFLY_MASTER = POTION_TYPES.register("strong_firefly_master", () -> new FireflyMasterPotion(new EffectInstance(Effects.GLOWING, 200, 1), new EffectInstance(Effects.POISON, 200, 1), new EffectInstance(HIDDEN_FIREFLY_MASTER_EFFECT, 320, 69)));
+    //endregion Potions & Effects
 
     //region Fluids
     public static final RegistryObject<Fluid> GENERIC_POTION_FLUID = FLUIDS.register("potion_fluid", () -> new GlassJarFluid("block/water_still", GlassJarFluid.BOTTLE_VOLUME));
     public static final RegistryObject<Fluid> MILK_FLUID = FLUIDS.register("milk_fluid", () -> new GlassJarFluid("block/water_still", FluidAttributes.BUCKET_VOLUME, 0xFFF7F7F7));
     public static final RegistryObject<Fluid> HONEY_FLUID = FLUIDS.register("honey_fluid", () -> new GlassJarFluid("block/water_still", GlassJarFluid.BOTTLE_VOLUME, 0xFFFDD330));
-    public static final RegistryObject<Fluid> DRAGON_BREATH_FLUID = FLUIDS.register("dragon_breath_fluid", () -> new GlassJarFluid("block/water_still", GlassJarFluid.BOTTLE_VOLUME, 0xFFE49BC4));
+    public static final RegistryObject<Fluid> DRAGON_BREATH_FLUID = FLUIDS.register("dragon_breath_fluid", () -> new GlassJarFluid("block/water_still", GlassJarFluid.BOTTLE_VOLUME, 0xFFE49BC4, 2));
     public static final RegistryObject<Fluid> GENERIC_SOUP_FLUID = FLUIDS.register("soup_fluid", () -> new GlassJarFluid("block/water_still", GlassJarFluid.BOTTLE_VOLUME, 0xFF533909));
     public static final RegistryObject<Fluid> RABBIT_STEW_FLUID = FLUIDS.register("rabbit_stew_fluid", () -> new GlassJarFluid("block/water_still", GlassJarFluid.BOTTLE_VOLUME, 0xFF533909));
     public static final RegistryObject<Fluid> SUS_STEW_FLUID = FLUIDS.register("sus_stew_fluid", () -> new GlassJarFluid("block/water_still", GlassJarFluid.BOTTLE_VOLUME, 0xFF533909)); // when the imposter is
@@ -149,6 +152,11 @@ public class Registry {
                 return stack;
             }
         });
+    }
+
+    @SubscribeEvent
+    public static void registerEffects(final RegistryEvent.Register<Effect> event) {
+        event.getRegistry().register(HIDDEN_FIREFLY_MASTER_EFFECT);
     }
 
     private static RegistryObject<SoundEvent> registerSoundEvent(String name) {
