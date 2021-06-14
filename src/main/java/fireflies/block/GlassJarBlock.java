@@ -7,6 +7,7 @@ import net.minecraft.block.material.Material;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.fluid.Fluid;
+import net.minecraft.fluid.FluidState;
 import net.minecraft.fluid.Fluids;
 import net.minecraft.item.*;
 import net.minecraft.nbt.CompoundNBT;
@@ -29,6 +30,7 @@ import net.minecraft.util.math.shapes.ISelectionContext;
 import net.minecraft.util.math.shapes.VoxelShape;
 import net.minecraft.util.math.shapes.VoxelShapes;
 import net.minecraft.world.IBlockReader;
+import net.minecraft.world.IWorld;
 import net.minecraft.world.World;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
@@ -45,11 +47,12 @@ import net.minecraftforge.registries.ForgeRegistries;
 import javax.annotation.Nullable;
 import java.util.Random;
 
-public class GlassJarBlock extends Block {
+public class GlassJarBlock extends Block implements IWaterLoggable {
     public static final IntegerProperty LEVEL = IntegerProperty.create("level", 0, 4);
     public static final BooleanProperty OPEN = BlockStateProperties.OPEN;
     public static final DirectionProperty HORIZONTAL_FACING = BlockStateProperties.HORIZONTAL_FACING;
     public static final BooleanProperty ATTACHED = BlockStateProperties.ATTACHED;
+    public static final BooleanProperty WATERLOGGED = BlockStateProperties.WATERLOGGED;
 
     private static final VoxelShape SHAPE_CLOSED = VoxelShapes.combineAndSimplify(Block.makeCuboidShape(3, 0, 3, 13, 13, 13), Block.makeCuboidShape(5, 13, 5, 11, 16, 11), IBooleanFunction.OR);
     private static final VoxelShape SHAPE_ATTACHED = VoxelShapes.combineAndSimplify(Block.makeCuboidShape(3, 0, 3, 13, 13, 13), Block.makeCuboidShape(5, 13, 5, 11, 15, 11), IBooleanFunction.OR);
@@ -60,7 +63,7 @@ public class GlassJarBlock extends Block {
 
     public GlassJarBlock() {
         super(Properties.create(Material.GLASS).hardnessAndResistance(0.3f).sound(SoundType.GLASS).setAllowsSpawn((a, b, c, d) -> false).notSolid());
-        this.setDefaultState(this.stateContainer.getBaseState().with(LEVEL, 0).with(OPEN, false).with(HORIZONTAL_FACING, Direction.NORTH).with(ATTACHED, false));
+        this.setDefaultState(this.stateContainer.getBaseState().with(LEVEL, 0).with(OPEN, false).with(HORIZONTAL_FACING, Direction.NORTH).with(ATTACHED, false).with(WATERLOGGED, false));
     }
 
     /**
@@ -348,12 +351,29 @@ public class GlassJarBlock extends Block {
     }
 
     public BlockState getStateForPlacement(BlockItemUseContext context) {
-        return this.getDefaultState().with(HORIZONTAL_FACING, context.getPlacementHorizontalFacing().getOpposite());
+        return this.getDefaultState().with(HORIZONTAL_FACING, context.getPlacementHorizontalFacing().getOpposite())
+                .with(WATERLOGGED, context.getWorld().getFluidState(context.getPos()).getFluid() == Fluids.WATER);
     }
 
     @Override
     protected void fillStateContainer(StateContainer.Builder<Block, BlockState> builder) {
-        builder.add(LEVEL, OPEN, HORIZONTAL_FACING, ATTACHED);
+        builder.add(LEVEL, OPEN, HORIZONTAL_FACING, ATTACHED, WATERLOGGED);
+    }
+
+    @SuppressWarnings("deprecation")
+    @Override
+    public BlockState updatePostPlacement(BlockState state, Direction facing, BlockState facingState, IWorld worldIn, BlockPos currentPos, BlockPos facingPos) {
+        if (state.get(WATERLOGGED)) {
+            worldIn.getPendingFluidTicks().scheduleTick(currentPos, Fluids.WATER, Fluids.WATER.getTickRate(worldIn));
+        }
+
+        return super.updatePostPlacement(state, facing, facingState, worldIn, currentPos, facingPos);
+    }
+
+    @SuppressWarnings("deprecation")
+    @Override
+    public FluidState getFluidState(BlockState state) {
+        return state.get(WATERLOGGED) ? Fluids.WATER.getStillFluidState(false) : super.getFluidState(state);
     }
 
     @SuppressWarnings("deprecation")
