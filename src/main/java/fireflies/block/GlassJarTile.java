@@ -1,13 +1,17 @@
 package fireflies.block;
 
-import fireflies.fluid.GlassJarFluid;
 import fireflies.init.Registry;
+import fireflies.misc.GlassJarFluid;
 import net.minecraft.block.BlockState;
+import net.minecraft.inventory.IInventory;
+import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.network.NetworkManager;
 import net.minecraft.network.play.server.SUpdateTileEntityPacket;
 import net.minecraft.potion.Effects;
 import net.minecraft.potion.PotionUtils;
+import net.minecraft.tileentity.HopperTileEntity;
+import net.minecraft.tileentity.ITickableTileEntity;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.Direction;
 import net.minecraft.util.math.MathHelper;
@@ -22,12 +26,15 @@ import net.minecraftforge.fluids.capability.templates.FluidTank;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
-public class GlassJarTile extends TileEntity {
+public class GlassJarTile extends TileEntity implements ITickableTileEntity {
     public int cachedLevel;
     public boolean cachedOpen;
     public Direction cachedDirection = Direction.NORTH;
     public int cachedFluidColor = -69; // I think -1 is already taken ¯\_(ツ)_/¯
+    public boolean cachedAttached;
     public int luminosity;
+    private int updateTicks;
+    private int hopperSlot;
 
     private final FluidTank fluidTank = new FluidTank(FluidAttributes.BUCKET_VOLUME) {
         @Override
@@ -40,11 +47,59 @@ public class GlassJarTile extends TileEntity {
                 markDirty();
             }
         }
+
     };
     private final LazyOptional<IFluidHandler> fluidHandler = LazyOptional.of(() -> fluidTank);
 
     public GlassJarTile() {
         super(Registry.GLASS_JAR_TILE_ENTITY.get());
+    }
+
+    @Override
+    public void tick() {
+        this.updateTicks++;
+        if (this.updateTicks % 20 == 0 && this.world != null && !this.world.isRemote && GlassJarBlock.shouldBeAttached(this.world, this.pos, this.getBlockState())) {
+            IInventory inventory = HopperTileEntity.getInventoryAtPosition(world, pos.up());
+            if (inventory == null) return;
+            GlassJarBlock glassJar = (GlassJarBlock) this.world.getBlockState(pos).getBlock();
+
+            // Iterate through each slot every 20 ticks
+            if (this.hopperSlot >= inventory.getSizeInventory()) {
+                this.hopperSlot = 0;
+            }
+
+            ItemStack fluidContainer = inventory.getStackInSlot(hopperSlot);
+            ItemStack emptyContainer = glassJar.fillWithFluid(world, pos, null, null, fluidTank, fluidContainer.getItem(), fluidContainer, false);
+            if (emptyContainer == null) {
+                this.hopperSlot++;
+                return;
+            }
+
+            boolean flag = false;
+            if (!HopperTileEntity.putStackInInventoryAllSlots(inventory, inventory, emptyContainer, null).isEmpty()) {
+                ItemStack fluidContainerCopy = fluidContainer.copy();
+                fluidContainerCopy.shrink(1);
+                if (inventory.isItemValidForSlot(this.hopperSlot, emptyContainer) && fluidContainerCopy.isEmpty()) {
+                    flag = true;
+                } else {
+                    this.hopperSlot++;
+                    return;
+                }
+            }
+
+            // Fill the jar
+            glassJar.fillWithFluid(world, pos, null, null, fluidTank, fluidContainer.getItem(), fluidContainer, true);
+            if (!flag) {
+                // Remove the fluid container item from the inventory
+                fluidContainer.shrink(1);
+            } else {
+                fluidContainer = emptyContainer;
+                inventory.setInventorySlotContents(this.hopperSlot, fluidContainer);
+            }
+            // Update
+            inventory.markDirty();
+            this.hopperSlot++;
+        }
     }
 
     @Override
@@ -60,13 +115,13 @@ public class GlassJarTile extends TileEntity {
     @Nullable
     @Override
     public SUpdateTileEntityPacket getUpdatePacket() {
-        return new SUpdateTileEntityPacket(this.getPos(), 0, this.getUpdateTag());
+        return new SUpdateTileEntityPacket(this.pos, 0, this.getUpdateTag());
     }
 
     @Override
     public void onDataPacket(NetworkManager net, SUpdateTileEntityPacket pkt) {
         if (this.world != null) {
-            this.read(this.world.getBlockState(this.getPos()), pkt.getNbtCompound());
+            this.read(this.world.getBlockState(this.pos), pkt.getNbtCompound());
         }
     }
 
@@ -102,11 +157,12 @@ public class GlassJarTile extends TileEntity {
 
     private void updateCachedProperties() {
         if (this.world != null) {
-            BlockState state = this.world.getBlockState(this.getPos());
+            BlockState state = this.world.getBlockState(this.pos);
             this.cachedLevel = state.get(GlassJarBlock.LEVEL);
             this.cachedOpen = state.get(GlassJarBlock.OPEN);
             this.cachedDirection = state.get(GlassJarBlock.HORIZONTAL_FACING);
             this.cachedFluidColor = -69;
+            this.cachedAttached = state.get(GlassJarBlock.ATTACHED);
         }
     }
 

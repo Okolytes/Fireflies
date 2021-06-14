@@ -9,6 +9,7 @@ import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.client.renderer.tileentity.TileEntityRenderer;
 import net.minecraft.client.renderer.tileentity.TileEntityRendererDispatcher;
+import net.minecraft.fluid.Fluids;
 import net.minecraft.inventory.container.PlayerContainer;
 import net.minecraft.item.Items;
 import net.minecraft.potion.PotionUtils;
@@ -30,7 +31,6 @@ public class GlassJarRenderer extends TileEntityRenderer<GlassJarTile> {
     @Override
     public void render(GlassJarTile glassJar, float partialTicks, MatrixStack matrixStackIn, IRenderTypeBuffer bufferIn, int light, int combinedOverlayIn) {
         if (glassJar.isRemoved() || glassJar.getTank().isEmpty() || glassJar.getWorld() == null) return;
-        long startTime = System.nanoTime();
 
         FluidStack fluidStack = glassJar.getTank().getFluid();
         FluidAttributes fluidAttributes = fluidStack.getFluid().getAttributes();
@@ -41,7 +41,7 @@ public class GlassJarRenderer extends TileEntityRenderer<GlassJarTile> {
         Matrix4f matrix4f = matrixStackIn.getLast().getMatrix();
         IVertexBuilder buffer = bufferIn.getBuffer(RenderType.getText(sprite.getAtlasTexture().getTextureLocation()));
 
-        if (glassJar.cachedOpen) {
+        if (glassJar.cachedOpen && !glassJar.cachedAttached) {
             float x = 0.0625f;
             float z = 0.1875f;
             switch (glassJar.cachedDirection) {
@@ -71,7 +71,7 @@ public class GlassJarRenderer extends TileEntityRenderer<GlassJarTile> {
         int color;
         if (glassJar.cachedFluidColor == -69) {
             // If it's a potion we'll use its color, if it's beetroot soup we'll use a custom colour
-            color = (fluidStack.getTag() == null) ? fluidAttributes.getColor(glassJar.getWorld(), glassJar.getPos()) : (fluidStack.getTag().contains("Potion") ? PotionUtils.getPotionColor(PotionUtils.getPotionTypeFromNBT(fluidStack.getTag())) : (fluidStack.getTag().getString("Soup").equals(BEETROOT_SOUP) ? 0xFFA4272C : fluidAttributes.getColor()));
+            color = (fluidStack.getTag() == null || fluidStack.getFluid().isEquivalentTo(Fluids.WATER)) ? fluidAttributes.getColor(glassJar.getWorld(), glassJar.getPos()) : (fluidStack.getTag().contains("Potion") ? PotionUtils.getPotionColor(PotionUtils.getPotionTypeFromNBT(fluidStack.getTag())) : (fluidStack.getTag().getString("Soup").equals(BEETROOT_SOUP) ? 0xFFA4272C : fluidAttributes.getColor()));
             glassJar.cachedFluidColor = color;
         } else {
             color = glassJar.cachedFluidColor;
@@ -89,7 +89,7 @@ public class GlassJarRenderer extends TileEntityRenderer<GlassJarTile> {
         buffer.pos(matrix4f, offset, yScale, margin).color(r, g, b, a).tex(maxU, minV).lightmap(light).endVertex();
 
         // North
-        float yOfset = 0.001f; // Because the model is JANK!
+        float yOfset = 0.01f; // Because the model is JANK!
         buffer.pos(matrix4f, margin, yScale, offset).color(r, g, b, a).tex(minU, minV).lightmap(light).endVertex();
         buffer.pos(matrix4f, margin, yOfset, offset).color(r, g, b, a).tex(minU, maxV).lightmap(light).endVertex();
         buffer.pos(matrix4f, offset, yOfset, offset).color(r, g, b, a).tex(maxU, maxV).lightmap(light).endVertex();
@@ -114,6 +114,5 @@ public class GlassJarRenderer extends TileEntityRenderer<GlassJarTile> {
         buffer.pos(matrix4f, margin, yScale, offset).color(r, g, b, a).tex(maxU, minV).lightmap(light).endVertex();
 
         matrixStackIn.pop();
-        System.out.println((System.nanoTime() - startTime) / 1000);
     }
 }

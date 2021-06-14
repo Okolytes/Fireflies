@@ -1,0 +1,111 @@
+{
+  "credit": "Made with Blockbench",
+  "texture_size": [32, 32],
+  "textures": {
+    "1": "fireflies:block/glass_jar",
+    "particle": "minecraft:block/glass"
+  },
+  "elements": [
+    {
+      "name": "neck",
+      "from": [5, 13, 5],
+      "to": [11, 15, 11],
+      "faces": {
+        "north": {"uv": [5, 8.5, 8, 9.5], "texture": "#1"},
+        "east": {"uv": [5, 8.5, 8, 9.5], "texture": "#1"},
+        "south": {"uv": [5, 8.5, 8, 9.5], "texture": "#1"},
+        "west": {"uv": [5, 8.5, 8, 9.5], "texture": "#1"},
+        "up": {"uv": [8, 12.5, 5, 9.5], "texture": "#1"}
+      }
+    },
+    {
+      "name": "side1",
+      "from": [3, 0, 3],
+      "to": [3, 13, 13],
+      "faces": {
+        "east": {"uv": [8, 9.5, 13, 16], "texture": "#1"},
+        "west": {"uv": [8, 9.5, 13, 16], "texture": "#1"}
+      }
+    },
+    {
+      "name": "side2",
+      "from": [13, 0, 3],
+      "to": [13, 13, 13],
+      "faces": {
+        "east": {"uv": [8, 9.5, 13, 16], "texture": "#1"},
+        "west": {"uv": [8, 9.5, 13, 16], "texture": "#1"}
+      }
+    },
+    {
+      "name": "side3",
+      "from": [3, 0, 3],
+      "to": [13, 13, 3],
+      "faces": {
+        "north": {"uv": [8, 9.5, 13, 16], "texture": "#1"},
+        "south": {"uv": [8, 9.5, 13, 16], "texture": "#1"}
+      }
+    },
+    {
+      "name": "side4",
+      "from": [3, 0, 13],
+      "to": [13, 13, 13],
+      "faces": {
+        "north": {"uv": [8, 9.5, 13, 16], "texture": "#1"},
+        "south": {"uv": [8, 9.5, 13, 16], "texture": "#1"}
+      }
+    },
+    {
+      "name": "base1",
+      "from": [3, 13, 3],
+      "to": [13, 13, 13],
+      "faces": {
+        "up": {"uv": [0, 11, 5, 16], "texture": "#1"},
+        "down": {"uv": [0, 11, 5, 16], "texture": "#1"}
+      }
+    },
+    {
+      "name": "base2",
+      "from": [3, 0.01, 3],
+      "to": [13, 0.01, 13],
+      "faces": {
+        "up": {"uv": [0, 6, 5, 11], "texture": "#1"},
+        "down": {"uv": [0, 6, 5, 11], "texture": "#1"}
+      }
+    }
+  ],
+  "groups": [
+    {
+      "name": "glassJarOpen",
+      "origin": [8, 8, 8],
+      "children": [
+        {
+          "name": "group",
+          "origin": [0, 0, 0],
+          "children": [
+            {
+              "name": "neck",
+              "origin": [8, 8, 8],
+              "children": [0]
+            }
+          ]
+        },
+        {
+          "name": "body",
+          "origin": [0, 0, 0],
+          "children": [
+            {
+              "name": "sides",
+              "origin": [8, 8, 8],
+              "children": [1, 2, 3, 4]
+            },
+            {
+              "name": "base",
+              "origin": [0, 0, 0],
+              "children": [5, 6]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

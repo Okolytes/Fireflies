@@ -1,4 +1,4 @@
-package fireflies.fluid;
+package fireflies.misc;
 
 import net.minecraft.fluid.EmptyFluid;
 import net.minecraft.util.ResourceLocation;

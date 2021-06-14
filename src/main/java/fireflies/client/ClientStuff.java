@@ -5,8 +5,10 @@ import fireflies.client.sound.FireflyFlightLoopSound;
 import fireflies.entity.firefly.FireflyEntity;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screen.MainMenuScreen;
+import net.minecraft.nbt.CompoundNBT;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.GuiOpenEvent;
+import net.minecraftforge.event.entity.player.ItemTooltipEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.ObfuscationReflectionHelper;
@@ -22,6 +24,14 @@ public class ClientStuff {
 
     public static boolean isGamePaused() {
         return Minecraft.getInstance().isGamePaused();
+    }
+
+    @SubscribeEvent
+    public static void hideFireflyMasterToolTip(ItemTooltipEvent event) {
+        CompoundNBT tag = event.getItemStack().getTag();
+        if (tag != null && tag.getString("Potion").contains("firefly_master")) {
+            event.getToolTip().removeIf(textComponent -> textComponent.getString().contains("firefly_master_effect"));
+        }
     }
 
     @SubscribeEvent
