@@ -1,8 +1,7 @@
-package fireflies.init;
+package fireflies;
 
-import fireflies.Fireflies;
 import fireflies.block.*;
-import fireflies.entity.firefly.FireflyEntity;
+import fireflies.entity.FireflyEntity;
 import fireflies.misc.FireflyAbdomenParticleData;
 import fireflies.misc.FireflyAbdomenRedstoneParticleData;
 import fireflies.misc.FireflyMasterPotion;
@@ -34,7 +33,6 @@ import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fluids.FluidAttributes;
 import net.minecraftforge.fml.RegistryObject;
 import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import net.minecraftforge.registries.DeferredRegister;
 import net.minecraftforge.registries.ForgeRegistries;
 
@@ -120,9 +118,7 @@ public class Registry {
     public static final ResourceLocation USE_GLASS_JAR_STAT = registerCustomStat("use_glass_jar");
     //endregion Misc
 
-    public static void init() {
-        // Register all of our stuffs
-        final IEventBus bus = FMLJavaModLoadingContext.get().getModEventBus();
+    public static void init(final IEventBus bus) {
         BLOCKS.register(bus);
         ITEMS.register(bus);
         POTION_TYPES.register(bus);

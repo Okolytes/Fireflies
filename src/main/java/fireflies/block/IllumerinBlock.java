@@ -29,11 +29,6 @@ public class IllumerinBlock extends RotatedPillarBlock {
         this.setDefaultState(this.stateContainer.getBaseState().with(AXIS, Direction.Axis.Y));
     }
 
-    @Override
-    public int getLightValue(BlockState state, IBlockReader world, BlockPos pos) {
-        return 1; // Needs at least a light level of 1 for the emissiveness to work
-    }
-
     @SubscribeEvent
     public static void stopMobSpawning(LivingSpawnEvent.CheckSpawn e) {
         if (e.getWorld() == null || e.getWorld().isRemote() || e.getEntity() == null)
@@ -73,12 +68,15 @@ public class IllumerinBlock extends RotatedPillarBlock {
 
         if (cancelMobSpawn) {
             // Remove any passengers that come with it
-            for (Entity passenger : e.getEntity().getPassengers()) {
-                passenger.remove();
-            }
+            e.getEntity().getPassengers().forEach(Entity::remove);
 
             // Finally, cancel the mob spawn
             e.setResult(Event.Result.DENY);
         }
+    }
+
+    @Override
+    public int getLightValue(BlockState state, IBlockReader world, BlockPos pos) {
+        return 1; // Needs at least a light level of 1 for the emissiveness to work
     }
 }

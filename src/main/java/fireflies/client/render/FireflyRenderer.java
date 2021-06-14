@@ -5,7 +5,7 @@ import fireflies.Fireflies;
 import fireflies.client.model.FireflyAbdomenLayer;
 import fireflies.client.model.FireflyEyesLayer;
 import fireflies.client.model.FireflyModel;
-import fireflies.entity.firefly.FireflyEntity;
+import fireflies.entity.FireflyEntity;
 import net.minecraft.client.renderer.entity.EntityRendererManager;
 import net.minecraft.client.renderer.entity.MobRenderer;
 import net.minecraft.util.ResourceLocation;

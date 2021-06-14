@@ -1,6 +1,6 @@
 package fireflies.block;
 
-import fireflies.init.Registry;
+import fireflies.Registry;
 import fireflies.misc.GlassJarFluid;
 import net.minecraft.block.*;
 import net.minecraft.block.material.Material;
@@ -61,6 +61,17 @@ public class GlassJarBlock extends Block {
     public GlassJarBlock() {
         super(Properties.create(Material.GLASS).hardnessAndResistance(0.3f).sound(SoundType.GLASS).setAllowsSpawn((a, b, c, d) -> false).notSolid());
         this.setDefaultState(this.stateContainer.getBaseState().with(LEVEL, 0).with(OPEN, false).with(HORIZONTAL_FACING, Direction.NORTH).with(ATTACHED, false));
+    }
+
+    /**
+     * @return Should the jar should be attached to a hopper?
+     */
+    public static boolean shouldBeAttached(World world, BlockPos jarPos, BlockState jarState) {
+        BlockState state = world.getBlockState(jarPos.up());
+        if (state.getBlock() instanceof HopperBlock && jarState.get(OPEN)) {
+            return state.get(HopperBlock.FACING).equals(Direction.DOWN) && state.get(HopperBlock.ENABLED);
+        }
+        return false;
     }
 
     @SuppressWarnings("deprecation")
@@ -264,17 +275,6 @@ public class GlassJarBlock extends Block {
     public void neighborChanged(BlockState state, World world, BlockPos pos, Block block, BlockPos fromPos, boolean isMoving) {
         super.neighborChanged(state, world, pos, block, fromPos, isMoving);
         this.setAttached(world, pos, state, shouldBeAttached(world, pos, state));
-    }
-
-    /**
-     * @return Should the jar should be attached to a hopper?
-     */
-    public static boolean shouldBeAttached(World world, BlockPos jarPos, BlockState jarState) {
-        BlockState state = world.getBlockState(jarPos.up());
-        if (state.getBlock() instanceof HopperBlock && jarState.get(OPEN)) {
-            return state.get(HopperBlock.FACING).equals(Direction.DOWN) && state.get(HopperBlock.ENABLED);
-        }
-        return false;
     }
 
     /**

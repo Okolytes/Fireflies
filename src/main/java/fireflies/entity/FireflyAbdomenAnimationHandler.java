@@ -1,4 +1,4 @@
-package fireflies.entity.firefly;
+package fireflies.entity;
 
 import net.minecraft.util.RegistryKey;
 import net.minecraft.world.biome.Biome;

@@ -1,6 +1,6 @@
 package fireflies.client.particle;
 
-import fireflies.entity.firefly.FireflyEntity;
+import fireflies.entity.FireflyEntity;
 import fireflies.misc.FireflyAbdomenParticleData;
 import fireflies.misc.FireflyAbdomenRedstoneParticleData;
 import net.minecraft.client.particle.*;
@@ -31,12 +31,13 @@ public class FireflyAbdomenParticle extends SpriteTexturedParticle {
         }
 
         // Keep at the exact point of the abdomen
-        double[] pos = this.fireflyEntity.abdomenParticlePos();
+        double[] pos = this.fireflyEntity.getAbdomenParticlePos();
         this.setPosition(pos[0], pos[1], pos[2]);
 
         // Destroy when the alpha reaches 0, or firefly dies
-        if ((this.particleAlpha <= 0f && !this.fireflyEntity.isGlowIncreasing) || !this.fireflyEntity.isAlive())
+        if ((this.particleAlpha <= 0f && !this.fireflyEntity.isGlowIncreasing) || !this.fireflyEntity.isAlive()) {
             this.setExpired();
+        }
     }
 
     public IParticleRenderType getRenderType() {

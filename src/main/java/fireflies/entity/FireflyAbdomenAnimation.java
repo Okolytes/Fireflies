@@ -1,4 +1,4 @@
-package fireflies.entity.firefly;
+package fireflies.entity;
 
 public enum FireflyAbdomenAnimation {
     OFF, // constantly off

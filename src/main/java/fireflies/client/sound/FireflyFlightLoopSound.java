@@ -1,7 +1,7 @@
 package fireflies.client.sound;
 
-import fireflies.entity.firefly.FireflyEntity;
-import fireflies.init.Registry;
+import fireflies.Registry;
+import fireflies.entity.FireflyEntity;
 import net.minecraft.client.audio.TickableSound;
 import net.minecraft.entity.Entity;
 import net.minecraft.util.SoundCategory;
@@ -37,7 +37,7 @@ public class FireflyFlightLoopSound extends TickableSound {
 
     @Override
     public void tick() {
-        if (this.fireflyEntity.isAlive() ) {
+        if (this.fireflyEntity.isAlive()) {
             this.x = this.fireflyEntity.getPosX();
             this.y = this.fireflyEntity.getPosY();
             this.z = this.fireflyEntity.getPosZ();

@@ -22,8 +22,8 @@ public class FireflyDustParticle extends SpriteTexturedParticle {
         this.canCollide = false;
         if (redstone) {
             this.particleScale *= 0.5F;
-            int i = (int)(8.0D / (Math.random() * 0.8D + 0.2D));
-            this.maxAge = (int)Math.max((float)i * 2.5f, 1.0F);
+            int i = (int) (8.0D / (Math.random() * 0.8D + 0.2D));
+            this.maxAge = (int) Math.max((float) i * 2.5f, 1.0F);
             float f = (float) (Math.random() * 0.4F + 0.6F);
             float r = 0.97f;
             float g = 0.02f;

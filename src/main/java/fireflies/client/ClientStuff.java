@@ -2,7 +2,7 @@ package fireflies.client;
 
 import fireflies.Fireflies;
 import fireflies.client.sound.FireflyFlightLoopSound;
-import fireflies.entity.firefly.FireflyEntity;
+import fireflies.entity.FireflyEntity;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screen.MainMenuScreen;
 import net.minecraft.nbt.CompoundNBT;
@@ -15,7 +15,10 @@ import net.minecraftforge.fml.common.ObfuscationReflectionHelper;
 
 import java.util.Random;
 
-// Java classloading forces us to put calls to the Minecraft class in here
+/**
+ * Java classloading forces us to put calls to the Minecraft class in here.
+ * Also has miscellaneous client side events.
+ */
 @Mod.EventBusSubscriber(modid = Fireflies.MOD_ID, value = Dist.CLIENT)
 public class ClientStuff {
     public static void playFireflyLoopSound(FireflyEntity fireflyEntity) {

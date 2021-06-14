@@ -1,6 +1,6 @@
 package fireflies.block;
 
-import fireflies.init.Registry;
+import fireflies.Registry;
 import fireflies.misc.GlassJarFluid;
 import net.minecraft.block.BlockState;
 import net.minecraft.inventory.IInventory;
@@ -27,15 +27,6 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 public class GlassJarTile extends TileEntity implements ITickableTileEntity {
-    public int cachedLevel;
-    public boolean cachedOpen;
-    public Direction cachedDirection = Direction.NORTH;
-    public int cachedFluidColor = -69; // I think -1 is already taken ¯\_(ツ)_/¯
-    public boolean cachedAttached;
-    public int luminosity;
-    private int updateTicks;
-    private int hopperSlot;
-
     private final FluidTank fluidTank = new FluidTank(FluidAttributes.BUCKET_VOLUME) {
         @Override
         protected void onContentsChanged() {
@@ -50,6 +41,14 @@ public class GlassJarTile extends TileEntity implements ITickableTileEntity {
 
     };
     private final LazyOptional<IFluidHandler> fluidHandler = LazyOptional.of(() -> fluidTank);
+    public int cachedLevel;
+    public boolean cachedOpen;
+    public Direction cachedDirection = Direction.NORTH;
+    public int cachedFluidColor = -69; // I think -1 is already taken ¯\_(ツ)_/¯
+    public boolean cachedAttached;
+    public int luminosity;
+    private int updateTicks;
+    private int hopperSlot;
 
     public GlassJarTile() {
         super(Registry.GLASS_JAR_TILE_ENTITY.get());

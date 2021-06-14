@@ -1,7 +1,7 @@
 package fireflies.client.model;
 
 import com.google.common.collect.ImmutableList;
-import fireflies.entity.firefly.FireflyEntity;
+import fireflies.entity.FireflyEntity;
 import net.minecraft.client.renderer.entity.model.AgeableModel;
 import net.minecraft.client.renderer.model.ModelRenderer;
 import net.minecraft.util.math.MathHelper;
@@ -13,8 +13,6 @@ public class FireflyModel<T extends FireflyEntity> extends AgeableModel<T> {
 
     public final ModelRenderer abdomen;
     private final ModelRenderer head;
-    private final ModelRenderer antennae;
-    private final ModelRenderer wings;
     private final ModelRenderer rightWing;
     private final ModelRenderer leftWing;
     private final ModelRenderer legs1;
@@ -33,13 +31,13 @@ public class FireflyModel<T extends FireflyEntity> extends AgeableModel<T> {
         head.setRotationPoint(0.0F, 18.5F, -1.0F);
         head.setTextureOffset(16, 24).addBox(-2.0F, -1.5F, -4.0F, 4.0F, 4.0F, 4.0F, 0.0F, false);
 
-        antennae = new ModelRenderer(this);
+        ModelRenderer antennae = new ModelRenderer(this);
         antennae.setRotationPoint(0.0F, -0.5F, -4.0F);
         head.addChild(antennae);
         setRotationAngle(antennae, 0.775F, 0.0F, 0.0F);
         antennae.setTextureOffset(0, 27).addBox(-4.0F, -5.0F, 0.0F, 8.0F, 5.0F, 0.0F, 0.0F, false);
 
-        wings = new ModelRenderer(this);
+        ModelRenderer wings = new ModelRenderer(this);
         wings.setRotationPoint(0.0F, -0.75F, -0.75F);
         head.addChild(wings);
 

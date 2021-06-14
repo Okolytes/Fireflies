@@ -14,7 +14,7 @@ public class GlassJarFluid extends EmptyFluid {
     private final int color;
     private final int luminosity;
 
-    public GlassJarFluid(String textureLocation, int volume){
+    public GlassJarFluid(String textureLocation, int volume) {
         this(textureLocation, volume, 0xffffffff, 0);
     }
 

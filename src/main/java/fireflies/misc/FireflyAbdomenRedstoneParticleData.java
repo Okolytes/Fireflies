@@ -3,7 +3,7 @@ package fireflies.misc;
 import com.mojang.brigadier.StringReader;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.serialization.Codec;
-import fireflies.init.Registry;
+import fireflies.Registry;
 import net.minecraft.network.PacketBuffer;
 import net.minecraft.particles.IParticleData;
 import net.minecraft.particles.ParticleType;
@@ -43,6 +43,7 @@ public class FireflyAbdomenRedstoneParticleData implements IParticleData {
         return Integer.toString(fireflyId);
     }
 
+    @SuppressWarnings("deprecation")
     public static class Deserializer implements IDeserializer<FireflyAbdomenRedstoneParticleData> {
         @Override
         public FireflyAbdomenRedstoneParticleData deserialize(ParticleType<FireflyAbdomenRedstoneParticleData> type, StringReader rdr) throws CommandSyntaxException {

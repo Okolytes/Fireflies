@@ -1,4 +1,4 @@
-package fireflies.entity.firefly;
+package fireflies.entity;
 
 import fireflies.Fireflies;
 import fireflies.client.ClientStuff;
@@ -51,7 +51,7 @@ public class FireflyGlowSyncHandler {
     }
 
     public static class FireflySyncedAnimation {
-        public ArrayList<FireflyEntity> syncedFireflies = new ArrayList<>();
+        public final ArrayList<FireflyEntity> syncedFireflies = new ArrayList<>();
         public float glowAlpha;
         public boolean glowIncreasing;
 

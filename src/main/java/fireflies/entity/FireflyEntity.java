@@ -1,10 +1,10 @@
-package fireflies.entity.firefly;
+package fireflies.entity;
 
+import fireflies.Registry;
 import fireflies.block.GlassJarBlock;
 import fireflies.block.IllumerinLamp;
 import fireflies.client.ClientStuff;
 import fireflies.client.particle.FireflyAbdomenParticle;
-import fireflies.init.Registry;
 import fireflies.misc.FireflyAbdomenParticleData;
 import fireflies.misc.FireflyAbdomenRedstoneParticleData;
 import net.minecraft.block.*;
@@ -47,6 +47,10 @@ import javax.annotation.Nullable;
 import java.util.ArrayList;
 
 public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
+    /**
+     * DataParameter for if this firefly is redstone activated or not.
+     */
+    private static final DataParameter<Boolean> IS_REDSTONE_COATED = EntityDataManager.createKey(FireflyEntity.class, DataSerializers.BOOLEAN);
     /**
      * (Client) Helper class for handling the firefly abdomen animations.
      */
@@ -107,10 +111,6 @@ public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
      */
     private final ArrayList<BlockPos> illumerinBlocks = new ArrayList<>(illumerinRadius * illumerinRadius * illumerinRadius);
     /**
-     * DataParameter for if this firefly is redstone activated or not.
-     */
-    private static final DataParameter<Boolean> IS_REDSTONE_COATED = EntityDataManager.createKey(FireflyEntity.class, DataSerializers.BOOLEAN);
-    /**
      * Used for checking if the current firefly is redstone coated, this is updated every 20 ticks.
      */
     private boolean cachedIsRedstoneCoated;
@@ -118,16 +118,12 @@ public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
     public FireflyEntity(EntityType<? extends FireflyEntity> entityType, World world) {
         super(entityType, world);
         this.animationHandler = new FireflyAbdomenAnimationHandler(this);
-        this.moveController = new FireflyEntity.FlyingMovementHelper(20, true);
+        this.moveController = new FireflyEntity.FlyingMovementHelper();
         this.setPathPriority(PathNodeType.DANGER_FIRE, -1.0F);
         this.setPathPriority(PathNodeType.WATER, -1.0F);
         this.setPathPriority(PathNodeType.WATER_BORDER, 16.0F);
         this.setPathPriority(PathNodeType.COCOA, -1.0F);
         this.setPathPriority(PathNodeType.FENCE, -1.0F);
-    }
-
-    public FireflyEntity createChild(ServerWorld serverWorld, AgeableEntity ageableEntity) {
-        return Registry.FIREFLY.get().create(serverWorld);
     }
 
     public static AttributeModifierMap.MutableAttribute createAttributes() {
@@ -136,6 +132,10 @@ public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
                 .createMutableAttribute(Attributes.FLYING_SPEED, 0.25F)
                 .createMutableAttribute(Attributes.MOVEMENT_SPEED, 0.15F)
                 .createMutableAttribute(Attributes.FOLLOW_RANGE, 48.0D);
+    }
+
+    public FireflyEntity createChild(ServerWorld serverWorld, AgeableEntity ageableEntity) {
+        return Registry.FIREFLY.get().create(serverWorld);
     }
 
     @Override
@@ -152,8 +152,6 @@ public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
      * @return The DataParameter's value or the cached value, depending on the getCached parameter.
      */
     public boolean isRedstoneCoated(boolean getCached) {
-        // I don't know what the performance implications are of getting a DataParameter value every frame & tick,
-        // so I'm doing this just to be on the safe side ¯\_(ツ)_/¯
         if (getCached) {
             // Update the cached value
             // For the first 3 ticks it will return the actual current value, so things don't look screwy.
@@ -195,10 +193,10 @@ public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
         // Register all of our fireflies AI goals. (0 being highest priority, of course -_-)
         this.goalSelector.addGoal(0, new FireflyEntity.MateGoal(1f));
         this.goalSelector.addGoal(1, new TemptGoal(this, 1.15f, Ingredient.fromItems(Items.HONEY_BOTTLE, Items.HONEY_BLOCK), false));
-        this.goalSelector.addGoal(2, new FireflyEntity.EntrancedByHoneyGoal(1.15f, 8));
+        this.goalSelector.addGoal(2, new FireflyEntity.EntrancedByHoneyGoal());
         this.goalSelector.addGoal(3, new FollowParentGoal(this, 1.15f));
         this.goalSelector.addGoal(3, new FireflyEntity.EatCompostGoal(1f, 22));
-        this.goalSelector.addGoal(4, new FireflyEntity.WanderGoal(1f, 1, false));
+        this.goalSelector.addGoal(4, new FireflyEntity.WanderGoal());
         this.goalSelector.addGoal(5, new SwimGoal(this));
     }
 
@@ -234,7 +232,7 @@ public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
      *
      * @return the precise position of where the abdomen particle should spawn / move to.
      */
-    public double[] abdomenParticlePos() {
+    public double[] getAbdomenParticlePos() {
         return new double[] {
                 this.getPosX() - -this.getWidth() * 0.35f * MathHelper.sin(this.renderYawOffset * ((float) Math.PI / 180F)),
                 this.getPosYEye() + this.abdomenParticlePositionOffset + 0.3f,
@@ -242,13 +240,12 @@ public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
         };
     }
 
-
     /**
      * (Client) Spawns the abdomen particle at the precise location of the abdomen, with range being far as the firefly itself.
      */
     public void spawnAbdomenParticle() {
         if (this.world.isRemote && !this.isInvisible()) {
-            double[] pos = this.abdomenParticlePos();
+            double[] pos = this.getAbdomenParticlePos();
             this.world.addOptionalParticle(this.isRedstoneCoated(true)
                             ? new FireflyAbdomenRedstoneParticleData(this.getEntityId()) : new FireflyAbdomenParticleData(this.getEntityId()),
                     true, pos[0], pos[1], pos[2], 0, 0, 0);
@@ -349,11 +346,10 @@ public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
         });
     }
 
-    private void doRainRelatedLogic() {
-
+    private void doWaterRelatedLogic() {
         // Increase underWaterTicks by 1 if in water
         this.underWaterTicks = this.isInWaterOrBubbleColumn() ? this.underWaterTicks + 1 : 0;
-        // Increase rainedOnTicks by 1 if in water
+        // Increase rainedOnTicks by 1 if in rain
         this.rainedOnTicks = this.world.isRainingAt(this.getPosition()) ? this.rainedOnTicks + 1 : 0;
 
         if (this.underWaterTicks > 20) {
@@ -406,11 +402,11 @@ public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
             // Redstone fireflies are always on, regardless if it's daytime - unlike regular ones.
             if (this.isDayTimeClient() && !this.isRedstoneCoated(true)) {
                 // Turn off during the day
-                animationHandler.setAbdomenAnimation(FireflyAbdomenAnimation.OFF);
+                this.animationHandler.setAbdomenAnimation(FireflyAbdomenAnimation.OFF);
                 this.glowAlpha = 0;
             } else {
-                animationHandler.updateAbdomenAnimation();
-                animationHandler.updateGlowAnimation();
+                this.animationHandler.updateAbdomenAnimation();
+                this.animationHandler.updateGlowAnimation();
                 this.spawnFallingDustParticles();
 
                 // Fix abdomen particle not spawning with synced firefly on first glow cycle
@@ -438,14 +434,14 @@ public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
             }
 
             this.doJarLogic();
-            this.doRainRelatedLogic();
+            this.doWaterRelatedLogic();
         }
     }
 
     @Override
     public boolean isBreedingItem(ItemStack itemStack) {
         // Fireflies are bred with honey bottles
-        return itemStack.getItem() == Items.HONEY_BOTTLE;
+        return itemStack.getItem().equals(Items.HONEY_BOTTLE);
     }
 
     @Override
@@ -490,10 +486,10 @@ public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
      * @param amount How many particles should be spawned.
      * @param alpha  Alpha of the particle.
      */
-    private void spawnRedstoneParticlePuff(boolean lowPowered, int amount, float alpha) {
+    private void spawnRedstoneParticlePuff(boolean lowPowered, int amount) {
         for (int i = 0; i < amount; i++) {
             float randPos = this.isChild() ? 0.22f : 0.66f;
-            ((ServerWorld) (this.world)).spawnParticle(new RedstoneParticleData(lowPowered ? 0.5f : 1f, 0, 0, alpha),
+            ((ServerWorld) (this.world)).spawnParticle(new RedstoneParticleData(lowPowered ? 0.5f : 1f, 0, 0, 1f),
                     this.getPosX() + MathHelper.nextFloat(this.rand, -randPos, randPos),
                     this.getPosY() + MathHelper.nextFloat(this.rand, 0f, randPos * 1.33f),
                     this.getPosZ() + MathHelper.nextFloat(this.rand, -randPos, randPos),
@@ -514,13 +510,13 @@ public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
                     itemstack.shrink(1);
                 }
                 // Spawn powered redstone dust particles
-                this.spawnRedstoneParticlePuff(false, 5 + this.rand.nextInt(5), 1f);
+                this.spawnRedstoneParticlePuff(false, 5 + this.rand.nextInt(5));
             } else {
                 // Play the conversion sound to the client
                 player.playSound(Registry.FIREFLY_APPLY_REDSTONE.get(), 1f, 1f);
                 // Destroy the current abdomen particle.
                 if (this.abdomenParticle != null) this.abdomenParticle.setExpired();
-                // Spawn the new redstone abdomen particle.
+                // Spawn a new redstone abdomen particle.
                 this.spawnAbdomenParticle();
             }
             return ActionResultType.SUCCESS;
@@ -537,8 +533,6 @@ public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
                         this.isRedstoneCoated(false) ? Registry.FIREFLY_DUST_REDSTONE_PARTICLE.get() : Registry.FIREFLY_DUST_PARTICLE.get(),
                         this.getPosX(), this.getPosY(), this.getPosZ(), 0, 0, 0);
             }
-        } else {
-            this.hasIllumerin = false;
         }
         return super.attackEntityFrom(source, amount);
     }
@@ -617,7 +611,7 @@ public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
     @OnlyIn(Dist.CLIENT)
     @Override
     public Vector3d getLeashStartPosition() {
-        return new Vector3d(0.0D, (0.5F * this.getEyeHeight()), (this.getWidth() * 0.2F));
+        return new Vector3d(0.0D, 0.5F * this.getEyeHeight(), this.getWidth() * 0.2F);
     }
 
     @OnlyIn(Dist.CLIENT)
@@ -643,8 +637,8 @@ public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
     private void removeRedstoneCoated() {
         this.setRedstoneCovered(false);
         // Spawn powered off redstone particles
-        this.spawnRedstoneParticlePuff(true, 5 + this.rand.nextInt(5), 0.5f);
-        this.playSound(Registry.FIREFLY_APPLY_REDSTONE.get(), 1f, 1f); // temp sound
+        this.spawnRedstoneParticlePuff(true, 5 + this.rand.nextInt(5));
+        this.playSound(Registry.FIREFLY_APPLY_REDSTONE.get(), 1f, 1f); // TODO temp sound
     }
 
     //region AI
@@ -653,8 +647,8 @@ public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
         private final World world;
         private final EntityPredicate FIREFLY_PREDICATE = (new EntityPredicate()).setDistance(8f).allowFriendlyFire().allowInvulnerable().setIgnoresLineOfSight();
 
-        private WanderGoal(double speed, int chance, boolean stopWhenIdle) {
-            super(FireflyEntity.this, speed, chance, stopWhenIdle);
+        private WanderGoal() {
+            super(FireflyEntity.this, 1.0, 1, false);
             this.world = FireflyEntity.this.world;
         }
 
@@ -727,8 +721,8 @@ public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
         private boolean isHighUp;
         private BlockPos prevBlockPos;
 
-        private FlyingMovementHelper(int maximumRotateAngle, boolean affectedByGravity) {
-            super(FireflyEntity.this, maximumRotateAngle, affectedByGravity);
+        private FlyingMovementHelper() {
+            super(FireflyEntity.this, 20, true);
             this.world = FireflyEntity.this.world;
             this.prevBlockPos = FireflyEntity.this.getPosition();
         }
@@ -787,8 +781,8 @@ public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
     private class EntrancedByHoneyGoal extends MoveToBlockGoal {
         private final World world;
 
-        private EntrancedByHoneyGoal(double speed, int length) {
-            super(FireflyEntity.this, speed, length);
+        private EntrancedByHoneyGoal() {
+            super(FireflyEntity.this, 1.15, 8);
             this.world = FireflyEntity.this.world;
         }
 

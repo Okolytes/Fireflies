@@ -2,7 +2,7 @@ package fireflies.client.model;
 
 import com.mojang.blaze3d.matrix.MatrixStack;
 import fireflies.Fireflies;
-import fireflies.entity.firefly.FireflyEntity;
+import fireflies.entity.FireflyEntity;
 import net.minecraft.client.renderer.IRenderTypeBuffer;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.entity.IEntityRenderer;
