@@ -48,7 +48,7 @@ import java.util.ArrayList;
 
 public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
     /**
-     * DataParameter for if this firefly is redstone activated or not.
+     * DataParameter for if this firefly is coated in redstone or not.
      */
     private static final DataParameter<Boolean> IS_REDSTONE_COATED = EntityDataManager.createKey(FireflyEntity.class, DataSerializers.BOOLEAN);
     /**
@@ -103,7 +103,7 @@ public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
      */
     private boolean isEntrancedByHoney;
     /**
-     * The radius (spherical) of which illumerin lamps can be activated.
+     * The radius of which illumerin lamps can be activated.
      */
     private int illumerinRadius = 5;
     /**
@@ -297,7 +297,7 @@ public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
     }
 
     /**
-     * Activates illumerin lamps in a radius of {@link FireflyEntity#illumerinRadius}, called every half a second.
+     * Redstone fireflies activate illumerin lamps in a radius of {@link FireflyEntity#illumerinRadius}, called every half a second.
      */
     private void activateIllumerinBlocks() {
         // Baby fireflies have a smaller radius
@@ -600,7 +600,9 @@ public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
     }
 
     private boolean isDarkEnoughToBreed() {
-        return this.world.getLight(this.getPosition()) <= 5;
+        // Redstone Fireflies do not need darkness to breed
+        if (this.isRedstoneCoated(true)) return true;
+        return this.world.getLight(this.getPosition()) <= 4;
     }
 
     @Override

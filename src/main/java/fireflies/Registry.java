@@ -118,7 +118,7 @@ public class Registry {
     public static final ResourceLocation USE_GLASS_JAR_STAT = registerCustomStat("use_glass_jar");
     //endregion Misc
 
-    public static void init(final IEventBus bus) {
+    public static void register(final IEventBus bus) {
         BLOCKS.register(bus);
         ITEMS.register(bus);
         POTION_TYPES.register(bus);
