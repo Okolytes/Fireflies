@@ -647,10 +647,10 @@ public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
 
     private class WanderGoal extends RandomWalkingGoal {
         private final World world;
-        private final EntityPredicate FIREFLY_PREDICATE = (new EntityPredicate()).setDistance(8f).allowFriendlyFire().allowInvulnerable().setIgnoresLineOfSight();
+        private final EntityPredicate FIREFLY_PREDICATE = (new EntityPredicate()).setDistance(8f).allowFriendlyFire().allowInvulnerable().setIgnoresLineOfSight().setCustomPredicate(entity -> !entity.isChild());
 
         private WanderGoal() {
-            super(FireflyEntity.this, 1.0, 1, false);
+            super(FireflyEntity.this, 1.0f, 1, false);
             this.world = FireflyEntity.this.world;
         }
 
@@ -679,7 +679,7 @@ public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
             }
 
             // Ok, we'll just try to go to another firefly then.
-            if (position == null) {
+            if (!FireflyEntity.this.isChild() && position == null) {
                 // Search within 8 block radius.
                 FireflyEntity closestFirefly = this.world.getClosestEntityWithinAABB(FireflyEntity.class, FIREFLY_PREDICATE, FireflyEntity.this,
                         FireflyEntity.this.getPosX(), FireflyEntity.this.getPosY(), FireflyEntity.this.getPosZ(),
@@ -740,7 +740,7 @@ public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
         public void tick() {
             super.tick();
 
-            // Do random accelerations every so often.
+            // Do random accelerations / dashes every so often.
             if (FireflyEntity.this.ticksExisted % 100 == 0 && FireflyEntity.this.rand.nextFloat() > 0.75f && !FireflyEntity.this.isEntrancedByHoney) {
                 final float accelAmount = 0.125f;
                 FireflyEntity.this.addMotion(
