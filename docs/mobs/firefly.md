@@ -42,7 +42,7 @@ Fireflies usually keep close together if possible, there's a chance if they're w
 ### Honey Blocks
 
 
-Fireflies really like honey. They can be bred with honey bottles, provided the conditions are right, (see [Breeding](#Breeding)) and will follow a player around if they are holding either a block of honey or a bottle of honey.
+Fireflies really like honey. They can be bred with honey bottles, provided the conditions are right, (see [Breeding](#breeding)) and will follow a player around if they are holding either a block of honey or a bottle of honey.
 
 When a firefly has a direct line of sight to a honey block, they will go in to an "entranced" state, and start moving towards the honey block. Once at the honey block, they will stay there for an indefinite amount of time. This mechanic can be used for a number of interesting contraptions, like a light show, or if they're redstone coated, they could be used to power [Illumerin Lamps](illumerin-lamp).
 
