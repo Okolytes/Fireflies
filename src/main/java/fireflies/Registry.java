@@ -2,10 +2,7 @@ package fireflies;
 
 import fireflies.block.*;
 import fireflies.entity.FireflyEntity;
-import fireflies.misc.FireflyAbdomenParticleData;
-import fireflies.misc.FireflyAbdomenRedstoneParticleData;
-import fireflies.misc.FireflyMasterPotion;
-import fireflies.misc.GlassJarFluid;
+import fireflies.misc.*;
 import net.minecraft.block.Block;
 import net.minecraft.block.DispenserBlock;
 import net.minecraft.dispenser.DefaultDispenseItemBehavior;
@@ -91,7 +88,7 @@ public class Registry {
     //region Entities / Spawn Eggs
     private static final EntityType<FireflyEntity> FIREFLY_BUILDER = EntityType.Builder.create(FireflyEntity::new, EntityClassification.CREATURE).size(0.5f, 0.5f).trackingRange(10).build("firefly");
 
-    private static final Item FIREFLY_SPAWN_EGG = new SpawnEggItem(FIREFLY_BUILDER, 0x5B1313, 0xF7DD36, new Item.Properties().group(ItemGroup.MISC)).setRegistryName(Fireflies.MOD_ID, "firefly_spawn_egg");
+    private static final Item FIREFLY_SPAWN_EGG = new FireflySpawnEgg(FIREFLY_BUILDER, 0x5B1313, 0xF7DD36, new Item.Properties().group(ItemGroup.MISC)).setRegistryName(Fireflies.MOD_ID, "firefly_spawn_egg");
 
     public static final RegistryObject<EntityType<FireflyEntity>> FIREFLY = ENTITIES.register("firefly", () -> FIREFLY_BUILDER);
     //endregion Entities / Spawn Eggs

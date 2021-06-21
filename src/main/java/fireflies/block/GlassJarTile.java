@@ -42,11 +42,13 @@ public class GlassJarTile extends TileEntity implements ITickableTileEntity {
     };
     private final LazyOptional<IFluidHandler> fluidHandler = LazyOptional.of(() -> fluidTank);
     public int cachedLevel;
+    public int cachedIllumerinLevel;
     public boolean cachedOpen;
     public Direction cachedDirection = Direction.NORTH;
     public int cachedFluidColor = -69; // I think -1 is already taken ¯\_(ツ)_/¯
     public boolean cachedAttached;
     public int luminosity;
+
     private int updateTicks;
     private int hopperSlot;
 
@@ -158,6 +160,7 @@ public class GlassJarTile extends TileEntity implements ITickableTileEntity {
         if (this.world != null) {
             BlockState state = this.world.getBlockState(this.pos);
             this.cachedLevel = state.get(GlassJarBlock.LEVEL);
+            this.cachedIllumerinLevel = state.get(GlassJarBlock.ILLUMERIN_LEVEL);
             this.cachedOpen = state.get(GlassJarBlock.OPEN);
             this.cachedDirection = state.get(GlassJarBlock.HORIZONTAL_FACING);
             this.cachedFluidColor = -69;

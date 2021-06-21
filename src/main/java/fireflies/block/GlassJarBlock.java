@@ -49,6 +49,7 @@ import java.util.Random;
 
 public class GlassJarBlock extends Block implements IWaterLoggable {
     public static final IntegerProperty LEVEL = IntegerProperty.create("level", 0, 4);
+    public static final IntegerProperty ILLUMERIN_LEVEL = IntegerProperty.create("illumerin_level", 0, 4);
     public static final BooleanProperty OPEN = BlockStateProperties.OPEN;
     public static final DirectionProperty HORIZONTAL_FACING = BlockStateProperties.HORIZONTAL_FACING;
     public static final BooleanProperty ATTACHED = BlockStateProperties.ATTACHED;
@@ -63,7 +64,8 @@ public class GlassJarBlock extends Block implements IWaterLoggable {
 
     public GlassJarBlock() {
         super(Properties.create(Material.GLASS).hardnessAndResistance(0.3f).sound(SoundType.GLASS).setAllowsSpawn((a, b, c, d) -> false).notSolid());
-        this.setDefaultState(this.stateContainer.getBaseState().with(LEVEL, 0).with(OPEN, false).with(HORIZONTAL_FACING, Direction.NORTH).with(ATTACHED, false).with(WATERLOGGED, false));
+        this.setDefaultState(this.stateContainer.getBaseState().with(LEVEL, 0).with(ILLUMERIN_LEVEL, 0).with(OPEN, false)
+                .with(HORIZONTAL_FACING, Direction.NORTH).with(ATTACHED, false).with(WATERLOGGED, false));
     }
 
     /**
@@ -347,7 +349,8 @@ public class GlassJarBlock extends Block implements IWaterLoggable {
     @SuppressWarnings("deprecation")
     @Override
     public int getComparatorInputOverride(BlockState blockState, World worldIn, BlockPos pos) {
-        return blockState.get(LEVEL);
+        int level = blockState.get(LEVEL);
+        return level <= 0 ? blockState.get(ILLUMERIN_LEVEL) : level;
     }
 
     public BlockState getStateForPlacement(BlockItemUseContext context) {
@@ -357,7 +360,7 @@ public class GlassJarBlock extends Block implements IWaterLoggable {
 
     @Override
     protected void fillStateContainer(StateContainer.Builder<Block, BlockState> builder) {
-        builder.add(LEVEL, OPEN, HORIZONTAL_FACING, ATTACHED, WATERLOGGED);
+        builder.add(LEVEL, ILLUMERIN_LEVEL, OPEN, HORIZONTAL_FACING, ATTACHED, WATERLOGGED);
     }
 
     @SuppressWarnings("deprecation")
