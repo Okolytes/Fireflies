@@ -5,8 +5,7 @@ import fireflies.block.GlassJarBlock;
 import fireflies.block.IllumerinLamp;
 import fireflies.client.ClientStuff;
 import fireflies.client.particle.FireflyAbdomenParticle;
-import fireflies.misc.FireflyAbdomenParticleData;
-import fireflies.misc.FireflyAbdomenRedstoneParticleData;
+import fireflies.misc.FireflyParticleData;
 import net.minecraft.block.*;
 import net.minecraft.entity.*;
 import net.minecraft.entity.ai.RandomPositionGenerator;
@@ -25,6 +24,7 @@ import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.network.datasync.DataParameter;
 import net.minecraft.network.datasync.DataSerializers;
 import net.minecraft.network.datasync.EntityDataManager;
+import net.minecraft.particles.IParticleData;
 import net.minecraft.particles.RedstoneParticleData;
 import net.minecraft.pathfinding.FlyingPathNavigator;
 import net.minecraft.pathfinding.PathNavigator;
@@ -47,10 +47,9 @@ import javax.annotation.Nullable;
 import java.util.ArrayList;
 
 public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
-    /**
-     * DataParameter for if this firefly is coated in redstone or not.
-     */
     private static final DataParameter<Boolean> IS_REDSTONE_COATED = EntityDataManager.createKey(FireflyEntity.class, DataSerializers.BOOLEAN);
+    private static final DataParameter<Boolean> HAS_ILLUMERIN = EntityDataManager.createKey(FireflyEntity.class, DataSerializers.BOOLEAN);
+    private static final DataParameter<Integer> ILLUMERIN_DEPOSITED = EntityDataManager.createKey(FireflyEntity.class, DataSerializers.VARINT);
     /**
      * (Client) Helper class for handling the firefly abdomen animations.
      */
@@ -77,14 +76,6 @@ public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
      * (Client) Is the glow alpha increasing or decreasing?
      */
     public boolean isGlowIncreasing;
-    /**
-     * (Client) Is the abdomen animation being set every tick
-     */
-    public boolean isAnimationOverridden;
-    /**
-     * Can this firefly drop illumerin in to jars?
-     */
-    private boolean hasIllumerin;
     /**
      * The position of the current glass jar that the firefly is filling, if any.
      */
@@ -114,6 +105,10 @@ public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
      * Used for checking if the current firefly is redstone coated, this is updated every 20 ticks.
      */
     private boolean cachedIsRedstoneCoated;
+    /**
+     * Used for checking if the current firefly has illumerin on itself, this is updated every 20 ticks.
+     */
+    private boolean cachedHasIllumerin;
 
     public FireflyEntity(EntityType<? extends FireflyEntity> entityType, World world) {
         super(entityType, world);
@@ -143,6 +138,8 @@ public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
         // Register our DataParameters.
         super.registerData();
         this.dataManager.register(IS_REDSTONE_COATED, false);
+        this.dataManager.register(HAS_ILLUMERIN, false);
+        this.dataManager.register(ILLUMERIN_DEPOSITED, 0);
     }
 
     /**
@@ -161,7 +158,9 @@ public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
             return this.cachedIsRedstoneCoated;
         }
 
-        return this.dataManager.get(IS_REDSTONE_COATED);
+        boolean isRedstoneCoated = this.dataManager.get(IS_REDSTONE_COATED);
+        this.cachedIsRedstoneCoated = isRedstoneCoated;
+        return isRedstoneCoated;
     }
 
     /**
@@ -174,18 +173,52 @@ public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
         this.dataManager.set(IS_REDSTONE_COATED, b);
     }
 
+    /**
+     * @see FireflyEntity#isRedstoneCoated
+     */
+    public boolean hasIllumerin(boolean getCached) {
+        if (getCached) {
+            if (this.ticksExisted % 20 == 0) {
+                this.cachedHasIllumerin = this.dataManager.get(HAS_ILLUMERIN);
+            }
+            return this.cachedHasIllumerin;
+        }
+
+        boolean hasIllumerin = this.dataManager.get(HAS_ILLUMERIN);
+        this.cachedHasIllumerin = hasIllumerin;
+        return hasIllumerin;
+    }
+
+    /**
+     * @see FireflyEntity#setRedstoneCovered
+     */
+    private void setHasIllumerin(boolean b) {
+        this.cachedHasIllumerin = b;
+        this.dataManager.set(HAS_ILLUMERIN, b);
+    }
+
+    public int getIllumerinDeposited() {
+        return this.dataManager.get(ILLUMERIN_DEPOSITED);
+    }
+
+    public void setIllumerinDeposited(int i) {
+        this.dataManager.set(ILLUMERIN_DEPOSITED, i);
+    }
+
     @Override
     public void writeAdditional(CompoundNBT nbt) {
-        // Write to our nbt data
         super.writeAdditional(nbt);
         nbt.putBoolean("IsRedstoneCoated", this.isRedstoneCoated(true));
+        nbt.putBoolean("HasIllumerin", this.hasIllumerin(true));
+        nbt.putInt("IllumerinDeposited", this.getIllumerinDeposited());
     }
 
     @Override
     public void readAdditional(CompoundNBT nbt) {
-        // Read from our nbt data
         super.readAdditional(nbt);
         this.setRedstoneCovered(nbt.getBoolean("IsRedstoneCoated"));
+        this.setHasIllumerin(nbt.getBoolean("HasIllumerin"));
+        this.setIllumerinDeposited(nbt.getInt("IllumerinDeposited"));
     }
 
     @Override
@@ -193,16 +226,15 @@ public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
         // Register all of our fireflies AI goals. (0 being highest priority, of course -_-)
         this.goalSelector.addGoal(0, new FireflyEntity.MateGoal(1f));
         this.goalSelector.addGoal(1, new TemptGoal(this, 1.15f, Ingredient.fromItems(Items.HONEY_BOTTLE, Items.HONEY_BLOCK), false));
+        this.goalSelector.addGoal(1, new FireflyEntity.EatCompostGoal(1f, 22));
         this.goalSelector.addGoal(2, new FireflyEntity.EntrancedByHoneyGoal());
         this.goalSelector.addGoal(3, new FollowParentGoal(this, 1.15f));
-        this.goalSelector.addGoal(3, new FireflyEntity.EatCompostGoal(1f, 22));
         this.goalSelector.addGoal(4, new FireflyEntity.WanderGoal());
         this.goalSelector.addGoal(5, new SwimGoal(this));
     }
 
     @Override
     protected PathNavigator createNavigator(World world) {
-        // Create the fireflies navigator
         FlyingPathNavigator flyingpathnavigator = new FlyingPathNavigator(this, world) {
             @Override
             public boolean canEntityStandOnPos(BlockPos pos) {
@@ -244,10 +276,12 @@ public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
      * (Client) Spawns the abdomen particle at the precise location of the abdomen, with range being far as the firefly itself.
      */
     public void spawnAbdomenParticle() {
-        if (this.world.isRemote && !this.isInvisible()) {
+        if (this.world.isRemote) {
             double[] pos = this.getAbdomenParticlePos();
             this.world.addOptionalParticle(this.isRedstoneCoated(true)
-                            ? new FireflyAbdomenRedstoneParticleData(this.getEntityId()) : new FireflyAbdomenParticleData(this.getEntityId()),
+                            ? new FireflyParticleData.AbdomenRedstone(this.getEntityId())
+                            : this.hasIllumerin(true) ? new FireflyParticleData.AbdomenIllumerin(this.getEntityId())
+                            : new FireflyParticleData.Abdomen(this.getEntityId()),
                     true, pos[0], pos[1], pos[2], 0, 0, 0);
         }
     }
@@ -255,6 +289,10 @@ public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
     private Vector3d rotateVector(Vector3d vector3d) {
         Vector3d vector3d1 = vector3d.rotatePitch((float) Math.PI / 180F);
         return vector3d1.rotateYaw(-this.prevRenderYawOffset * ((float) Math.PI / 180F));
+    }
+
+    private IParticleData getDustParticle() {
+        return this.isRedstoneCoated(true) ? new FireflyParticleData.DustRedstone(this.getEntityId()) : new FireflyParticleData.Dust(this.getEntityId());
     }
 
     /**
@@ -275,8 +313,7 @@ public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
             // Small random offset around the abdomen, baby fireflies don't have it
             float randPos = this.isChild() ? 0f : MathHelper.nextFloat(this.rand, -0.2f, 0.2f);
             // also have no clue what these numbers mean
-            this.world.addParticle(
-                    this.isRedstoneCoated(true) ? Registry.FIREFLY_DUST_REDSTONE_PARTICLE.get() : Registry.FIREFLY_DUST_PARTICLE.get(),
+            this.world.addParticle(this.getDustParticle(),
                     vector3d.x + randPos, vector3d.y + (this.isChild() ? 1.1f : 1.35f) + randPos, vector3d.z + randPos,
                     vector3d2.x, vector3d2.y * -16, vector3d2.z);
         }
@@ -369,7 +406,7 @@ public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
     }
 
     @Nullable
-    private BlockPos isOverJar() {
+    private BlockPos getJarPos() {
         for (int i = 1; i < 4; i++) {
             BlockPos pos = this.getPosition().down(i);
             if (this.world.getBlockState(pos).getBlock() instanceof GlassJarBlock) {
@@ -381,15 +418,24 @@ public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
     }
 
     private void doJarLogic() {
-        if (!this.hasIllumerin)
+        if (!this.hasIllumerin(true))
             return;
 
-        BlockPos pos = this.isOverJar();
+        BlockPos pos = this.getJarPos();
         if (pos != null && this.ticksExisted % 60 == 0) {
             BlockState state = this.world.getBlockState(pos);
-            if (state.getBlock() instanceof GlassJarBlock) {
-                GlassJarBlock block = (GlassJarBlock) state.getBlock();
-                // TODO
+            // Shouldn't need to check for ATTACHED since we're going to be *above* the jar
+            if (!(state.getBlock() instanceof GlassJarBlock) || !state.get(GlassJarBlock.OPEN) || state.get(GlassJarBlock.LEVEL) > 0) return;
+
+            int level = state.get(GlassJarBlock.ILLUMERIN_LEVEL);
+            if (level >= GlassJarBlock.MAX_ILLUMERIN_LEVEL) return;
+
+            this.world.setBlockState(pos, state.with(GlassJarBlock.ILLUMERIN_LEVEL, level + 1), 3);
+
+            this.setIllumerinDeposited(this.getIllumerinDeposited() + 1);
+            if (this.getIllumerinDeposited() >= GlassJarBlock.MAX_ILLUMERIN_LEVEL) {
+                this.setHasIllumerin(false);
+                this.setIllumerinDeposited(0);
             }
         }
     }
@@ -529,9 +575,7 @@ public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
         // Puff out some particles on hit, the amount depending on damage.
         if (this.world.isRemote) {
             for (int i = 0; i < (int) MathHelper.clamp(amount, 2, 5); i++) {
-                this.world.addParticle(
-                        this.isRedstoneCoated(false) ? Registry.FIREFLY_DUST_REDSTONE_PARTICLE.get() : Registry.FIREFLY_DUST_PARTICLE.get(),
-                        this.getPosX(), this.getPosY(), this.getPosZ(), 0, 0, 0);
+                this.world.addParticle(this.getDustParticle(), this.getPosX(), this.getPosY(), this.getPosZ(), 0, 0, 0);
             }
         }
         return super.attackEntityFrom(source, amount);
@@ -906,18 +950,18 @@ public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
                 FireflyEntity.this.playSound(SoundEvents.BLOCK_COMPOSTER_EMPTY, 1.0F, 1.0F);
                 int i = state.get(ComposterBlock.LEVEL);
                 this.world.setBlockState(this.destinationBlock, state.with(ComposterBlock.LEVEL, i - (i == 8 ? 2 : 1)), 3);
-                FireflyEntity.this.hasIllumerin = true;
+                FireflyEntity.this.setHasIllumerin(true);
             }
         }
 
         @Override
         public boolean shouldExecute() {
-            return !FireflyEntity.this.hasIllumerin && super.shouldExecute();
+            return !FireflyEntity.this.hasIllumerin(true) && super.shouldExecute();
         }
 
         @Override
         public boolean shouldContinueExecuting() {
-            return !FireflyEntity.this.hasIllumerin && super.shouldContinueExecuting();
+            return !FireflyEntity.this.hasIllumerin(true) && super.shouldContinueExecuting();
         }
 
         @Override

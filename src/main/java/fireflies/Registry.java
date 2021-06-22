@@ -2,7 +2,10 @@ package fireflies;
 
 import fireflies.block.*;
 import fireflies.entity.FireflyEntity;
-import fireflies.misc.*;
+import fireflies.misc.FireflyMasterPotion;
+import fireflies.misc.FireflyParticleData;
+import fireflies.misc.FireflySpawnEgg;
+import fireflies.misc.GlassJarFluid;
 import net.minecraft.block.Block;
 import net.minecraft.block.DispenserBlock;
 import net.minecraft.dispenser.DefaultDispenseItemBehavior;
@@ -12,7 +15,6 @@ import net.minecraft.entity.EntityType;
 import net.minecraft.entity.SpawnReason;
 import net.minecraft.fluid.Fluid;
 import net.minecraft.item.*;
-import net.minecraft.particles.BasicParticleType;
 import net.minecraft.particles.ParticleType;
 import net.minecraft.potion.Effect;
 import net.minecraft.potion.EffectInstance;
@@ -94,10 +96,11 @@ public class Registry {
     //endregion Entities / Spawn Eggs
 
     //region Particles
-    public static final RegistryObject<BasicParticleType> FIREFLY_DUST_PARTICLE = PARTICLES.register("firefly_dust_particle", () -> new BasicParticleType(false));
-    public static final RegistryObject<BasicParticleType> FIREFLY_DUST_REDSTONE_PARTICLE = PARTICLES.register("firefly_dust_redstone_particle", () -> new BasicParticleType(false));
-    public static final RegistryObject<ParticleType<FireflyAbdomenParticleData>> FIREFLY_ABDOMEN_PARTICLE = PARTICLES.register("firefly_abdomen_particle", FireflyAbdomenParticleData::get);
-    public static final RegistryObject<ParticleType<FireflyAbdomenRedstoneParticleData>> FIREFLY_ABDOMEN_REDSTONE_PARTICLE = PARTICLES.register("firefly_abdomen_redstone_particle", FireflyAbdomenRedstoneParticleData::get);
+    public static final RegistryObject<ParticleType<FireflyParticleData.Dust>> FIREFLY_DUST_PARTICLE = PARTICLES.register("firefly_dust_particle", FireflyParticleData.Dust::get);
+    public static final RegistryObject<ParticleType<FireflyParticleData.DustRedstone>> FIREFLY_DUST_REDSTONE_PARTICLE = PARTICLES.register("firefly_dust_redstone_particle", FireflyParticleData.DustRedstone::get);
+    public static final RegistryObject<ParticleType<FireflyParticleData.Abdomen>> FIREFLY_ABDOMEN_PARTICLE = PARTICLES.register("firefly_abdomen_particle", FireflyParticleData.Abdomen::get);
+    public static final RegistryObject<ParticleType<FireflyParticleData.AbdomenRedstone>> FIREFLY_ABDOMEN_REDSTONE_PARTICLE = PARTICLES.register("firefly_abdomen_redstone_particle", FireflyParticleData.AbdomenRedstone::get);
+    public static final RegistryObject<ParticleType<FireflyParticleData.AbdomenIllumerin>> FIREFLY_ABDOMEN_ILLUMERIN_PARTICLE = PARTICLES.register("firefly_abdomen_illumerin_particle", FireflyParticleData.AbdomenIllumerin::get);
     //endregion Particles
 
     //region Sounds

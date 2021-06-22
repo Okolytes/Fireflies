@@ -1,6 +1,5 @@
 package fireflies.misc;
 
-import fireflies.Fireflies;
 import net.minecraft.entity.EntityType;
 import net.minecraft.item.ItemGroup;
 import net.minecraft.item.ItemStack;
@@ -27,7 +26,6 @@ public class FireflySpawnEgg extends SpawnEggItem {
         if (index != -1) {
             items.add(index + 1, new ItemStack(this));
         } else {
-            Fireflies.LOGGER.warn(String.format("Failed to relocate %s creative tab position", this.getClass().getSimpleName()));
             super.fillItemGroup(group, items);
         }
     }

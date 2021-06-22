@@ -59,19 +59,19 @@ public class FireflyAbdomenAnimationHandler {
     /**
      * Handles the {@link FireflyAbdomenAnimation#QUICK_BLINKS} animation.
      */
-    public void quickBlinksAnimation(float increaseAmount, float decreaseAmount, float startIncreasingChance, float beginFlashesChance) {
+    private void quickBlinksAnimation() {
         if (this.quickBlinksAnimationCount >= 2) {
-            if (Math.random() > beginFlashesChance) {
+            if (Math.random() > 0.035f) {
                 return;
             }
             this.quickBlinksAnimationCount = 0;
         }
 
-        this.firefly.glowAlpha += modifyAmount(increaseAmount, decreaseAmount);
+        this.firefly.glowAlpha += modifyAmount(0.3f, 0.25f);
 
         if (this.firefly.glowAlpha <= 0) {
             this.firefly.glowAlpha = 0;
-            if (Math.random() <= startIncreasingChance) {
+            if (Math.random() <= 0.275f) {
                 this.firefly.isGlowIncreasing = true;
                 this.firefly.spawnAbdomenParticle();
                 this.quickBlinksAnimationCount++;
@@ -83,6 +83,21 @@ public class FireflyAbdomenAnimationHandler {
         }
     }
 
+    private void illuminatedAnimation() {
+        this.firefly.glowAlpha += modifyAmount(0.1f, 0.1f);
+
+        if (this.firefly.glowAlpha <= 0.15) {
+            this.firefly.isGlowIncreasing = true;
+            if (this.firefly.abdomenParticle != null) {
+                this.firefly.abdomenParticle.setExpired();
+            }
+            this.firefly.spawnAbdomenParticle();
+        } else if (firefly.glowAlpha >= 1) {
+            this.firefly.glowAlpha = 1;
+            this.firefly.isGlowIncreasing = false;
+            this.firefly.playGlowSound();
+        }
+    }
 
     /**
      * Update the glow animation, this is done every tick.
@@ -119,7 +134,10 @@ public class FireflyAbdomenAnimationHandler {
                 this.glowAnimation(0.05f, 0.015f, 0.025f, 0.025f);
                 break;
             case QUICK_BLINKS:
-                this.quickBlinksAnimation(0.3f, 0.25f, 0.275f, 0.035f);
+                this.quickBlinksAnimation();
+                break;
+            case ILLUMINATED:
+                this.illuminatedAnimation();
                 break;
         }
     }
@@ -162,12 +180,15 @@ public class FireflyAbdomenAnimationHandler {
      * @see FireflyEntity#abdomenAnimation
      */
     public void updateAbdomenAnimation() {
-        if (firefly.isAnimationOverridden)
-            return;
-
         // The redstone firefly always has its abdomen on.
         if (firefly.isRedstoneCoated(true)) {
             this.setAbdomenAnimation(FireflyAbdomenAnimation.ON);
+            return;
+        }
+
+        // Fireflies with illumerin have their own special animation.
+        if (firefly.hasIllumerin(true)) {
+            this.setAbdomenAnimation(FireflyAbdomenAnimation.ILLUMINATED);
             return;
         }
 

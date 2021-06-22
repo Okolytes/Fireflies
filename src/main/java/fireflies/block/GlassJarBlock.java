@@ -49,7 +49,8 @@ import java.util.Random;
 
 public class GlassJarBlock extends Block implements IWaterLoggable {
     public static final IntegerProperty LEVEL = IntegerProperty.create("level", 0, 4);
-    public static final IntegerProperty ILLUMERIN_LEVEL = IntegerProperty.create("illumerin_level", 0, 4);
+    public static final int MAX_ILLUMERIN_LEVEL = 4;
+    public static final IntegerProperty ILLUMERIN_LEVEL = IntegerProperty.create("illumerin_level", 0, MAX_ILLUMERIN_LEVEL);
     public static final BooleanProperty OPEN = BlockStateProperties.OPEN;
     public static final DirectionProperty HORIZONTAL_FACING = BlockStateProperties.HORIZONTAL_FACING;
     public static final BooleanProperty ATTACHED = BlockStateProperties.ATTACHED;
@@ -350,7 +351,7 @@ public class GlassJarBlock extends Block implements IWaterLoggable {
     @Override
     public int getComparatorInputOverride(BlockState blockState, World worldIn, BlockPos pos) {
         int level = blockState.get(LEVEL);
-        return level <= 0 ? blockState.get(ILLUMERIN_LEVEL) : level;
+        return level > 0 ? level : blockState.get(ILLUMERIN_LEVEL);
     }
 
     public BlockState getStateForPlacement(BlockItemUseContext context) {

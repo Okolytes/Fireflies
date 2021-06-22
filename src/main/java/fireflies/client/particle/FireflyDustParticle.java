@@ -1,8 +1,10 @@
 package fireflies.client.particle;
 
+import fireflies.entity.FireflyEntity;
+import fireflies.misc.FireflyParticleData;
 import net.minecraft.client.particle.*;
 import net.minecraft.client.world.ClientWorld;
-import net.minecraft.particles.BasicParticleType;
+import net.minecraft.entity.Entity;
 import net.minecraft.util.math.MathHelper;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
@@ -13,28 +15,32 @@ public class FireflyDustParticle extends SpriteTexturedParticle {
     private final boolean redstone;
     private final float rotSpeed;
 
-    private FireflyDustParticle(ClientWorld clientWorld, double x, double y, double z, double xSpeed, double ySpeed, double zSpeed, IAnimatedSprite spriteWithAge, boolean redstone) {
+    private FireflyDustParticle(FireflyEntity fireflyEntity, ClientWorld clientWorld, double x, double y, double z, double xSpeed, double ySpeed, double zSpeed, IAnimatedSprite spriteWithAge, boolean redstone) {
         super(clientWorld, x, y, z, xSpeed, ySpeed, zSpeed);
         this.redstone = redstone;
         this.spriteWithAge = spriteWithAge;
-        this.particleAngle = this.rand.nextFloat() * ((float) Math.PI * 2F);
-        this.rotSpeed = (this.rand.nextFloat() - 0.1F) * 0.05F;
-        this.canCollide = false;
+        this.particleAngle = this.rand.nextFloat() * ((float) Math.PI * 2f);
+        this.rotSpeed = (this.rand.nextFloat() - 0.1f) * 0.05f;
         if (redstone) {
-            this.particleScale *= 0.5F;
-            int i = (int) (8.0D / (Math.random() * 0.8D + 0.2D));
-            this.maxAge = (int) Math.max((float) i * 2.5f, 1.0F);
-            float f = (float) (Math.random() * 0.4F + 0.6F);
+            this.particleScale *= 0.5f;
+            int i = (int) (8.0f / (this.rand.nextFloat() * 0.8f + 0.2f));
+            this.maxAge = (int) Math.max((float) i * 2.5f, 1.0f);
+            float f = this.rand.nextFloat() * 0.4f + 0.6f;
             float r = 0.97f;
             float g = 0.02f;
             float b = 0.01f;
-            this.particleRed = ((float) (Math.random() * 0.2F) + 0.8F) * r * f;
-            this.particleGreen = ((float) (Math.random() * 0.2F) + 0.8F) * g * f;
-            this.particleBlue = ((float) (Math.random() * 0.2F) + 0.8F) * b * f;
+            this.particleRed = ((this.rand.nextFloat() * 0.2f) + 0.8f) * r * f;
+            this.particleGreen = ((this.rand.nextFloat() * 0.2f) + 0.8f) * g * f;
+            this.particleBlue = ((this.rand.nextFloat() * 0.2f) + 0.8f) * b * f;
             this.selectSpriteWithAge(spriteWithAge);
         } else {
             this.maxAge = (int) (20f / (this.rand.nextFloat() * 0.8f + 0.2f)) + 32;
-            this.particleScale = 0.1F * (this.rand.nextFloat() * 0.25F + 0.1F);
+            this.particleScale = 0.1f * (this.rand.nextFloat() * 0.25f + 0.1f);
+            if (fireflyEntity.hasIllumerin(true)) {
+                this.particleRed = 0.9f;
+                this.particleGreen = 0.55f;
+                this.particleBlue = 0.18f;
+            }
             this.selectSpriteRandomly(spriteWithAge);
         }
     }
@@ -78,30 +84,42 @@ public class FireflyDustParticle extends SpriteTexturedParticle {
     }
 
     @OnlyIn(Dist.CLIENT)
-    public static class DustParticleFactory implements IParticleFactory<BasicParticleType> {
-        private final IAnimatedSprite spriteSet;
+    public static class DustParticleFactory implements IParticleFactory<FireflyParticleData.Dust> {
+        private final IAnimatedSprite iAnimatedSprite;
 
         public DustParticleFactory(IAnimatedSprite spriteSetIn) {
-            this.spriteSet = spriteSetIn;
+            this.iAnimatedSprite = spriteSetIn;
         }
 
         @Override
-        public Particle makeParticle(BasicParticleType basicParticleType, ClientWorld clientWorld, double x, double y, double z, double xSpeed, double ySpeed, double zSpeed) {
-            return new FireflyDustParticle(clientWorld, x, y, z, xSpeed, ySpeed, zSpeed, spriteSet, false);
+        public Particle makeParticle(FireflyParticleData.Dust dust, ClientWorld clientWorld, double x, double y, double z, double xSpeed, double ySpeed, double zSpeed) {
+            Entity entity = clientWorld.getEntityByID(dust.fireflyId);
+            if (entity == null || !entity.isAlive() || !(entity instanceof FireflyEntity))
+                return null;
+
+            FireflyDustParticle fireflyDustParticle = new FireflyDustParticle((FireflyEntity) entity, clientWorld, x, y, z, xSpeed, ySpeed, zSpeed, iAnimatedSprite, false);
+            fireflyDustParticle.selectSpriteRandomly(iAnimatedSprite);
+            return fireflyDustParticle;
         }
     }
 
     @OnlyIn(Dist.CLIENT)
-    public static class DustRedstoneParticleFactory implements IParticleFactory<BasicParticleType> {
-        private final IAnimatedSprite spriteSet;
+    public static class DustRedstoneParticleFactory implements IParticleFactory<FireflyParticleData.DustRedstone> {
+        private final IAnimatedSprite iAnimatedSprite;
 
         public DustRedstoneParticleFactory(IAnimatedSprite spriteSetIn) {
-            this.spriteSet = spriteSetIn;
+            this.iAnimatedSprite = spriteSetIn;
         }
 
         @Override
-        public Particle makeParticle(BasicParticleType basicParticleType, ClientWorld clientWorld, double x, double y, double z, double xSpeed, double ySpeed, double zSpeed) {
-            return new FireflyDustParticle(clientWorld, x, y, z, xSpeed, ySpeed, zSpeed, spriteSet, true);
+        public Particle makeParticle(FireflyParticleData.DustRedstone dust, ClientWorld clientWorld, double x, double y, double z, double xSpeed, double ySpeed, double zSpeed) {
+            Entity entity = clientWorld.getEntityByID(dust.fireflyId);
+            if (entity == null || !entity.isAlive() || !(entity instanceof FireflyEntity))
+                return null;
+
+            FireflyDustParticle fireflyDustParticle = new FireflyDustParticle((FireflyEntity) entity, clientWorld, x, y, z, xSpeed, ySpeed, zSpeed, iAnimatedSprite, true);
+            fireflyDustParticle.selectSpriteRandomly(iAnimatedSprite);
+            return fireflyDustParticle;
         }
     }
 }
