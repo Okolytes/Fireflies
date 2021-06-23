@@ -11,7 +11,6 @@ import net.minecraft.client.renderer.tileentity.TileEntityRenderer;
 import net.minecraft.client.renderer.tileentity.TileEntityRendererDispatcher;
 import net.minecraft.fluid.Fluids;
 import net.minecraft.inventory.container.PlayerContainer;
-import net.minecraft.item.Items;
 import net.minecraft.potion.PotionUtils;
 import net.minecraft.util.math.vector.Matrix4f;
 import net.minecraftforge.api.distmarker.Dist;
@@ -21,9 +20,6 @@ import net.minecraftforge.fluids.FluidStack;
 
 @OnlyIn(Dist.CLIENT)
 public class GlassJarRenderer extends TileEntityRenderer<GlassJarTile> {
-    @SuppressWarnings("ConstantConditions")
-    private static final String BEETROOT_SOUP = Items.BEETROOT_SOUP.getRegistryName().toString();
-
     public GlassJarRenderer(TileEntityRendererDispatcher rendererDispatcherIn) {
         super(rendererDispatcherIn);
     }
@@ -71,7 +67,11 @@ public class GlassJarRenderer extends TileEntityRenderer<GlassJarTile> {
         int color;
         if (glassJar.cachedFluidColor == -69) {
             // If it's a potion we'll use its color, if it's beetroot soup we'll use a custom colour
-            color = (fluidStack.getTag() == null || fluidStack.getFluid().isEquivalentTo(Fluids.WATER)) ? fluidAttributes.getColor(glassJar.getWorld(), glassJar.getPos()) : (fluidStack.getTag().contains("Potion") ? PotionUtils.getPotionColor(PotionUtils.getPotionTypeFromNBT(fluidStack.getTag())) : (fluidStack.getTag().getString("Soup").equals(BEETROOT_SOUP) ? 0xFFA4272C : fluidAttributes.getColor()));
+            color = fluidStack.getTag() == null || fluidStack.getFluid().isEquivalentTo(Fluids.WATER)
+                    ? fluidAttributes.getColor(glassJar.getWorld(), glassJar.getPos())
+                    : fluidStack.getTag().contains("Potion") ? PotionUtils.getPotionColor(PotionUtils.getPotionTypeFromNBT(fluidStack.getTag()))
+                    : fluidStack.getTag().getString("Soup").equals("minecraft:beetroot_soup")
+                    ? 0xFFA4272C : fluidAttributes.getColor();
             glassJar.cachedFluidColor = color;
         } else {
             color = glassJar.cachedFluidColor;

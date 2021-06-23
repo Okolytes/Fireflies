@@ -301,8 +301,8 @@ public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
      */
     private void spawnFallingDustParticles() {
         if (this.ticksExisted % 10 == 0 && this.rand.nextFloat() > 0.25f && this.glowAlpha > 0.25f && !this.isInvisible()) {
-            // Redstone fireflies have less of a chance to spawn particles.
-            if (this.isRedstoneCoated(true) && this.rand.nextFloat() > 0.5f)
+            // Redstone fireflies & illumerin fireflies don't spawn particles as often.
+            if ((this.isRedstoneCoated(true) || this.hasIllumerin(true)) && (this.rand.nextFloat() > 0.5f))
                 return;
 
             // no clue what this does lol
@@ -336,7 +336,7 @@ public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
     /**
      * Redstone fireflies activate illumerin lamps in a radius of {@link FireflyEntity#illumerinRadius}, called every half a second.
      */
-    private void activateIllumerinBlocks() {
+    private void activateIllumerinLamps() {
         // Baby fireflies have a smaller radius
         if (this.isChild()) illumerinRadius = 3;
         for (double x = this.getPosX() - illumerinRadius; x < this.getPosX() + illumerinRadius; x++) {
@@ -359,7 +359,7 @@ public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
     /**
      * Removes any invalid blocks from {@link FireflyEntity#illumerinBlocks}, called every half a second.
      */
-    private void removeInvalidIllumerinBlocks() {
+    private void removeInvalidIllumerinLamps() {
         this.illumerinBlocks.removeIf(pos -> {
             BlockState state = this.world.getBlockState(pos);
             // Remove if no longer an illumerin block
@@ -445,8 +445,8 @@ public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
         super.livingTick();
 
         if (this.world.isRemote) {
-            // Redstone fireflies are always on, regardless if it's daytime - unlike regular ones.
-            if (this.isDayTimeClient() && !this.isRedstoneCoated(true)) {
+            // Redstone fireflies & illumerin fireflies are always on, regardless if it's daytime - unlike regular ones.
+            if (this.isDayTimeClient() && !this.isRedstoneCoated(true) && !this.hasIllumerin(true)) {
                 // Turn off during the day
                 this.animationHandler.setAbdomenAnimation(FireflyAbdomenAnimation.OFF);
                 this.glowAlpha = 0;
@@ -456,7 +456,7 @@ public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
                 this.spawnFallingDustParticles();
 
                 // Fix abdomen particle not spawning with synced firefly on first glow cycle
-                if (this.ticksExisted < 3 && this.glowAlpha > 0.1f) {
+                if (this.ticksExisted < 3 && this.glowAlpha > 0.1f && this.abdomenParticle == null) {
                     this.spawnAbdomenParticle();
                 }
 
@@ -474,8 +474,8 @@ public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
 
             if (this.isRedstoneCoated(true)) {
                 if (this.ticksExisted % 10 == 0) {
-                    this.removeInvalidIllumerinBlocks();
-                    this.activateIllumerinBlocks();
+                    this.removeInvalidIllumerinLamps();
+                    this.activateIllumerinLamps();
                 }
             }
 
@@ -522,7 +522,7 @@ public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
             FireflyGlowSyncHandler.starryNightSyncedFireflies.syncedFireflies.remove(this);
         } else {
             // Stop giving a signal to nearby illumerin blocks.
-            this.removeInvalidIllumerinBlocks();
+            this.removeInvalidIllumerinLamps();
         }
     }
 
@@ -548,21 +548,23 @@ public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
         /* Convert to redstone firefly */
         ItemStack itemstack = player.getHeldItem(hand);
         if (itemstack.getItem() == Items.REDSTONE && !this.isRedstoneCoated(false)) {
-            // Set redstone coated
             this.setRedstoneCovered(true);
+            // Reset any illumerin related data
+            this.setIllumerinDeposited(0);
+            this.setHasIllumerin(false);
             if (!this.world.isRemote) {
-                // Remove the redstone dust from players inventory if not in creative mode
                 if (!player.isCreative()) {
                     itemstack.shrink(1);
                 }
+
                 // Spawn powered redstone dust particles
                 this.spawnRedstoneParticlePuff(false, 5 + this.rand.nextInt(5));
             } else {
-                // Play the conversion sound to the client
                 player.playSound(Registry.FIREFLY_APPLY_REDSTONE.get(), 1f, 1f);
+
                 // Destroy the current abdomen particle.
                 if (this.abdomenParticle != null) this.abdomenParticle.setExpired();
-                // Spawn a new redstone abdomen particle.
+                // Spawn a new abdomen particle.
                 this.spawnAbdomenParticle();
             }
             return ActionResultType.SUCCESS;
@@ -644,8 +646,6 @@ public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
     }
 
     private boolean isDarkEnoughToBreed() {
-        // Redstone Fireflies do not need darkness to breed
-        if (this.isRedstoneCoated(true)) return true;
         return this.world.getLight(this.getPosition()) <= 4;
     }
 
@@ -691,7 +691,7 @@ public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
 
     private class WanderGoal extends RandomWalkingGoal {
         private final World world;
-        private final EntityPredicate FIREFLY_PREDICATE = (new EntityPredicate()).setDistance(8f).allowFriendlyFire().allowInvulnerable().setIgnoresLineOfSight().setCustomPredicate(entity -> !entity.isChild());
+        private final EntityPredicate fireflyPredicate = new EntityPredicate().setDistance(8f).allowFriendlyFire().allowInvulnerable().setIgnoresLineOfSight().setCustomPredicate(entity -> !entity.isChild());
 
         private WanderGoal() {
             super(FireflyEntity.this, 1.0f, 1, false);
@@ -725,7 +725,7 @@ public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
             // Ok, we'll just try to go to another firefly then.
             if (!FireflyEntity.this.isChild() && position == null) {
                 // Search within 8 block radius.
-                FireflyEntity closestFirefly = this.world.getClosestEntityWithinAABB(FireflyEntity.class, FIREFLY_PREDICATE, FireflyEntity.this,
+                FireflyEntity closestFirefly = this.world.getClosestEntityWithinAABB(FireflyEntity.class, fireflyPredicate, FireflyEntity.this,
                         FireflyEntity.this.getPosX(), FireflyEntity.this.getPosY(), FireflyEntity.this.getPosZ(),
                         FireflyEntity.this.getBoundingBox().grow(8f, 2.5f, 8f));
 
@@ -931,7 +931,7 @@ public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
         public void tick() {
             if (this.destinationBlock.withinDistance(FireflyEntity.this.getPosition(), 3f)) {
                 this.lookAtCompost();
-                if (this.startEatingTicks >= 100) {
+                if (this.startEatingTicks >= 60) {
                     this.eatCompost();
                 } else {
                     ++this.startEatingTicks;
@@ -956,12 +956,12 @@ public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
 
         @Override
         public boolean shouldExecute() {
-            return !FireflyEntity.this.hasIllumerin(true) && super.shouldExecute();
+            return !FireflyEntity.this.isRedstoneCoated(true) && !FireflyEntity.this.hasIllumerin(true) && super.shouldExecute();
         }
 
         @Override
         public boolean shouldContinueExecuting() {
-            return !FireflyEntity.this.hasIllumerin(true) && super.shouldContinueExecuting();
+            return !FireflyEntity.this.isRedstoneCoated(true) && !FireflyEntity.this.hasIllumerin(true) && super.shouldContinueExecuting();
         }
 
         @Override

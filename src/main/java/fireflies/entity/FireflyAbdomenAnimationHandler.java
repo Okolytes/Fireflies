@@ -86,7 +86,7 @@ public class FireflyAbdomenAnimationHandler {
     private void illuminatedAnimation() {
         this.firefly.glowAlpha += modifyAmount(0.1f, 0.1f);
 
-        if (this.firefly.glowAlpha <= 0.15) {
+        if (this.firefly.glowAlpha <= 0.15f) {
             this.firefly.isGlowIncreasing = true;
             if (this.firefly.abdomenParticle != null) {
                 this.firefly.abdomenParticle.setExpired();
