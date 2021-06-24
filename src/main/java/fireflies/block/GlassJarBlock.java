@@ -4,6 +4,10 @@ import fireflies.Registry;
 import fireflies.misc.GlassJarFluid;
 import net.minecraft.block.*;
 import net.minecraft.block.material.Material;
+import net.minecraft.block.material.PushReaction;
+import net.minecraft.client.util.ITooltipFlag;
+import net.minecraft.entity.LivingEntity;
+import net.minecraft.entity.item.ItemEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.fluid.Fluid;
@@ -13,6 +17,7 @@ import net.minecraft.item.*;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.particles.ParticleTypes;
 import net.minecraft.pathfinding.PathType;
+import net.minecraft.potion.Potion;
 import net.minecraft.potion.PotionUtils;
 import net.minecraft.potion.Potions;
 import net.minecraft.state.BooleanProperty;
@@ -29,8 +34,11 @@ import net.minecraft.util.math.shapes.IBooleanFunction;
 import net.minecraft.util.math.shapes.ISelectionContext;
 import net.minecraft.util.math.shapes.VoxelShape;
 import net.minecraft.util.math.shapes.VoxelShapes;
+import net.minecraft.util.text.ITextComponent;
+import net.minecraft.util.text.TranslationTextComponent;
 import net.minecraft.world.IBlockReader;
 import net.minecraft.world.IWorld;
+import net.minecraft.world.IWorldReader;
 import net.minecraft.world.World;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
@@ -45,14 +53,15 @@ import net.minecraftforge.items.ItemHandlerHelper;
 import net.minecraftforge.registries.ForgeRegistries;
 
 import javax.annotation.Nullable;
+import java.util.List;
 import java.util.Random;
 
-public class GlassJarBlock extends Block implements IWaterLoggable {
+public class GlassJarBlock extends HorizontalBlock implements IWaterLoggable {
     public static final IntegerProperty LEVEL = IntegerProperty.create("level", 0, 4);
     public static final int MAX_ILLUMERIN_LEVEL = 4;
     public static final IntegerProperty ILLUMERIN_LEVEL = IntegerProperty.create("illumerin_level", 0, MAX_ILLUMERIN_LEVEL);
     public static final BooleanProperty OPEN = BlockStateProperties.OPEN;
-    public static final DirectionProperty HORIZONTAL_FACING = BlockStateProperties.HORIZONTAL_FACING;
+    public static final DirectionProperty HORIZONTAL_FACING = HorizontalBlock.HORIZONTAL_FACING;
     public static final BooleanProperty ATTACHED = BlockStateProperties.ATTACHED;
     public static final BooleanProperty WATERLOGGED = BlockStateProperties.WATERLOGGED;
 
@@ -78,6 +87,13 @@ public class GlassJarBlock extends Block implements IWaterLoggable {
             return state.get(HopperBlock.FACING).equals(Direction.DOWN) && state.get(HopperBlock.ENABLED);
         }
         return false;
+    }
+
+    /**
+     * @return Has this fluid type in a tank?
+     */
+    public static boolean hasFluid(FluidTank tank, Fluid fluid) {
+        return !tank.isEmpty() && tank.getFluid().getFluid().isEquivalentTo(fluid);
     }
 
     @SuppressWarnings("deprecation")
@@ -146,11 +162,11 @@ public class GlassJarBlock extends Block implements IWaterLoggable {
                 ItemStack containerCopy = ItemHandlerHelper.copyStackWithSize(container, 1); // do not modify the input
                 FluidUtil.getFluidHandler(containerCopy).map(containerFluidHandler -> {
                     // We are acting on a COPY of the stack, so performing changes is acceptable even if we are simulating.
-                    FluidStack transfer = FluidUtil.tryFluidTransfer(tankFluidHandler, containerFluidHandler, tank.getCapacity(), doTransfer);
+                    FluidStack transfer = FluidUtil.tryFluidTransfer(tankFluidHandler, containerFluidHandler, GlassJarTile.CAPACITY, doTransfer);
                     // Return if we can't transfer fluid
                     if (transfer.isEmpty()) return FluidActionResult.FAILURE;
                     // FluidUtil.tryFluidTransfer does not drain the passed fluidsource (our bucket) if doTransfer is false, so we'll do it ourselves
-                    if (!doTransfer) containerFluidHandler.drain(tank.getCapacity(), IFluidHandler.FluidAction.EXECUTE);
+                    if (!doTransfer) containerFluidHandler.drain(GlassJarTile.CAPACITY, IFluidHandler.FluidAction.EXECUTE);
 
                     emptyContainer[0] = containerFluidHandler.getContainer();
                     return FluidActionResult.FAILURE; // This doesn't matter, we only want emptyContainer
@@ -184,35 +200,35 @@ public class GlassJarBlock extends Block implements IWaterLoggable {
     private boolean emptyFluid(World world, BlockPos pos, PlayerEntity player, Hand hand, FluidTank tank, Item containerItem, ItemStack container) {
         ItemStack filledContainer; // The full fluid container that will be deposited in to the players inventory.
         if (containerItem.equals(Items.BUCKET)) {
-            if (!this.canDrain(tank, FluidAttributes.BUCKET_VOLUME) || !this.hasFluid(tank, Registry.MILK_FLUID.get())) return false;
+            if (!this.canDrain(tank, FluidAttributes.BUCKET_VOLUME) || !hasFluid(tank, Registry.MILK_FLUID.get())) return false;
             filledContainer = Items.MILK_BUCKET.getDefaultInstance();
         } else if (containerItem.equals(Items.GLASS_BOTTLE)) {
             // Fill our glass bottled containers
             if (!this.canDrain(tank, GlassJarFluid.BOTTLE_VOLUME)) return false;
-            if (this.hasFluid(tank, Registry.GENERIC_POTION_FLUID.get())) {
+            if (hasFluid(tank, Registry.GENERIC_POTION_FLUID.get())) {
                 CompoundNBT tag = tank.getFluid().getTag();
                 // Fill our potion, if the tag is null for some reason we'll just give out some water.
                 filledContainer = PotionUtils.addPotionToItemStack(new ItemStack(Items.POTION), tag == null ? Potions.WATER : PotionUtils.getPotionTypeFromNBT(tag));
-            } else if (this.hasFluid(tank, Fluids.WATER)) {
+            } else if (hasFluid(tank, Fluids.WATER)) {
                 filledContainer = Items.POTION.getDefaultInstance(); // As bruce lee would say... WOTAAHHHHH
-            } else if (this.hasFluid(tank, Registry.HONEY_FLUID.get())) {
+            } else if (hasFluid(tank, Registry.HONEY_FLUID.get())) {
                 filledContainer = Items.HONEY_BOTTLE.getDefaultInstance();
-            } else if (this.hasFluid(tank, Registry.DRAGON_BREATH_FLUID.get())) {
+            } else if (hasFluid(tank, Registry.DRAGON_BREATH_FLUID.get())) {
                 filledContainer = Items.DRAGON_BREATH.getDefaultInstance();
             } else return false;
         } else if (containerItem.equals(Items.BOWL)) {
             // Fill our bowl with soup
             if (!this.canDrain(tank, GlassJarFluid.BOTTLE_VOLUME)) return false;
-            if (this.hasFluid(tank, Registry.GENERIC_SOUP_FLUID.get())) {
+            if (hasFluid(tank, Registry.GENERIC_SOUP_FLUID.get())) {
                 // Use the tag which contains the registry key of the given soup
                 CompoundNBT tag = tank.getFluid().getTag();
                 if (tag == null) return false;
                 Item soup = ForgeRegistries.ITEMS.getValue(new ResourceLocation(tag.getString("Soup")));
                 if (soup == null) return false; // No soup for you
                 filledContainer = soup.getDefaultInstance();
-            } else if (this.hasFluid(tank, Registry.RABBIT_STEW_FLUID.get())) {
+            } else if (hasFluid(tank, Registry.RABBIT_STEW_FLUID.get())) {
                 filledContainer = Items.RABBIT_STEW.getDefaultInstance();
-            } else if (this.hasFluid(tank, Registry.SUS_STEW_FLUID.get())) {
+            } else if (hasFluid(tank, Registry.SUS_STEW_FLUID.get())) {
                 filledContainer = Items.SUSPICIOUS_STEW.getDefaultInstance();
             } else return false;
         } else return false;
@@ -243,13 +259,6 @@ public class GlassJarBlock extends Block implements IWaterLoggable {
                 ((ServerPlayerEntity) player).sendContainerToPlayer(player.container);
             }
         }
-    }
-
-    /**
-     * @return Has this fluid type in a tank?
-     */
-    private boolean hasFluid(FluidTank tank, Fluid fluid) {
-        return !tank.isEmpty() && tank.getFluid().getFluid().isEquivalentTo(fluid);
     }
 
     /**
@@ -313,6 +322,67 @@ public class GlassJarBlock extends Block implements IWaterLoggable {
     }
 
     @Override
+    public void onBlockPlacedBy(World worldIn, BlockPos pos, BlockState state, @Nullable LivingEntity placer, ItemStack stack) {
+        if (stack.hasDisplayName()) {
+            GlassJarTile tile = this.getTile(worldIn, pos);
+            if (tile != null) {
+                tile.setName(stack.getDisplayName());
+            }
+        }
+    }
+
+    @Override
+    public void onBlockHarvested(World worldIn, BlockPos pos, BlockState state, PlayerEntity player) {
+        GlassJarTile tile = this.getTile(worldIn, pos);
+        if (tile != null && !worldIn.isRemote && player.isCreative()) {
+            ItemStack itemstack = tile.getItem(state);
+            if (itemstack.hasTag()) {
+                ItemEntity itementity = new ItemEntity(worldIn, pos.getX() + 0.5f, pos.getY() + 0.5f, pos.getZ() + 0.5f, itemstack);
+                itementity.setDefaultPickupDelay();
+                worldIn.addEntity(itementity);
+            }
+        }
+
+        super.onBlockHarvested(worldIn, pos, state, player);
+    }
+
+    @SuppressWarnings("deprecation") // TODO wat does this mean
+    @Override
+    public ItemStack getItem(IBlockReader worldIn, BlockPos pos, BlockState state) {
+        GlassJarTile tile = this.getTile(worldIn, pos);
+        return tile != null ? tile.getItem(state) : super.getItem(worldIn, pos, state);
+    }
+
+    @OnlyIn(Dist.CLIENT)
+    @Override
+    public void addInformation(ItemStack stack, @Nullable IBlockReader worldIn, List<ITextComponent> tooltip, ITooltipFlag flagIn) {
+        super.addInformation(stack, worldIn, tooltip, flagIn);
+        CompoundNBT nbt = stack.getChildTag("BlockEntityTag");
+        if (nbt == null || nbt.getInt("Amount") <= 0) return;
+
+        Fluid fluid = ForgeRegistries.FLUIDS.getValue(ResourceLocation.tryCreate(nbt.getString("FluidName")));
+        if (fluid == null) return;
+
+        int maxAmount = GlassJarTile.CAPACITY / GlassJarFluid.BOTTLE_VOLUME;
+        String fluidName = null;
+        if (fluid.isEquivalentTo(Registry.GENERIC_POTION_FLUID.get())) {
+            fluidName = PotionUtils.addPotionToItemStack(Items.POTION.getDefaultInstance(), Potion.getPotionTypeForName(nbt.getCompound("Tag").getString("Potion"))).getDisplayName().getString();
+        } else if (fluid.isEquivalentTo(Registry.GENERIC_SOUP_FLUID.get())) {
+            Item soup = ForgeRegistries.ITEMS.getValue(ResourceLocation.tryCreate(nbt.getCompound("Tag").getString("Soup")));
+            if (soup != null) {
+                fluidName = new ItemStack(soup).getDisplayName().getString();
+            }
+        } else {
+            fluidName = new TranslationTextComponent(fluid.getAttributes().getTranslationKey()).getString();
+        }
+
+        if (fluidName != null) {
+            tooltip.add(new TranslationTextComponent("container.glass_jar.amount", fluidName,
+                    (int) (nbt.getInt("Amount") / (float) GlassJarTile.CAPACITY * maxAmount), maxAmount));
+        }
+    }
+
+    @Override
     public boolean hasTileEntity(BlockState state) {
         return true;
     }
@@ -321,6 +391,12 @@ public class GlassJarBlock extends Block implements IWaterLoggable {
     @Override
     public TileEntity createTileEntity(BlockState state, IBlockReader world) {
         return new GlassJarTile();
+    }
+
+    @SuppressWarnings("deprecation")
+    @Override
+    public boolean isValidPosition(BlockState state, IWorldReader worldIn, BlockPos pos) {
+        return worldIn.getBlockState(pos.down()).getMaterial().isSolid();
     }
 
     @SuppressWarnings("deprecation")
@@ -339,6 +415,12 @@ public class GlassJarBlock extends Block implements IWaterLoggable {
     @Override
     public boolean propagatesSkylightDown(BlockState state, IBlockReader reader, BlockPos pos) {
         return true;
+    }
+
+    @SuppressWarnings("deprecation")
+    @Override
+    public PushReaction getPushReaction(BlockState state) {
+        return PushReaction.DESTROY;
     }
 
     @SuppressWarnings("deprecation")
@@ -413,7 +495,7 @@ public class GlassJarBlock extends Block implements IWaterLoggable {
     public void animateTick(BlockState state, World world, BlockPos pos, Random rand) {
         GlassJarTile tile = this.getTile(world, pos);
         // Spawn ender particles if dragon breath is inside the jar.
-        if (tile != null && this.hasFluid(tile.getTank(), Registry.DRAGON_BREATH_FLUID.get())) {
+        if (tile != null && hasFluid(tile.getTank(), Registry.DRAGON_BREATH_FLUID.get())) {
             // Amount of particles depends of the fullness of the jar.
             for (int i = 0; i < tile.cachedLevel; ++i) {
                 // Taken from ender chest code

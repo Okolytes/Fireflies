@@ -1,0 +1,51 @@
+{
+  "type": "minecraft:block",
+  "pools": [
+    {
+      "rolls": 1,
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "functions": [
+            {
+              "function": "minecraft:copy_name",
+              "source": "block_entity"
+            },
+            {
+              "function": "minecraft:copy_nbt",
+              "source": "block_entity",
+              "ops": [
+                {
+                  "source": "UUID",
+                  "target": "BlockEntityTag.UUID",
+                  "op": "replace"
+                },
+                {
+                  "source": "Tag",
+                  "target": "BlockEntityTag.Tag",
+                  "op": "replace"
+                },
+                {
+                  "source": "Amount",
+                  "target": "BlockEntityTag.Amount",
+                  "op": "replace"
+                },
+                {
+                  "source": "FluidName",
+                  "target": "BlockEntityTag.FluidName",
+                  "op": "replace"
+                }
+              ]
+            }
+          ],
+          "name": "fireflies:glass_jar"
+        }
+      ],
+      "conditions": [
+        {
+          "condition": "minecraft:survives_explosion"
+        }
+      ]
+    }
+  ]
+}

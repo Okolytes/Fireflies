@@ -4,17 +4,24 @@ import fireflies.Registry;
 import fireflies.misc.GlassJarFluid;
 import net.minecraft.block.BlockState;
 import net.minecraft.inventory.IInventory;
+import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
+import net.minecraft.item.Items;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.network.NetworkManager;
 import net.minecraft.network.play.server.SUpdateTileEntityPacket;
 import net.minecraft.potion.Effects;
+import net.minecraft.potion.Potion;
 import net.minecraft.potion.PotionUtils;
 import net.minecraft.tileentity.HopperTileEntity;
 import net.minecraft.tileentity.ITickableTileEntity;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.Direction;
+import net.minecraft.util.INameable;
+import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.MathHelper;
+import net.minecraft.util.text.ITextComponent;
+import net.minecraft.util.text.TranslationTextComponent;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.util.LazyOptional;
 import net.minecraftforge.fluids.FluidAttributes;
@@ -22,12 +29,16 @@ import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fluids.capability.CapabilityFluidHandler;
 import net.minecraftforge.fluids.capability.IFluidHandler;
 import net.minecraftforge.fluids.capability.templates.FluidTank;
+import net.minecraftforge.registries.ForgeRegistries;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.util.UUID;
 
-public class GlassJarTile extends TileEntity implements ITickableTileEntity {
-    private final FluidTank fluidTank = new FluidTank(FluidAttributes.BUCKET_VOLUME) {
+public class GlassJarTile extends TileEntity implements ITickableTileEntity, INameable {
+    public static final String DISPLAY_NAME = "DisplayName";
+    public static final int CAPACITY = FluidAttributes.BUCKET_VOLUME;
+    private final FluidTank fluidTank = new FluidTank(CAPACITY) {
         @Override
         protected void onContentsChanged() {
             if (world != null) {
@@ -38,7 +49,6 @@ public class GlassJarTile extends TileEntity implements ITickableTileEntity {
                 markDirty();
             }
         }
-
     };
     private final LazyOptional<IFluidHandler> fluidHandler = LazyOptional.of(() -> fluidTank);
     public int cachedLevel;
@@ -51,6 +61,8 @@ public class GlassJarTile extends TileEntity implements ITickableTileEntity {
 
     private int updateTicks;
     private int hopperSlot;
+    @Nullable
+    private ITextComponent name;
 
     public GlassJarTile() {
         super(Registry.GLASS_JAR_TILE_ENTITY.get());
@@ -62,7 +74,7 @@ public class GlassJarTile extends TileEntity implements ITickableTileEntity {
         if (this.updateTicks % 20 == 0 && this.world != null && !this.world.isRemote && GlassJarBlock.shouldBeAttached(this.world, this.pos, this.getBlockState())) {
             IInventory inventory = HopperTileEntity.getInventoryAtPosition(world, pos.up());
             if (inventory == null) return;
-            GlassJarBlock glassJar = (GlassJarBlock) this.world.getBlockState(pos).getBlock();
+            GlassJarBlock glassJar = (GlassJarBlock) this.getBlockState().getBlock();
 
             // Iterate through each slot every 20 ticks
             if (this.hopperSlot >= inventory.getSizeInventory()) {
@@ -130,6 +142,10 @@ public class GlassJarTile extends TileEntity implements ITickableTileEntity {
     public void read(BlockState state, CompoundNBT nbt) {
         super.read(state, nbt);
         this.fluidTank.readFromNBT(nbt);
+        if (nbt.contains("CustomName", 8)) {
+            this.name = ITextComponent.Serializer.getComponentFromJson(nbt.getString("CustomName"));
+        }
+        this.handleUUID(nbt);
         this.updateLuminosity();
         this.updateCachedProperties();
     }
@@ -138,12 +154,29 @@ public class GlassJarTile extends TileEntity implements ITickableTileEntity {
     public CompoundNBT write(CompoundNBT nbt) {
         nbt = super.write(nbt);
         this.fluidTank.writeToNBT(nbt);
+        if (this.name != null) {
+            nbt.putString("CustomName", ITextComponent.Serializer.toJson(this.name));
+        }
+        this.handleUUID(nbt);
         this.updateLuminosity();
         this.updateCachedProperties();
         return nbt;
     }
 
-    private void updateLuminosity() {
+    public ITextComponent getName() {
+        return this.name != null ? this.name : new TranslationTextComponent("block.fireflies.glass_jar");
+    }
+
+    public void setName(ITextComponent name) {
+        this.name = name;
+    }
+
+    @Nullable
+    public ITextComponent getCustomName() {
+        return this.name;
+    }
+
+    public void updateLuminosity() {
         if (this.world != null) {
             FluidStack fluidStack = this.getTank().getFluid();
             int jarLevel = this.getBlockState().get(GlassJarBlock.LEVEL);
@@ -156,15 +189,37 @@ public class GlassJarTile extends TileEntity implements ITickableTileEntity {
         }
     }
 
-    private void updateCachedProperties() {
+    public void updateCachedProperties() {
         if (this.world != null) {
-            BlockState state = this.world.getBlockState(this.pos);
+            BlockState state = this.getBlockState();
             this.cachedLevel = state.get(GlassJarBlock.LEVEL);
             this.cachedIllumerinLevel = state.get(GlassJarBlock.ILLUMERIN_LEVEL);
             this.cachedOpen = state.get(GlassJarBlock.OPEN);
             this.cachedDirection = state.get(GlassJarBlock.HORIZONTAL_FACING);
             this.cachedFluidColor = -69;
             this.cachedAttached = state.get(GlassJarBlock.ATTACHED);
+        }
+    }
+
+    private void putDisplayName(CompoundNBT nbt) {
+        if (GlassJarBlock.hasFluid(this.fluidTank, Registry.GENERIC_POTION_FLUID.get())) {
+            nbt.putString(DISPLAY_NAME, PotionUtils.addPotionToItemStack(Items.POTION.getDefaultInstance(), Potion.getPotionTypeForName(this.fluidTank.getFluid().getTag().getString("Potion"))).getDisplayName().getString());
+        } else if (GlassJarBlock.hasFluid(this.fluidTank, Registry.GENERIC_SOUP_FLUID.get())) {
+            Item soup = ForgeRegistries.ITEMS.getValue(ResourceLocation.tryCreate(this.fluidTank.getFluid().getTag().getString("Soup")));
+            if (soup != null) {
+                nbt.putString(DISPLAY_NAME, new ItemStack(soup).getDisplayName().getString());
+            }
+        } else {
+            nbt.putString(DISPLAY_NAME, this.fluidTank.getFluid().getDisplayName().getString());
+        }
+    }
+
+    private void handleUUID(CompoundNBT nbt){
+        // So non empty glass jars aren't stackable.
+        if (!this.fluidTank.isEmpty() && !nbt.hasUniqueId("UUID")) {
+            nbt.putUniqueId("UUID", UUID.randomUUID());
+        } else if (this.fluidTank.isEmpty() && nbt.hasUniqueId("UUID")) {
+            nbt.remove("UUID");
         }
     }
 
@@ -175,6 +230,22 @@ public class GlassJarTile extends TileEntity implements ITickableTileEntity {
             return fluidHandler.cast();
         }
         return super.getCapability(cap, side);
+    }
+
+    public ItemStack getItem(BlockState state) {
+        ItemStack itemStack = new ItemStack(state.getBlock());
+
+        if (this.name != null) {
+            itemStack.setDisplayName(this.name);
+        }
+
+        if (!this.fluidTank.isEmpty()) {
+            CompoundNBT nbt = itemStack.getOrCreateChildTag("BlockEntityTag");
+            this.fluidTank.writeToNBT(nbt);
+            this.handleUUID(nbt);
+        }
+
+        return itemStack;
     }
 
     public FluidTank getTank() {

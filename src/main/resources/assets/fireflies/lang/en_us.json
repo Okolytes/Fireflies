@@ -30,6 +30,8 @@
   "subtitle.fireflies.glass_jar_open": "Glass Jar opens",
   "subtitle.fireflies.glass_jar_close": "Glass Jar closes",
 
+  "container.glass_jar.amount": "%s %s/%s",
+
   "stat.fireflies.fill_glass_jar": "Glass Jars Filled",
   "stat.fireflies.use_glass_jar": "Fluid Taken from Glass Jar"
 }

@@ -56,7 +56,7 @@ public class GlassJarRenderer extends TileEntityRenderer<GlassJarTile> {
             }
         }
         float margin = 0.2f;
-        float yScale = 0.69f * fluidStack.getAmount() / glassJar.getTank().getCapacity();
+        float yScale = 0.69f * fluidStack.getAmount() / GlassJarTile.CAPACITY;
         float offset = 0.8f;
 
         float minU = sprite.getMinU() + 0.00055f;
