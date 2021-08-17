@@ -2,7 +2,6 @@ package fireflies;
 
 import fireflies.block.*;
 import fireflies.entity.FireflyEntity;
-import fireflies.item.GlassJarBlockItem;
 import fireflies.misc.FireflyMasterPotion;
 import fireflies.misc.FireflyParticleData;
 import fireflies.misc.FireflySpawnEgg;
@@ -57,18 +56,8 @@ public class Registry {
     public static final RegistryObject<Item> ILLUMERIN_BLOCKITEM = ITEMS.register("illumerin_block", () -> new BlockItem(ILLUMERIN_BLOCK.get(), new Item.Properties().group(ItemGroup.DECORATIONS)));
     public static final RegistryObject<Item> ILLUMERIN_LAMP_BLOCKITEM = ITEMS.register("illumerin_lamp", () -> new BlockItem(ILLUMERIN_LAMP.get(), new Item.Properties().group(ItemGroup.REDSTONE)));
     public static final RegistryObject<Item> ECTO_ILLUMERIN_BLOCKITEM = ITEMS.register("ecto_illumerin_block", () -> new BlockItem(ECTO_ILLUMERIN_BLOCK.get(), new Item.Properties().group(ItemGroup.DECORATIONS)));
-    public static final RegistryObject<Item> GLASS_JAR_BLOCKITEM = ITEMS.register("glass_jar", GlassJarBlockItem::new);
+    public static final RegistryObject<Item> GLASS_JAR_BLOCKITEM = ITEMS.register("glass_jar", () -> new BlockItem(GLASS_JAR.get(), new Item.Properties().group(ItemGroup.REDSTONE)));
     //endregion Blocks / BlockItems
-
-    //region Fluids
-    public static final RegistryObject<Fluid> GENERIC_POTION_FLUID = FLUIDS.register("potion_fluid", () -> new GlassJarFluid("potion_fluid", GlassJarFluid.BOTTLE_VOLUME));
-    public static final RegistryObject<Fluid> MILK_FLUID = FLUIDS.register("milk_fluid", () -> new GlassJarFluid("potion_fluid", FluidAttributes.BUCKET_VOLUME, 0xFFF7F7F7));
-    public static final RegistryObject<Fluid> HONEY_FLUID = FLUIDS.register("honey_fluid", () -> new GlassJarFluid("honey_fluid", GlassJarFluid.BOTTLE_VOLUME, 0xFFFDD330));
-    public static final RegistryObject<Fluid> DRAGON_BREATH_FLUID = FLUIDS.register("dragon_breath_fluid", () -> new GlassJarFluid("dragon_breath_fluid", GlassJarFluid.BOTTLE_VOLUME, (byte)2));
-    public static final RegistryObject<Fluid> GENERIC_SOUP_FLUID = FLUIDS.register("soup_fluid", () -> new GlassJarFluid("potion_fluid", GlassJarFluid.BOTTLE_VOLUME, 0xFF533909));
-    public static final RegistryObject<Fluid> RABBIT_STEW_FLUID = FLUIDS.register("rabbit_stew_fluid", () -> new GlassJarFluid("potion_fluid", GlassJarFluid.BOTTLE_VOLUME, 0xFF533909));
-    public static final RegistryObject<Fluid> SUS_STEW_FLUID = FLUIDS.register("sus_stew_fluid", () -> new GlassJarFluid("potion_fluid", GlassJarFluid.BOTTLE_VOLUME, 0xFF533909)); // when the imposter is
-    //endregion Fluids
 
     //region Items
     public static final RegistryObject<Item> ILLUMERIN = ITEMS.register("illumerin", () -> new Item(new Item.Properties().group(ItemGroup.MATERIALS)));
@@ -82,6 +71,16 @@ public class Registry {
     public static final RegistryObject<Potion> LONG_FIREFLY_MASTER = POTION_TYPES.register("long_firefly_master", () -> new FireflyMasterPotion(new EffectInstance(Effects.GLOWING, 640), new EffectInstance(Effects.POISON, 640), new EffectInstance(HIDDEN_FIREFLY_MASTER_EFFECT, 320, 69)));
     public static final RegistryObject<Potion> STRONG_FIREFLY_MASTER = POTION_TYPES.register("strong_firefly_master", () -> new FireflyMasterPotion(new EffectInstance(Effects.GLOWING, 200, 1), new EffectInstance(Effects.POISON, 200, 1), new EffectInstance(HIDDEN_FIREFLY_MASTER_EFFECT, 320, 69)));
     //endregion Potions & Effects
+
+    //region Fluids
+    public static final RegistryObject<Fluid> GENERIC_POTION_FLUID = FLUIDS.register("potion_fluid", () -> new GlassJarFluid("block/water_still", GlassJarFluid.BOTTLE_VOLUME));
+    public static final RegistryObject<Fluid> MILK_FLUID = FLUIDS.register("milk_fluid", () -> new GlassJarFluid("block/water_still", FluidAttributes.BUCKET_VOLUME, 0xFFF7F7F7));
+    public static final RegistryObject<Fluid> HONEY_FLUID = FLUIDS.register("honey_fluid", () -> new GlassJarFluid("block/water_still", GlassJarFluid.BOTTLE_VOLUME, 0xFFFDD330));
+    public static final RegistryObject<Fluid> DRAGON_BREATH_FLUID = FLUIDS.register("dragon_breath_fluid", () -> new GlassJarFluid("block/water_still", GlassJarFluid.BOTTLE_VOLUME, 0xFFE49BC4, 2));
+    public static final RegistryObject<Fluid> GENERIC_SOUP_FLUID = FLUIDS.register("soup_fluid", () -> new GlassJarFluid("block/water_still", GlassJarFluid.BOTTLE_VOLUME, 0xFF533909));
+    public static final RegistryObject<Fluid> RABBIT_STEW_FLUID = FLUIDS.register("rabbit_stew_fluid", () -> new GlassJarFluid("block/water_still", GlassJarFluid.BOTTLE_VOLUME, 0xFF533909));
+    public static final RegistryObject<Fluid> SUS_STEW_FLUID = FLUIDS.register("sus_stew_fluid", () -> new GlassJarFluid("block/water_still", GlassJarFluid.BOTTLE_VOLUME, 0xFF533909)); // when the imposter is
+    //endregion Fluids
 
     //region Tile Entities
     @SuppressWarnings("ConstantConditions")

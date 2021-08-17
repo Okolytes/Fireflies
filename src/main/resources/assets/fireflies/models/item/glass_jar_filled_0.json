@@ -1,6 +1,0 @@
-{
-  "parent": "fireflies:item/glass_jar",
-  "textures": {
-    "layer1": "fireflies:item/glass_jar_filled_0"
-  }
-}
