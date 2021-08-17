@@ -31,7 +31,7 @@ public class FireflyRenderer extends MobRenderer<FireflyEntity, FireflyModel<Fir
 
     protected void applyRotations(FireflyEntity fireflyEntity, MatrixStack matrixStack, float ageInTicks, float rotationYaw, float partialTicks) {
         // Bob firefly up and down
-        matrixStack.translate(0.0D, (MathHelper.cos(ageInTicks * 0.1F) * 0.05F), 0.0D);
+        matrixStack.translate(0.0D, MathHelper.cos(ageInTicks * 0.1F) * 0.05F, 0.0D);
 
         super.applyRotations(fireflyEntity, matrixStack, ageInTicks, rotationYaw, partialTicks);
     }

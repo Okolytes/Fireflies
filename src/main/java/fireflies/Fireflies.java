@@ -5,6 +5,7 @@ import fireflies.client.particle.FireflyDustParticle;
 import fireflies.client.render.FireflyRenderer;
 import fireflies.client.render.GlassJarRenderer;
 import fireflies.entity.FireflyEntity;
+import fireflies.item.GlassJarBlockItem;
 import fireflies.misc.FireflyMasterPotion;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.particle.ParticleManager;
@@ -56,7 +57,10 @@ public class Fireflies {
 
     @SubscribeEvent
     public void clientSetup(final FMLClientSetupEvent event) {
-        event.enqueueWork(() -> RenderTypeLookup.setRenderLayer(Registry.GLASS_JAR.get(), RenderType.getCutout()));
+        event.enqueueWork(() -> {
+            RenderTypeLookup.setRenderLayer(Registry.GLASS_JAR.get(), RenderType.getCutout());
+            GlassJarBlockItem.registerItemModelProperty();
+        });
         ClientRegistry.bindTileEntityRenderer(Registry.GLASS_JAR_TILE_ENTITY.get(), GlassJarRenderer::new);
         RenderingRegistry.registerEntityRenderingHandler(Registry.FIREFLY.get(), FireflyRenderer::new);
     }
