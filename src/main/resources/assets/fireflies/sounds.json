@@ -13,8 +13,7 @@
     "subtitle": "subtitle.fireflies.firefly_death",
     "sounds": [
       "fireflies:firefly_death_0",
-      "fireflies:firefly_death_1",
-      "fireflies:firefly_death_2"
+      "fireflies:firefly_death_1"
     ]
   },
   "firefly_glow": {
