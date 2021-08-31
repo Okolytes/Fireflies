@@ -15,8 +15,8 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 
 @OnlyIn(Dist.CLIENT)
 public class FireflyRenderer extends MobRenderer<FireflyEntity, FireflyModel<FireflyEntity>> {
-    private static final ResourceLocation DEFAULT = new ResourceLocation(Fireflies.MOD_ID, "textures/entity/firefly.png");
-    private static final ResourceLocation REDSTONE = new ResourceLocation(Fireflies.MOD_ID, "textures/entity/firefly_redstone.png");
+    private static final ResourceLocation DEFAULT = new ResourceLocation(Fireflies.ID, "textures/entity/firefly.png");
+    private static final ResourceLocation REDSTONE = new ResourceLocation(Fireflies.ID, "textures/entity/firefly_redstone.png");
 
     public FireflyRenderer(EntityRendererManager manager) {
         super(manager, new FireflyModel<>(), 0.3f);

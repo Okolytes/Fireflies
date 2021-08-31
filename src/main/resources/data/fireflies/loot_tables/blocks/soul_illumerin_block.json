@@ -6,7 +6,7 @@
       "entries": [
         {
           "type": "minecraft:item",
-          "name": "fireflies:ecto_illumerin_block"
+          "name": "fireflies:soul_illumerin_block"
         }
       ],
       "conditions": [

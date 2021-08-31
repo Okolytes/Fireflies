@@ -2,7 +2,7 @@
   "parent": "minecraft:recipes/root",
   "rewards": {
     "recipes": [
-      "fireflies:ecto_illumerin_block"
+      "fireflies:soul_illumerin_block"
     ]
   },
   "criteria": {
@@ -11,7 +11,7 @@
       "conditions": {
         "items": [
           {
-            "item": "fireflies:ecto_illumerin"
+            "item": "fireflies:soul_illumerin"
           }
         ]
       }
@@ -19,7 +19,7 @@
     "has_the_recipe": {
       "trigger": "minecraft:recipe_unlocked",
       "conditions": {
-        "recipe": "fireflies:ecto_illumerin_block"
+        "recipe": "fireflies:soul_illumerin_block"
       }
     }
   },

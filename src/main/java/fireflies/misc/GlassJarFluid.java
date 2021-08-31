@@ -16,7 +16,7 @@ public class GlassJarFluid extends EmptyFluid {
     private final byte luminosity;
 
     public GlassJarFluid(String textureLocation, int volume) {
-        this(textureLocation, volume, 0xffffffff, (byte)0);
+        this(textureLocation, volume, 0xffffffff, (byte) 0);
     }
 
     public GlassJarFluid(String textureLocation, int volume, int color) {
@@ -28,7 +28,7 @@ public class GlassJarFluid extends EmptyFluid {
     }
 
     public GlassJarFluid(String textureLocation, int volume, int color, byte luminosity) {
-        this.textureLocation = String.format("%s:block/%s", Fireflies.MOD_ID, textureLocation);
+        this.textureLocation = String.format("%s:block/%s", Fireflies.ID, textureLocation);
         this.volume = volume;
         this.color = color;
         this.fluidStack = new FluidStack(this, volume);
@@ -40,11 +40,11 @@ public class GlassJarFluid extends EmptyFluid {
     }
 
     public int getVolume() {
-        return volume;
+        return this.volume;
     }
 
     @Override
     protected FluidAttributes createAttributes() {
-        return FluidAttributes.builder(new ResourceLocation(textureLocation + "_side"), new ResourceLocation(textureLocation + "_top")).color(color).luminosity(luminosity).build(this);
+        return FluidAttributes.builder(new ResourceLocation(this.textureLocation + "_side"), new ResourceLocation(this.textureLocation + "_top")).color(this.color).luminosity(this.luminosity).build(this);
     }
 }

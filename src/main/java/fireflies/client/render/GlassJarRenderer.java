@@ -32,21 +32,21 @@ public class GlassJarRenderer extends TileEntityRenderer<GlassJarTile> {
     @Override
     public void render(GlassJarTile glassJar, float partialTicks, MatrixStack matrixStackIn, IRenderTypeBuffer bufferIn, int light, int combinedOverlayIn) {
         if (glassJar.isRemoved() || glassJar.getTank().isEmpty() || glassJar.getWorld() == null) return;
-        FluidStack fluidStack = glassJar.getTank().getFluid();
-        FluidAttributes fluidAttributes = fluidStack.getFluid().getAttributes();
-        boolean isJarFluid = fluidStack.getFluid().getRegistryName() != null && fluidStack.getFluid().getRegistryName().getNamespace().equals(Fireflies.MOD_ID);
-        TextureAtlasSprite sideSprite = Minecraft.getInstance().getAtlasSpriteGetter(PlayerContainer.LOCATION_BLOCKS_TEXTURE).apply(fluidAttributes.getStillTexture(fluidStack));
-        TextureAtlasSprite topSprite = isJarFluid ? Minecraft.getInstance().getAtlasSpriteGetter(PlayerContainer.LOCATION_BLOCKS_TEXTURE).apply(fluidAttributes.getFlowingTexture(fluidStack)) : sideSprite;
+        final FluidStack fluidStack = glassJar.getTank().getFluid();
+        final FluidAttributes fluidAttributes = fluidStack.getFluid().getAttributes();
+        final boolean isJarFluid = fluidStack.getFluid().getRegistryName() != null && fluidStack.getFluid().getRegistryName().getNamespace().equals(Fireflies.ID);
+        final TextureAtlasSprite sideSprite = Minecraft.getInstance().getAtlasSpriteGetter(PlayerContainer.LOCATION_BLOCKS_TEXTURE).apply(fluidAttributes.getStillTexture(fluidStack));
+        final TextureAtlasSprite topSprite = isJarFluid ? Minecraft.getInstance().getAtlasSpriteGetter(PlayerContainer.LOCATION_BLOCKS_TEXTURE).apply(fluidAttributes.getFlowingTexture(fluidStack)) : sideSprite;
         if (sideSprite == null || topSprite == null) return;
 
         matrixStackIn.push();
-        Matrix4f matrix4f = matrixStackIn.getLast().getMatrix();
-        IVertexBuilder bufferSide = bufferIn.getBuffer(RenderType.getText(sideSprite.getAtlasTexture().getTextureLocation()));
-        IVertexBuilder bufferTop = bufferIn.getBuffer(RenderType.getText(topSprite.getAtlasTexture().getTextureLocation()));
+        final Matrix4f matrix4f = matrixStackIn.getLast().getMatrix();
+        final IVertexBuilder bufferSide = bufferIn.getBuffer(RenderType.getText(sideSprite.getAtlasTexture().getTextureLocation()));
+        final IVertexBuilder bufferTop = bufferIn.getBuffer(RenderType.getText(topSprite.getAtlasTexture().getTextureLocation()));
 
         if (glassJar.cachedOpen && !glassJar.cachedAttached) {
-            float x = 0.0625f;
-            float z = 0.1875f;
+            final float x = 0.0625f;
+            final float z = 0.1875f;
             switch (glassJar.cachedDirection) {
                 case NORTH:
                     matrixStackIn.translate(x, 0, z);
@@ -64,34 +64,45 @@ public class GlassJarRenderer extends TileEntityRenderer<GlassJarTile> {
         }
         matrixStackIn.translate(0.5f, 0.5f, 0.5f);
 
-        int color;
+        final int color;
+        // todo unfuck this
         if (glassJar.cachedFluidColor == -69) {
             // If it's a potion we'll use its color, if it's beetroot soup we'll use a custom colour
-            color = fluidStack.getTag() == null || fluidStack.getFluid().isEquivalentTo(Fluids.WATER)
-                    ? fluidAttributes.getColor(glassJar.getWorld(), glassJar.getPos())
-                    : fluidStack.getTag().contains("Potion") ? PotionUtils.getPotionColor(PotionUtils.getPotionTypeFromNBT(fluidStack.getTag()))
-                    : fluidStack.getTag().getString("Soup").equals("minecraft:beetroot_soup")
-                    ? 0xFFA4272C : fluidAttributes.getColor();
+            if (fluidStack.getTag() == null || fluidStack.getFluid().isEquivalentTo(Fluids.WATER)) {
+                color = fluidAttributes.getColor(glassJar.getWorld(), glassJar.getPos());
+            } else {
+                if (fluidStack.getTag().contains("Potion")) {
+                    color = PotionUtils.getPotionColor(PotionUtils.getPotionTypeFromNBT(fluidStack.getTag()));
+                } else {
+                    if (fluidStack.getTag().getString("Soup").equals("minecraft:beetroot_soup")) {
+                        color = 0xFFA4272C;
+                    } else {
+                        color = fluidAttributes.getColor();
+                    }
+                }
+            }
             glassJar.cachedFluidColor = color;
         } else {
             color = glassJar.cachedFluidColor;
         }
-        float r = (color >> 16 & 0xff) / 255f;
-        float g = (color >> 8 & 0xff) / 255f;
-        float b = (color & 0xff) / 255f;
+
+        final float r = (color >> 16 & 0xff) / 255f;
+        final float g = (color >> 8 & 0xff) / 255f;
+        final float b = (color & 0xff) / 255f;
         float a = isJarFluid ? 0.9f : (color >> 24 & 0xff) / 255f;
         if (a <= 0) a = 0.75f;
 
-        float yScale = 0.69f * fluidStack.getAmount() / GlassJarTile.CAPACITY;
-        float offset = 0.01f;
-        float width = 0.6f;
-        float height = 1f;
+        final float yScale = 0.69f * fluidStack.getAmount() / GlassJarTile.CAPACITY;
+        final float offset = 0.01f;
+        final float width = 0.6f;
+        final float height = 1f;
 
         float minU = sideSprite.getInterpolatedU(0);
         float maxU = sideSprite.getInterpolatedU(8);
         float minV = sideSprite.getInterpolatedV(0);
         float maxV = sideSprite.getInterpolatedV(15.75f * yScale);
 
+        // Sides
         for (int i = 0; i < 4; i++) {
             bufferSide.pos(matrix4f, -width / 2 + offset, -height / 2 + height * yScale, -width / 2 - offset).color(r, g, b, a).tex(minU, minV).overlay(OverlayTexture.NO_OVERLAY).lightmap(light).endVertex();
             bufferSide.pos(matrix4f, width / 2 + offset, -height / 2 + height * yScale, -width / 2 - offset).color(r, g, b, a).tex(maxU, minV).overlay(OverlayTexture.NO_OVERLAY).lightmap(light).endVertex();
@@ -100,6 +111,7 @@ public class GlassJarRenderer extends TileEntityRenderer<GlassJarTile> {
             matrixStackIn.rotate(Vector3f.YP.rotationDegrees(90));
         }
 
+        // Top
         minU = topSprite.getInterpolatedU(0);
         maxU = topSprite.getInterpolatedU(10);
         minV = topSprite.getInterpolatedV(0);

@@ -14,8 +14,8 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 
 @OnlyIn(Dist.CLIENT)
 public class FireflyEyesLayer<T extends FireflyEntity, M extends FireflyModel<T>> extends LayerRenderer<T, M> {
-    private static final ResourceLocation EYES = new ResourceLocation(Fireflies.MOD_ID, "textures/entity/firefly_layer_eyes.png");
-    private static final ResourceLocation EYES_REDSTONE = new ResourceLocation(Fireflies.MOD_ID, "textures/entity/firefly_layer_eyes_redstone.png");
+    private static final ResourceLocation EYES = new ResourceLocation(Fireflies.ID, "textures/entity/firefly_layer_eyes.png");
+    private static final ResourceLocation EYES_REDSTONE = new ResourceLocation(Fireflies.ID, "textures/entity/firefly_layer_eyes_redstone.png");
 
     public FireflyEyesLayer(IEntityRenderer<T, M> entityRenderer) {
         super(entityRenderer);

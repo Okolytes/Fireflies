@@ -2,14 +2,25 @@ package fireflies.misc;
 
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
+import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.potion.*;
 import net.minecraftforge.common.brewing.IBrewingRecipe;
+import net.minecraftforge.event.entity.player.ItemTooltipEvent;
 
 public class FireflyMasterPotion extends Potion {
     public FireflyMasterPotion(EffectInstance... effectsIn) {
         super("firefly_master", effectsIn);
     }
 
+    public static void hideFireflyMasterToolTip(ItemTooltipEvent event) {
+        final CompoundNBT tag = event.getItemStack().getTag();
+        if (tag != null && tag.getString("Potion").contains("firefly_master")) {
+            event.getToolTip().removeIf(textComponent -> textComponent.getString().contains("firefly_master_effect"));
+        }
+    }
+
+    // We use a hidden effect otherwise we can't get a custom colour.
+    // https://forums.minecraftforge.net/topic/101238-1165-creating-a-potion-with-a-custom-colour/
     public static class HiddenFireflyMasterEffect extends Effect {
         public HiddenFireflyMasterEffect() {
             super(EffectType.NEUTRAL, 0xfffad420);

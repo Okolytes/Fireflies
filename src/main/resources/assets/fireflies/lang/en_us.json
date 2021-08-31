@@ -1,11 +1,11 @@
 {
   "block.fireflies.illumerin_block": "Illumerin Block",
   "block.fireflies.illumerin_lamp": "Illumerin Lamp",
-  "block.fireflies.ecto_illumerin_block": "Ecto Illumerin Block",
+  "block.fireflies.soul_illumerin_block": "Soul Illumerin Block",
   "block.fireflies.glass_jar": "Glass Jar",
 
   "item.fireflies.illumerin": "Illumerin",
-  "item.fireflies.ecto_illumerin": "Ecto Illumerin",
+  "item.fireflies.soul_illumerin": "Soul Illumerin",
   "item.fireflies.firefly_spawn_egg": "Firefly Spawn Egg",
   "item.minecraft.tipped_arrow.effect.firefly_master": "Arrow of the Firefly Master",
   "item.minecraft.potion.effect.firefly_master": "Potion of the Firefly Master",

@@ -2,8 +2,8 @@ package fireflies.block;
 
 import net.minecraft.util.Direction;
 
-public class EctoIllumerinBlock extends IllumerinBlock {
-    public EctoIllumerinBlock() {
+public class SoulIllumerinBlock extends IllumerinBlock {
+    public SoulIllumerinBlock() {
         this.setDefaultState(this.stateContainer.getBaseState().with(AXIS, Direction.Axis.Y));
     }
 }

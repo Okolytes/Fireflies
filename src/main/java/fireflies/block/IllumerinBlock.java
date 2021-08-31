@@ -16,10 +16,9 @@ import net.minecraft.world.IBlockReader;
 import net.minecraftforge.common.ToolType;
 import net.minecraftforge.event.entity.living.LivingSpawnEvent;
 import net.minecraftforge.eventbus.api.Event;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 
-@Mod.EventBusSubscriber(modid = Fireflies.MOD_ID)
+@Mod.EventBusSubscriber(modid = Fireflies.ID)
 public class IllumerinBlock extends RotatedPillarBlock {
     private static final int ILLUMERIN_RADIUS = 8;
     private static final int ECTO_ILLUMERIN_RADIUS = 5;
@@ -29,7 +28,6 @@ public class IllumerinBlock extends RotatedPillarBlock {
         this.setDefaultState(this.stateContainer.getBaseState().with(AXIS, Direction.Axis.Y));
     }
 
-    @SubscribeEvent
     public static void stopMobSpawning(LivingSpawnEvent.CheckSpawn e) {
         if (e.getWorld() == null || e.getWorld().isRemote() || e.getEntity() == null)
             return;
@@ -44,19 +42,19 @@ public class IllumerinBlock extends RotatedPillarBlock {
 
         // Cancel the spawn if an illumerin / powered illumerin block is within radius
         boolean cancelMobSpawn = false;
-        BlockPos mobPos = new BlockPos(e.getX(), e.getY(), e.getZ());
+        final BlockPos mobPos = new BlockPos(e.getX(), e.getY(), e.getZ());
         for (double x = e.getX() - ILLUMERIN_RADIUS; x < e.getX() + ILLUMERIN_RADIUS; x++) {
             for (double y = e.getY() - ILLUMERIN_RADIUS; y < e.getY() + ILLUMERIN_RADIUS; y++) {
                 for (double z = e.getZ() - ILLUMERIN_RADIUS; z < e.getZ() + ILLUMERIN_RADIUS; z++) {
-                    BlockPos blockPos = new BlockPos(x, y, z);
+                    final BlockPos blockPos = new BlockPos(x, y, z);
                     if (!blockPos.withinDistance(mobPos, ILLUMERIN_RADIUS)) {
                         continue;
                     }
 
-                    BlockState state = e.getWorld().getBlockState(blockPos);
-                    Block block = state.getBlock();
+                    final BlockState state = e.getWorld().getBlockState(blockPos);
+                    final Block block = state.getBlock();
                     if (block instanceof IllumerinBlock || (block instanceof IllumerinLamp && state.get(IllumerinLamp.POWERED))) {
-                        if (block instanceof EctoIllumerinBlock && !blockPos.withinDistance(mobPos, ECTO_ILLUMERIN_RADIUS))
+                        if (block instanceof SoulIllumerinBlock && !blockPos.withinDistance(mobPos, ECTO_ILLUMERIN_RADIUS))
                             continue;
 
                         cancelMobSpawn = true;

@@ -11,10 +11,10 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 
 // Taken directly from the BeeSound class
 @OnlyIn(Dist.CLIENT)
-public class FireflyFlightLoopSound extends TickableSound {
+public class FireflyFlightSound extends TickableSound {
     private final FireflyEntity fireflyEntity;
 
-    public FireflyFlightLoopSound(FireflyEntity fireflyEntity) {
+    public FireflyFlightSound(FireflyEntity fireflyEntity) {
         super(Registry.FIREFLY_FLIGHT_LOOP.get(), SoundCategory.NEUTRAL);
         this.fireflyEntity = fireflyEntity;
         this.x = fireflyEntity.getPosX();
@@ -41,7 +41,7 @@ public class FireflyFlightLoopSound extends TickableSound {
             this.x = this.fireflyEntity.getPosX();
             this.y = this.fireflyEntity.getPosY();
             this.z = this.fireflyEntity.getPosZ();
-            double v = Math.sqrt(Entity.horizontalMag(fireflyEntity.getMotion()));
+            double v = Math.sqrt(Entity.horizontalMag(this.fireflyEntity.getMotion()));
             this.pitch = (float) MathHelper.clampedLerp(this.getMinPitch(), this.getMaxPitch(), v);
             this.volume = (float) MathHelper.clampedLerp(0.04f, 0.1f, v);
         } else {

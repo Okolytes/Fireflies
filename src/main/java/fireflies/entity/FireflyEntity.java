@@ -509,7 +509,7 @@ public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
         super.onAddedToWorld();
         if (this.world.isRemote) {
             // Start playing the flight loop sound
-            ClientStuff.playFireflyLoopSound(this);
+            ClientStuff.beginFireflyFlightSound(this);
         }
     }
 

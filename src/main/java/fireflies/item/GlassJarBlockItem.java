@@ -8,20 +8,16 @@ import net.minecraft.item.*;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.potion.PotionUtils;
 import net.minecraft.util.ResourceLocation;
-import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.ColorHandlerEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.registries.ForgeRegistries;
 
-@Mod.EventBusSubscriber(modid = Fireflies.MOD_ID, value = Dist.CLIENT, bus = Mod.EventBusSubscriber.Bus.MOD)
 public class GlassJarBlockItem extends BlockItem {
     public GlassJarBlockItem() {
         super(Registry.GLASS_JAR.get(), new Item.Properties().group(ItemGroup.REDSTONE));
     }
 
     public static void registerItemModelProperty() {
-        ItemModelsProperties.registerProperty(Registry.GLASS_JAR_BLOCKITEM.get(), new ResourceLocation(Fireflies.MOD_ID, "filled"), (stack, world, wielder) -> {
+        ItemModelsProperties.registerProperty(Registry.GLASS_JAR_BLOCKITEM.get(), new ResourceLocation(Fireflies.ID, "filled"), (stack, world, wielder) -> {
             CompoundNBT nbt = stack.getChildTag("BlockEntityTag");
             if (nbt == null || nbt.getInt("Amount") <= 0) return 0f;
 
@@ -32,10 +28,10 @@ public class GlassJarBlockItem extends BlockItem {
         });
     }
 
-    @SubscribeEvent
     public static void registerGlassJarColor(final ColorHandlerEvent.Item event) {
         event.getItemColors().register((stack, color) -> {
             if (color == 0) return -1; // Don't colour the first layer
+
             CompoundNBT nbt = stack.getChildTag("BlockEntityTag");
             if (nbt == null || nbt.getInt("Amount") <= 0) return -1;
 

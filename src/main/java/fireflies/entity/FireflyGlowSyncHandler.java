@@ -1,21 +1,15 @@
 package fireflies.entity;
 
-import fireflies.Fireflies;
 import fireflies.client.ClientStuff;
-import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.event.TickEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
 
 import java.util.ArrayList;
 
-@Mod.EventBusSubscriber(modid = Fireflies.MOD_ID, value = Dist.CLIENT)
 public class FireflyGlowSyncHandler {
     public static final FireflySyncedAnimation calmSyncedFireflies = new FireflySyncedAnimation();
     public static final FireflySyncedAnimation starryNightSyncedFireflies = new FireflySyncedAnimation();
 
-    @SubscribeEvent
-    public static void clientTickEvent(TickEvent.ClientTickEvent event) {
+    public static void animateFireflies(TickEvent.ClientTickEvent event) {
         if (event.phase == TickEvent.Phase.END /* Runs on both START and END */ || ClientStuff.isGamePaused())
             return;
 

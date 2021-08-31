@@ -22,28 +22,23 @@ public class FireflyParticleData {
 
         @Override
         public ParticleType<?> getType() {
-            return particleType();
+            return this.particleType();
         }
 
         @Override
         public void write(PacketBuffer buffer) {
-            buffer.writeVarInt(fireflyId);
+            buffer.writeVarInt(this.fireflyId);
         }
 
         @Override
         public String getParameters() {
-            return Integer.toString(fireflyId);
+            return Integer.toString(this.fireflyId);
         }
     }
 
     public static class Dust extends AbstractFireflyParticleData {
         public Dust(int fireflyId) {
             super(fireflyId);
-        }
-
-        @Override
-        protected ParticleType<?> particleType() {
-            return Registry.FIREFLY_DUST_PARTICLE.get();
         }
 
         public static ParticleType<Dust> get() {
@@ -65,16 +60,16 @@ public class FireflyParticleData {
                 }
             };
         }
+
+        @Override
+        protected ParticleType<?> particleType() {
+            return Registry.FIREFLY_DUST_PARTICLE.get();
+        }
     }
 
     public static class DustRedstone extends AbstractFireflyParticleData {
         public DustRedstone(int fireflyId) {
             super(fireflyId);
-        }
-
-        @Override
-        protected ParticleType<?> particleType() {
-            return Registry.FIREFLY_DUST_REDSTONE_PARTICLE.get();
         }
 
         public static ParticleType<DustRedstone> get() {
@@ -96,16 +91,16 @@ public class FireflyParticleData {
                 }
             };
         }
+
+        @Override
+        protected ParticleType<?> particleType() {
+            return Registry.FIREFLY_DUST_REDSTONE_PARTICLE.get();
+        }
     }
 
     public static class Abdomen extends AbstractFireflyParticleData {
         public Abdomen(int fireflyId) {
             super(fireflyId);
-        }
-
-        @Override
-        protected ParticleType<?> particleType() {
-            return Registry.FIREFLY_ABDOMEN_PARTICLE.get();
         }
 
         public static ParticleType<Abdomen> get() {
@@ -127,17 +122,17 @@ public class FireflyParticleData {
                 }
             };
         }
+
+        @Override
+        protected ParticleType<?> particleType() {
+            return Registry.FIREFLY_ABDOMEN_PARTICLE.get();
+        }
     }
 
     public static class AbdomenRedstone extends AbstractFireflyParticleData {
 
         public AbdomenRedstone(int fireflyId) {
             super(fireflyId);
-        }
-
-        @Override
-        protected ParticleType<?> particleType() {
-            return Registry.FIREFLY_ABDOMEN_REDSTONE_PARTICLE.get();
         }
 
         public static ParticleType<AbdomenRedstone> get() {
@@ -160,16 +155,16 @@ public class FireflyParticleData {
             };
         }
 
+        @Override
+        protected ParticleType<?> particleType() {
+            return Registry.FIREFLY_ABDOMEN_REDSTONE_PARTICLE.get();
+        }
+
     }
 
     public static class AbdomenIllumerin extends AbstractFireflyParticleData {
         public AbdomenIllumerin(int fireflyId) {
             super(fireflyId);
-        }
-
-        @Override
-        protected ParticleType<?> particleType() {
-            return Registry.FIREFLY_ABDOMEN_ILLUMERIN_PARTICLE.get();
         }
 
         public static ParticleType<AbdomenIllumerin> get() {
@@ -190,6 +185,11 @@ public class FireflyParticleData {
                     return Codec.INT.xmap(AbdomenIllumerin::new, (fireflyDustParticleData) -> fireflyDustParticleData.fireflyId);
                 }
             };
+        }
+
+        @Override
+        protected ParticleType<?> particleType() {
+            return Registry.FIREFLY_ABDOMEN_ILLUMERIN_PARTICLE.get();
         }
     }
 }
