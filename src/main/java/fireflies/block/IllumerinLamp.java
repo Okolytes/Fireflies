@@ -17,13 +17,17 @@ import java.util.Random;
 
 public class IllumerinLamp extends Block {
     /**
-     * Only powerable by a firefly.
+     * Only powerable by a redstone firefly.
      */
     public static final BooleanProperty POWERED = BlockStateProperties.POWERED;
+    /**
+     * Is this lamp synced to a redstone firefly?
+     */
+    public static final BooleanProperty SYNCED = BooleanProperty.create("synced");
 
     public IllumerinLamp() {
-        super(Properties.create(Material.IRON).hardnessAndResistance(0.3f).sound(SoundType.GLASS).setAllowsSpawn((a, b, c, d) -> false).setEmmisiveRendering(IllumerinLamp::isEmissive).setNeedsPostProcessing(IllumerinLamp::isEmissive));
-        this.setDefaultState(this.stateContainer.getBaseState().with(POWERED, Boolean.FALSE));
+        super(Properties.create(Material.REDSTONE_LIGHT).hardnessAndResistance(0.3f).sound(SoundType.GLASS).setAllowsSpawn((a, b, c, d) -> false).setEmmisiveRendering(IllumerinLamp::isEmissive).setNeedsPostProcessing(IllumerinLamp::isEmissive));
+        this.setDefaultState(this.stateContainer.getBaseState().with(POWERED, false).with(SYNCED, false));
     }
 
     private static boolean isEmissive(BlockState state, IBlockReader iBlockReader, BlockPos blockPos) {
@@ -34,7 +38,7 @@ public class IllumerinLamp extends Block {
     @Override
     public void tick(BlockState state, ServerWorld world, BlockPos pos, Random rand) {
         super.tick(state, world, pos, rand);
-        boolean flag = world.isBlockPowered(pos);
+        final boolean flag = world.isBlockPowered(pos);
         if (flag != state.get(POWERED)) {
             world.setBlockState(pos, state.with(POWERED, flag), 3);
         }
@@ -71,6 +75,6 @@ public class IllumerinLamp extends Block {
     @Override
     protected void fillStateContainer(StateContainer.Builder<Block, BlockState> builder) {
         super.fillStateContainer(builder);
-        builder.add(POWERED);
+        builder.add(POWERED, SYNCED);
     }
 }

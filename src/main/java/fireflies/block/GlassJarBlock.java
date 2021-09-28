@@ -497,7 +497,7 @@ public class GlassJarBlock extends HorizontalBlock implements IWaterLoggable {
         // Spawn ender particles if dragon breath is inside the jar.
         if (tile != null && hasFluid(tile.getTank(), Registry.DRAGON_BREATH_FLUID.get())) {
             // Amount of particles depends of the fullness of the jar.
-            for (int i = 0; i < tile.cachedLevel; ++i) {
+            for (int i = 0; i < tile.cachedLevel; i++) {
                 // Taken from ender chest code
                 int j = rand.nextInt(2) * 2 - 1;
                 int k = rand.nextInt(2) * 2 - 1;

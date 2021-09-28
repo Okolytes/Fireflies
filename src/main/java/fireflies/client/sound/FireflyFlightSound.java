@@ -2,6 +2,7 @@ package fireflies.client.sound;
 
 import fireflies.Registry;
 import fireflies.entity.FireflyEntity;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.audio.TickableSound;
 import net.minecraft.entity.Entity;
 import net.minecraft.util.SoundCategory;
@@ -9,20 +10,27 @@ import net.minecraft.util.math.MathHelper;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
-// Taken directly from the BeeSound class
+
+/**
+ * @see net.minecraft.client.audio.BeeSound
+ */
 @OnlyIn(Dist.CLIENT)
 public class FireflyFlightSound extends TickableSound {
-    private final FireflyEntity fireflyEntity;
+    private final FireflyEntity firefly;
 
     public FireflyFlightSound(FireflyEntity fireflyEntity) {
         super(Registry.FIREFLY_FLIGHT_LOOP.get(), SoundCategory.NEUTRAL);
-        this.fireflyEntity = fireflyEntity;
+        this.firefly = fireflyEntity;
         this.x = fireflyEntity.getPosX();
         this.y = fireflyEntity.getPosY();
         this.z = fireflyEntity.getPosZ();
         this.repeat = true;
         this.repeatDelay = 0;
         this.volume = 0.0F;
+    }
+
+    public static void beginFireflyFlightSound(FireflyEntity fireflyEntity) {
+        Minecraft.getInstance().getSoundHandler().playOnNextTick(new FireflyFlightSound(fireflyEntity));
     }
 
     @Override
@@ -32,16 +40,16 @@ public class FireflyFlightSound extends TickableSound {
 
     @Override
     public boolean shouldPlaySound() {
-        return !this.fireflyEntity.isSilent();
+        return !this.firefly.isSilent();
     }
 
     @Override
     public void tick() {
-        if (this.fireflyEntity.isAlive()) {
-            this.x = this.fireflyEntity.getPosX();
-            this.y = this.fireflyEntity.getPosY();
-            this.z = this.fireflyEntity.getPosZ();
-            double v = Math.sqrt(Entity.horizontalMag(this.fireflyEntity.getMotion()));
+        if (this.firefly.isAlive()) {
+            this.x = this.firefly.getPosX();
+            this.y = this.firefly.getPosY();
+            this.z = this.firefly.getPosZ();
+            final double v = Math.sqrt(Entity.horizontalMag(this.firefly.getMotion()));
             this.pitch = (float) MathHelper.clampedLerp(this.getMinPitch(), this.getMaxPitch(), v);
             this.volume = (float) MathHelper.clampedLerp(0.04f, 0.1f, v);
         } else {
@@ -50,10 +58,10 @@ public class FireflyFlightSound extends TickableSound {
     }
 
     private float getMinPitch() {
-        return this.fireflyEntity.isChild() ? 1.1F : 0.9F;
+        return this.firefly.isChild() ? 1.1F : 0.9F;
     }
 
     private float getMaxPitch() {
-        return this.fireflyEntity.isChild() ? 1.3F : 1.1F;
+        return this.firefly.isChild() ? 1.3F : 1.1F;
     }
 }

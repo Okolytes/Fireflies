@@ -26,7 +26,7 @@ public class FireflyRenderer extends MobRenderer<FireflyEntity, FireflyModel<Fir
 
     @Override
     public ResourceLocation getEntityTexture(FireflyEntity fireflyEntity) {
-        return fireflyEntity.isRedstoneCoated(true) ? REDSTONE : DEFAULT;
+        return fireflyEntity.redstoneManager.isRedstoneCoated(true) ? REDSTONE : DEFAULT;
     }
 
     protected void applyRotations(FireflyEntity fireflyEntity, MatrixStack matrixStack, float ageInTicks, float rotationYaw, float partialTicks) {

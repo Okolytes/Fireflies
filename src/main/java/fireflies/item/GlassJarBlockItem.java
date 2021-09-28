@@ -28,7 +28,7 @@ public class GlassJarBlockItem extends BlockItem {
         });
     }
 
-    public static void registerGlassJarColor(final ColorHandlerEvent.Item event) {
+    public static void registerGlassJarColor( ColorHandlerEvent.Item event) {
         event.getItemColors().register((stack, color) -> {
             if (color == 0) return -1; // Don't colour the first layer
 

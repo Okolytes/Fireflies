@@ -5,6 +5,7 @@ import fireflies.misc.FireflyParticleData;
 import net.minecraft.client.particle.*;
 import net.minecraft.client.world.ClientWorld;
 import net.minecraft.entity.Entity;
+import net.minecraft.particles.IParticleData;
 import net.minecraft.util.math.MathHelper;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
@@ -23,12 +24,12 @@ public class FireflyDustParticle extends SpriteTexturedParticle {
         this.rotSpeed = (this.rand.nextFloat() - 0.1f) * 0.05f;
         if (redstone) {
             this.particleScale *= 0.5f;
-            int i = (int) (8.0f / (this.rand.nextFloat() * 0.8f + 0.2f));
+            final int i = (int) (8.0f / (this.rand.nextFloat() * 0.8f + 0.2f));
             this.maxAge = (int) Math.max((float) i * 2.5f, 1.0f);
-            float f = this.rand.nextFloat() * 0.4f + 0.6f;
-            float r = 0.97f;
-            float g = 0.02f;
-            float b = 0.01f;
+            final float f = this.rand.nextFloat() * 0.4f + 0.6f;
+            final float r = 0.97f;
+            final float g = 0.02f;
+            final float b = 0.01f;
             this.particleRed = ((this.rand.nextFloat() * 0.2f) + 0.8f) * r * f;
             this.particleGreen = ((this.rand.nextFloat() * 0.2f) + 0.8f) * g * f;
             this.particleBlue = ((this.rand.nextFloat() * 0.2f) + 0.8f) * b * f;
@@ -67,7 +68,7 @@ public class FireflyDustParticle extends SpriteTexturedParticle {
             this.setExpired();
         } else {
             if (this.redstone) {
-                this.selectSpriteWithAge(spriteWithAge);
+                this.selectSpriteWithAge(this.spriteWithAge);
             }
             this.prevParticleAngle = this.particleAngle;
             this.particleAngle += (float) Math.PI * this.rotSpeed * 1.25f;
@@ -84,42 +85,36 @@ public class FireflyDustParticle extends SpriteTexturedParticle {
     }
 
     @OnlyIn(Dist.CLIENT)
-    public static class DustParticleFactory implements IParticleFactory<FireflyParticleData.Dust> {
-        private final IAnimatedSprite iAnimatedSprite;
+    private static abstract class AbstractDustParticleFactory<T extends IParticleData> implements IParticleFactory<T> {
+        protected final IAnimatedSprite iAnimatedSprite;
 
-        public DustParticleFactory(IAnimatedSprite spriteSetIn) {
-            this.iAnimatedSprite = spriteSetIn;
+        public AbstractDustParticleFactory(IAnimatedSprite iAnimatedSprite) {
+            this.iAnimatedSprite = iAnimatedSprite;
         }
 
         @Override
-        public Particle makeParticle(FireflyParticleData.Dust dust, ClientWorld clientWorld, double x, double y, double z, double xSpeed, double ySpeed, double zSpeed) {
-            Entity entity = clientWorld.getEntityByID(dust.fireflyId);
+        public Particle makeParticle(T particleData, ClientWorld clientWorld, double x, double y, double z, double xSpeed, double ySpeed, double zSpeed) {
+            final Entity entity = clientWorld.getEntityByID(((FireflyParticleData.AbstractFireflyParticleData) particleData).fireflyId);
             if (entity == null || !entity.isAlive() || !(entity instanceof FireflyEntity))
                 return null;
 
-            FireflyDustParticle fireflyDustParticle = new FireflyDustParticle((FireflyEntity) entity, clientWorld, x, y, z, xSpeed, ySpeed, zSpeed, iAnimatedSprite, false);
-            fireflyDustParticle.selectSpriteRandomly(iAnimatedSprite);
+            final FireflyDustParticle fireflyDustParticle = new FireflyDustParticle((FireflyEntity) entity, clientWorld, x, y, z, xSpeed, ySpeed, zSpeed, this.iAnimatedSprite, false);
+            fireflyDustParticle.selectSpriteRandomly(this.iAnimatedSprite);
             return fireflyDustParticle;
         }
     }
 
     @OnlyIn(Dist.CLIENT)
-    public static class DustRedstoneParticleFactory implements IParticleFactory<FireflyParticleData.DustRedstone> {
-        private final IAnimatedSprite iAnimatedSprite;
-
-        public DustRedstoneParticleFactory(IAnimatedSprite spriteSetIn) {
-            this.iAnimatedSprite = spriteSetIn;
+    public static class DustParticleFactory extends AbstractDustParticleFactory<FireflyParticleData.Dust> {
+        public DustParticleFactory(IAnimatedSprite iAnimatedSprite) {
+            super(iAnimatedSprite);
         }
+    }
 
-        @Override
-        public Particle makeParticle(FireflyParticleData.DustRedstone dust, ClientWorld clientWorld, double x, double y, double z, double xSpeed, double ySpeed, double zSpeed) {
-            Entity entity = clientWorld.getEntityByID(dust.fireflyId);
-            if (entity == null || !entity.isAlive() || !(entity instanceof FireflyEntity))
-                return null;
-
-            FireflyDustParticle fireflyDustParticle = new FireflyDustParticle((FireflyEntity) entity, clientWorld, x, y, z, xSpeed, ySpeed, zSpeed, iAnimatedSprite, true);
-            fireflyDustParticle.selectSpriteRandomly(iAnimatedSprite);
-            return fireflyDustParticle;
+    @OnlyIn(Dist.CLIENT)
+    public static class DustRedstoneParticleFactory extends AbstractDustParticleFactory<FireflyParticleData.DustRedstone> {
+        public DustRedstoneParticleFactory(IAnimatedSprite iAnimatedSprite) {
+            super(iAnimatedSprite);
         }
     }
 }

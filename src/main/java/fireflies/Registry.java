@@ -35,7 +35,7 @@ import net.minecraftforge.fml.RegistryObject;
 import net.minecraftforge.registries.DeferredRegister;
 import net.minecraftforge.registries.ForgeRegistries;
 
-public class Registry {
+public final class Registry {
     private static final DeferredRegister<Block> BLOCKS = DeferredRegister.create(ForgeRegistries.BLOCKS, Fireflies.ID);
     private static final DeferredRegister<Fluid> FLUIDS = DeferredRegister.create(ForgeRegistries.FLUIDS, Fireflies.ID);
     private static final DeferredRegister<Item> ITEMS = DeferredRegister.create(ForgeRegistries.ITEMS, Fireflies.ID);
@@ -118,7 +118,7 @@ public class Registry {
         SOUNDS.register(bus);
     }
 
-    public static void registerSpawnEggs(final RegistryEvent.Register<Item> event) {
+    public static void registerSpawnEggs( RegistryEvent.Register<Item> event) {
         event.getRegistry().registerAll(
                 FIREFLY_SPAWN_EGG//, SOUL_FIREFLY_SPAWN_EGG
         );
@@ -127,9 +127,11 @@ public class Registry {
         //registerSpawnEggDispenserBehaviour(SOUL_FIREFLY_SPAWN_EGG);
     }
 
+    /**
+     * Registers the spawn egg's dispenser behaviour.
+     * Taken from IDispenseItemBehavior#init L192
+     */
     private static void registerSpawnEggDispenserBehaviour(IItemProvider egg){
-        // Registers the spawn egg's dispenser behaviour.
-        // Taken from IDispenseItemBehavior#init L192
         DispenserBlock.registerDispenseBehavior(egg, new DefaultDispenseItemBehavior() {
             public ItemStack dispenseStack(IBlockSource source, ItemStack stack) {
                 final Direction direction = source.getBlockState().get(DispenserBlock.FACING);
@@ -141,7 +143,7 @@ public class Registry {
         });
     }
 
-    public static void registerEffects(final RegistryEvent.Register<Effect> event) {
+    public static void registerEffects( RegistryEvent.Register<Effect> event) {
         event.getRegistry().register(HIDDEN_FIREFLY_MASTER_EFFECT);
     }
 

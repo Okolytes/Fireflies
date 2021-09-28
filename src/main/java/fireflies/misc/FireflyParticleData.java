@@ -11,7 +11,7 @@ import net.minecraft.particles.ParticleType;
 // This is the worstest java code of All Time
 @SuppressWarnings("deprecation")
 public class FireflyParticleData {
-    private abstract static class AbstractFireflyParticleData implements IParticleData {
+    public abstract static class AbstractFireflyParticleData implements IParticleData {
         public final int fireflyId;
 
         public AbstractFireflyParticleData(int fireflyId) {

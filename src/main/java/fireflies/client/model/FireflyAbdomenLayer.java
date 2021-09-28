@@ -26,14 +26,14 @@ public class FireflyAbdomenLayer<T extends FireflyEntity, M extends EntityModel<
 
     @Override
     protected ResourceLocation getEntityTexture(T fireflyEntity) {
-        return fireflyEntity.isRedstoneCoated(true) ? ABDOMEN_REDSTONE : fireflyEntity.hasIllumerin(true) ? ABDOMEN_ILLUMERIN : ABDOMEN;
+        return fireflyEntity.redstoneManager.isRedstoneCoated(true) ? ABDOMEN_REDSTONE : fireflyEntity.hasIllumerin(true) ? ABDOMEN_ILLUMERIN : ABDOMEN;
     }
 
     @Override
-    public void render(MatrixStack matrixStack, IRenderTypeBuffer buffer, int packedLight, T fireflyEntity, float limbSwing, float limbSwingAmount, float partialTicks, float ageInTicks, float netHeadYaw, float headPitch) {
-        if (!fireflyEntity.isInvisible() && fireflyEntity.glowAlpha >= 0) {
-            this.getEntityModel().render(matrixStack, buffer.getBuffer(RenderType.getEyes(this.getEntityTexture(fireflyEntity))), 15728640, OverlayTexture.NO_OVERLAY,
-                    fireflyEntity.glowAlpha, fireflyEntity.glowAlpha, fireflyEntity.glowAlpha, fireflyEntity.glowAlpha);
+    public void render(MatrixStack matrixStack, IRenderTypeBuffer buffer, int packedLight, T firefly, float limbSwing, float limbSwingAmount, float partialTicks, float ageInTicks, float netHeadYaw, float headPitch) {
+        if (!firefly.isInvisible() && firefly.animationManager.animator.glow > 0) {
+            this.getEntityModel().render(matrixStack, buffer.getBuffer(RenderType.getEyes(this.getEntityTexture(firefly))), 15728640, OverlayTexture.NO_OVERLAY,
+                    firefly.animationManager.animator.glow, firefly.animationManager.animator.glow, firefly.animationManager.animator.glow, firefly.animationManager.animator.glow);
         }
     }
 }

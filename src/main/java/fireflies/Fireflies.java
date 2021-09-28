@@ -1,12 +1,13 @@
 package fireflies;
 
 import fireflies.block.IllumerinBlock;
+import fireflies.client.ClientStuff;
+import fireflies.client.entity.FireflyAbdomenAnimationManager;
 import fireflies.client.particle.FireflyAbdomenParticle;
 import fireflies.client.particle.FireflyDustParticle;
 import fireflies.client.render.FireflyRenderer;
 import fireflies.client.render.GlassJarRenderer;
 import fireflies.entity.FireflyEntity;
-import fireflies.entity.FireflyGlowSyncHandler;
 import fireflies.item.GlassJarBlockItem;
 import fireflies.misc.FireflyMasterPotion;
 import net.minecraft.client.Minecraft;
@@ -41,12 +42,11 @@ import java.util.Random;
 public class Fireflies {
     public static final String ID = "fireflies";
     public static final Logger LOGGER = LogManager.getLogger(ID);
-
-    private boolean changeSplashText = true;
+    public static final Random RANDOM = new Random();
+    private boolean firstSplashTextChange = true;
 
     public Fireflies() {
         final IEventBus modEventBus = FMLJavaModLoadingContext.get().getModEventBus();
-
         Registry.register(modEventBus);
         modEventBus.addGenericListener(Item.class, Registry::registerSpawnEggs);
         modEventBus.addGenericListener(Effect.class, Registry::registerEffects);
@@ -60,10 +60,12 @@ public class Fireflies {
         MinecraftForge.EVENT_BUS.addListener(this::splashTextEasterEgg);
         MinecraftForge.EVENT_BUS.addListener(IllumerinBlock::stopMobSpawning);
         MinecraftForge.EVENT_BUS.addListener(FireflyMasterPotion::hideFireflyMasterToolTip);
-        MinecraftForge.EVENT_BUS.addListener(FireflyGlowSyncHandler::animateFireflies);
+        MinecraftForge.EVENT_BUS.addListener(FireflyAbdomenAnimationManager::syncFireflies);
+
+        FireflyAbdomenAnimationManager.FireflyAnimationsLoader.addFireflyAnimationsReloadListener();
     }
 
-    private void commonSetup(final FMLCommonSetupEvent event) {
+    private void commonSetup(FMLCommonSetupEvent event) {
         event.enqueueWork(() -> {
             // Splash, lingering, arrows etcetera get registered automatically by minecraft.
             BrewingRecipeRegistry.addRecipe(new FireflyMasterPotion.FireflyMasterBrewingRecipe(Potions.AWKWARD, new ItemStack(Registry.ILLUMERIN.get()), Registry.FIREFLY_MASTER.get()));
@@ -73,7 +75,7 @@ public class Fireflies {
         });
     }
 
-    private void clientSetup(final FMLClientSetupEvent event) {
+    private void clientSetup(FMLClientSetupEvent event) {
         event.enqueueWork(() -> {
             RenderTypeLookup.setRenderLayer(Registry.GLASS_JAR.get(), RenderType.getCutout());
             GlassJarBlockItem.registerItemModelProperty();
@@ -82,33 +84,36 @@ public class Fireflies {
         RenderingRegistry.registerEntityRenderingHandler(Registry.FIREFLY.get(), FireflyRenderer::new);
     }
 
-    private void createEntityAttributes(final EntityAttributeCreationEvent event) {
+    private void createEntityAttributes(EntityAttributeCreationEvent event) {
         event.put(Registry.FIREFLY.get(), FireflyEntity.createAttributes().create());
     }
 
-    private void registerParticleFactories(final ParticleFactoryRegisterEvent event) {
+    private void registerParticleFactories(ParticleFactoryRegisterEvent event) {
         // Called only on the client.
-        final ParticleManager particleManager = Minecraft.getInstance().particles;
-        particleManager.registerFactory(Registry.FIREFLY_DUST_PARTICLE.get(), FireflyDustParticle.DustParticleFactory::new);
-        particleManager.registerFactory(Registry.FIREFLY_DUST_REDSTONE_PARTICLE.get(), FireflyDustParticle.DustRedstoneParticleFactory::new);
-        particleManager.registerFactory(Registry.FIREFLY_ABDOMEN_PARTICLE.get(), FireflyAbdomenParticle.AbdomenParticleFactory::new);
-        particleManager.registerFactory(Registry.FIREFLY_ABDOMEN_REDSTONE_PARTICLE.get(), FireflyAbdomenParticle.AbdomenRedstoneParticleFactory::new);
-        particleManager.registerFactory(Registry.FIREFLY_ABDOMEN_ILLUMERIN_PARTICLE.get(), FireflyAbdomenParticle.AbdomenIllumerinParticleFactory::new);
+        final ParticleManager pm = Minecraft.getInstance().particles;
+        pm.registerFactory(Registry.FIREFLY_DUST_PARTICLE.get(), FireflyDustParticle.DustParticleFactory::new);
+        pm.registerFactory(Registry.FIREFLY_DUST_REDSTONE_PARTICLE.get(), FireflyDustParticle.DustRedstoneParticleFactory::new);
+        pm.registerFactory(Registry.FIREFLY_ABDOMEN_PARTICLE.get(), FireflyAbdomenParticle.AbdomenParticleFactory::new);
+        pm.registerFactory(Registry.FIREFLY_ABDOMEN_REDSTONE_PARTICLE.get(), FireflyAbdomenParticle.AbdomenRedstoneParticleFactory::new);
+        pm.registerFactory(Registry.FIREFLY_ABDOMEN_ILLUMERIN_PARTICLE.get(), FireflyAbdomenParticle.AbdomenIllumerinParticleFactory::new);
     }
 
     private void splashTextEasterEgg(GuiOpenEvent event) {
-        if (this.changeSplashText && event.getGui() instanceof MainMenuScreen) {
+        if (this.firstSplashTextChange && event.getGui() instanceof MainMenuScreen) {
             // We don't want to have a chance of changing the splash text every time we open the main menu, just once when the game is opened
-            this.changeSplashText = false;
+            this.firstSplashTextChange = false;
+            final boolean sus = ClientStuff.getMyUsername().equals("0rbic"); // don't worry about this
             // 1 in 100 chance
-            if (Math.random() > 0.99f) {
+            if (Math.random() >= 0.99f || sus) {
                 final String[] splashes = {
+                        "There is an imposter among us.",
                         "You would not believe your eyes...",
                         "If ten million fireflies...",
                         "I'd get a thousand hugs, from ten thousand lightning bugs",
+                        "OK."
                 };
                 // Choose a random splash text
-                final String newSplashText = splashes[new Random().nextInt(splashes.length)];
+                final String newSplashText = sus ? splashes[0] : splashes[new Random().nextInt(splashes.length)];
 
                 try {
                     ObfuscationReflectionHelper.setPrivateValue(MainMenuScreen.class, (MainMenuScreen) event.getGui(), newSplashText, "field_73975_c");
