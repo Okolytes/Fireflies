@@ -272,9 +272,9 @@ public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
             if (this.shouldDoEffects()) {
                 this.animationManager.updateAbdomenAnimation();
                 // If our AbdomenAnimator is using a synced instance we will let it do the animating
-                if (!FireflyAbdomenAnimationManager.SYNCHRONIZED_ANIMATORS.containsValue(this.animationManager.animator)) {
-                    this.animationManager.animator.animate();
-                }
+                //if (!FireflyAbdomenAnimationManager.SYNCHRONIZED_ANIMATORS.containsValue(this.animationManager.animator)) {
+                //    this.animationManager.animator.animate();
+                //}
                 this.particleManager.spawnFallingDustParticles();
             } else {
                 this.animationManager.setAnimation(null);
@@ -303,7 +303,7 @@ public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
     public void onRemovedFromWorld() {
         super.onRemovedFromWorld();
         if (this.world.isRemote) {
-            this.animationManager.stopAnimating();
+            this.animationManager.removeFromAnimator();
         } else {
             if (this.redstoneManager.isRedstoneCoated(false)) {
                 this.redstoneManager.desyncLamps();

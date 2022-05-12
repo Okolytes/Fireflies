@@ -82,7 +82,7 @@ public class FireflyParticleManager {
      * This is called every tick at {@link FireflyEntity#livingTick()}
      */
     public void spawnFallingDustParticles() {
-        if (this.firefly.ticksExisted % 10 == 0 && this.firefly.animationManager.animator.glow > 0f && this.firefly.getRNG().nextFloat() > 0.25f && !this.firefly.isInvisible()) {
+        if (this.firefly.ticksExisted % 10 == 0 && this.firefly.animationManager.animator.glow > 0f && this.firefly.getRNG().nextFloat() > 0.75f && !this.firefly.isInvisible()) {
             // Redstones fireflies & illumerin fireflies don't spawn particles as often.
             //if ((this.firefly.isRedstoneCoated(true) || this.firefly.hasIllumerin(true)) && (this.firefly.getRNG().nextFloat() > 0.5f))
             //    return;

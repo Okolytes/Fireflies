@@ -1,0 +1,413 @@
+[
+  {
+    "glow": 0.0,
+    "delay": [
+      30,
+      80
+    ]
+  },
+  {
+    "glow": 0.013199999999999991,
+    "delay": null
+  },
+  {
+    "glow": 0.026399999999999983,
+    "delay": null
+  },
+  {
+    "glow": 0.039599999999999975,
+    "delay": null
+  },
+  {
+    "glow": 0.052799999999999965,
+    "delay": null
+  },
+  {
+    "glow": 0.065999999999999961,
+    "delay": null
+  },
+  {
+    "glow": 0.079199999999999937,
+    "delay": null
+  },
+  {
+    "glow": 0.092399999999999927,
+    "delay": null
+  },
+  {
+    "glow": 0.10559999999999992,
+    "delay": null
+  },
+  {
+    "glow": 0.11879999999999991,
+    "delay": null
+  },
+  {
+    "glow": 0.1319999999999999,
+    "delay": null
+  },
+  {
+    "glow": 0.14519999999999989,
+    "delay": null
+  },
+  {
+    "glow": 0.15839999999999987,
+    "delay": null
+  },
+  {
+    "glow": 0.17159999999999986,
+    "delay": null
+  },
+  {
+    "glow": 0.18479999999999985,
+    "delay": null
+  },
+  {
+    "glow": 0.19799999999999987,
+    "delay": null
+  },
+  {
+    "glow": 0.21119999999999986,
+    "delay": null
+  },
+  {
+    "glow": 0.22439999999999988,
+    "delay": null
+  },
+  {
+    "glow": 0.2375999999999999,
+    "delay": null
+  },
+  {
+    "glow": 0.25079999999999991,
+    "delay": null
+  },
+  {
+    "glow": 0.2639999999999999,
+    "delay": null
+  },
+  {
+    "glow": 0.27719999999999989,
+    "delay": null
+  },
+  {
+    "glow": 0.29039999999999988,
+    "delay": null
+  },
+  {
+    "glow": 0.30359999999999993,
+    "delay": null
+  },
+  {
+    "glow": 0.31679999999999992,
+    "delay": null
+  },
+  {
+    "glow": 0.3299999999999999,
+    "delay": null
+  },
+  {
+    "glow": 0.34319999999999995,
+    "delay": null
+  },
+  {
+    "glow": 0.35639999999999994,
+    "delay": null
+  },
+  {
+    "glow": 0.36959999999999993,
+    "delay": null
+  },
+  {
+    "glow": 0.38279999999999992,
+    "delay": null
+  },
+  {
+    "glow": 0.39599999999999996,
+    "delay": null
+  },
+  {
+    "glow": 0.40919999999999995,
+    "delay": null
+  },
+  {
+    "glow": 0.42239999999999994,
+    "delay": null
+  },
+  {
+    "glow": 0.4356,
+    "delay": null
+  },
+  {
+    "glow": 0.4488,
+    "delay": null
+  },
+  {
+    "glow": 0.46199999999999997,
+    "delay": null
+  },
+  {
+    "glow": 0.4752,
+    "delay": null
+  },
+  {
+    "glow": 0.4884,
+    "delay": null
+  },
+  {
+    "glow": 0.5016,
+    "delay": null
+  },
+  {
+    "glow": 0.5148,
+    "delay": null
+  },
+  {
+    "glow": 0.528,
+    "delay": null
+  },
+  {
+    "glow": 0.5412,
+    "delay": null
+  },
+  {
+    "glow": 0.5544,
+    "delay": null
+  },
+  {
+    "glow": 0.5676,
+    "delay": null
+  },
+  {
+    "glow": 0.5808,
+    "delay": null
+  },
+  {
+    "glow": 0.59400000000000008,
+    "delay": null
+  },
+  {
+    "glow": 0.60720000000000007,
+    "delay": null
+  },
+  {
+    "glow": 0.62040000000000006,
+    "delay": null
+  },
+  {
+    "glow": 0.6336,
+    "delay": null
+  },
+  {
+    "glow": 0.6468,
+    "delay": null
+  },
+  {
+    "glow": 0.66,
+    "delay": null
+  },
+  {
+    "glow": 0.66,
+    "delay": null
+  },
+  {
+    "glow": 0.6468,
+    "delay": null
+  },
+  {
+    "glow": 0.6336,
+    "delay": null
+  },
+  {
+    "glow": 0.62040000000000006,
+    "delay": null
+  },
+  {
+    "glow": 0.60720000000000007,
+    "delay": null
+  },
+  {
+    "glow": 0.59400000000000008,
+    "delay": null
+  },
+  {
+    "glow": 0.5808,
+    "delay": null
+  },
+  {
+    "glow": 0.5676,
+    "delay": null
+  },
+  {
+    "glow": 0.5544,
+    "delay": null
+  },
+  {
+    "glow": 0.5412,
+    "delay": null
+  },
+  {
+    "glow": 0.528,
+    "delay": null
+  },
+  {
+    "glow": 0.5148,
+    "delay": null
+  },
+  {
+    "glow": 0.5016,
+    "delay": null
+  },
+  {
+    "glow": 0.4884,
+    "delay": null
+  },
+  {
+    "glow": 0.4752,
+    "delay": null
+  },
+  {
+    "glow": 0.46199999999999997,
+    "delay": null
+  },
+  {
+    "glow": 0.4488,
+    "delay": null
+  },
+  {
+    "glow": 0.4356,
+    "delay": null
+  },
+  {
+    "glow": 0.42239999999999994,
+    "delay": null
+  },
+  {
+    "glow": 0.40919999999999995,
+    "delay": null
+  },
+  {
+    "glow": 0.39599999999999996,
+    "delay": null
+  },
+  {
+    "glow": 0.38279999999999992,
+    "delay": null
+  },
+  {
+    "glow": 0.36959999999999993,
+    "delay": null
+  },
+  {
+    "glow": 0.35639999999999994,
+    "delay": null
+  },
+  {
+    "glow": 0.34319999999999995,
+    "delay": null
+  },
+  {
+    "glow": 0.3299999999999999,
+    "delay": null
+  },
+  {
+    "glow": 0.31679999999999992,
+    "delay": null
+  },
+  {
+    "glow": 0.30359999999999993,
+    "delay": null
+  },
+  {
+    "glow": 0.29039999999999988,
+    "delay": null
+  },
+  {
+    "glow": 0.27719999999999989,
+    "delay": null
+  },
+  {
+    "glow": 0.2639999999999999,
+    "delay": null
+  },
+  {
+    "glow": 0.25079999999999991,
+    "delay": null
+  },
+  {
+    "glow": 0.2375999999999999,
+    "delay": null
+  },
+  {
+    "glow": 0.22439999999999988,
+    "delay": null
+  },
+  {
+    "glow": 0.21119999999999986,
+    "delay": null
+  },
+  {
+    "glow": 0.19799999999999987,
+    "delay": null
+  },
+  {
+    "glow": 0.18479999999999985,
+    "delay": null
+  },
+  {
+    "glow": 0.17159999999999986,
+    "delay": null
+  },
+  {
+    "glow": 0.15839999999999987,
+    "delay": null
+  },
+  {
+    "glow": 0.14519999999999989,
+    "delay": null
+  },
+  {
+    "glow": 0.1319999999999999,
+    "delay": null
+  },
+  {
+    "glow": 0.11879999999999991,
+    "delay": null
+  },
+  {
+    "glow": 0.10559999999999992,
+    "delay": null
+  },
+  {
+    "glow": 0.092399999999999927,
+    "delay": null
+  },
+  {
+    "glow": 0.079199999999999937,
+    "delay": null
+  },
+  {
+    "glow": 0.065999999999999961,
+    "delay": null
+  },
+  {
+    "glow": 0.052799999999999965,
+    "delay": null
+  },
+  {
+    "glow": 0.039599999999999975,
+    "delay": null
+  },
+  {
+    "glow": 0.026399999999999983,
+    "delay": null
+  },
+  {
+    "glow": 0.013199999999999991,
+    "delay": null
+  },
+  {
+    "glow": 0.0,
+    "delay": null
+  }
+]

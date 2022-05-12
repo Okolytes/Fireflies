@@ -19,11 +19,14 @@ import net.minecraft.world.biome.Biomes;
 import net.minecraftforge.event.TickEvent;
 
 import javax.annotation.Nullable;
-import java.util.*;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
 
 public class FireflyAbdomenAnimationManager {
-    public static final HashMap<String, AbdomenAnimation> ANIMATIONS = new HashMap<>();
-    public static final HashMap<String, AbdomenAnimator> SYNCHRONIZED_ANIMATORS = new HashMap<>();
+    public static final HashSet<Animation> ANIMATIONS = new HashSet<>();
+    public static final HashSet<AbdomenAnimator> SYNCHRONIZED_ANIMATORS = new HashSet<>();
     private final FireflyEntity firefly;
     public AbdomenAnimator animator;
 
@@ -34,32 +37,40 @@ public class FireflyAbdomenAnimationManager {
 
     public static void syncFireflies(TickEvent.ClientTickEvent event) {
         if (event.phase == TickEvent.Phase.START /* Runs on both START and END */ && !ClientStuff.isGamePaused() && Minecraft.getInstance().player != null) { //todo test on server
-            SYNCHRONIZED_ANIMATORS.forEach((s, animator) -> animator.animate());
+            SYNCHRONIZED_ANIMATORS.forEach(AbdomenAnimator::animate);
         }
     }
 
     public void setAnimation(@Nullable String name) {
-        if (name == null) {
-            this.animator.animation = null;
-            this.stopAnimating();
-        } else if (this.animator.animation == null || !this.animator.animation.name.equals(name)) { // Don't bother if the current animation is equal to the one passed
-            if (SYNCHRONIZED_ANIMATORS.containsKey(name)) {
-                this.animator = SYNCHRONIZED_ANIMATORS.get(name);
-                this.animator.fireflies.add(this.firefly);
-            } else {
-                if (SYNCHRONIZED_ANIMATORS.containsValue(this.animator)) {
-                    this.stopAnimating();
-                    this.animator = new AbdomenAnimator(this.firefly);
-                }
-                this.animator.animation = ANIMATIONS.get(name);
-            }
-        }
+//        if (name == null) {
+//            if (SYNCHRONIZED_ANIMATORS.containsValue(this.animator)) {
+//                this.removeFromAnimator();
+//            } else {
+//                this.animator.animation = null;
+//            }
+//        } else if (this.animator.animation == null || !this.animator.animation.name.equals(name)) { // Don't bother if the current animation is equal to the one passed
+//            if (SYNCHRONIZED_ANIMATORS.containsKey(name)) {
+//                this.animator = SYNCHRONIZED_ANIMATORS.get(name);
+//                this.animator.fireflies.add(this.firefly);
+//            } else {
+//                if (SYNCHRONIZED_ANIMATORS.containsValue(this.animator)) {
+//                    this.removeFromAnimator();
+//                    this.animator = new AbdomenAnimator(this.firefly);
+//                }
+//
+//                for (Animation animation : ANIMATIONS) {
+//                    if (animation.name.equals(name)) {
+//                        this.animator.animation = animation;
+//                    }
+//                }
+//            }
+//        }
     }
 
     /**
      * Remove this firefly from our current AbdomenAnimator
      */
-    public void stopAnimating() {
+    public void removeFromAnimator() {
         this.animator.fireflies.remove(this.firefly);
     }
 
@@ -113,7 +124,7 @@ public class FireflyAbdomenAnimationManager {
                 this.setAnimation("frantic");
                 break;
             case DESERT:
-                this.setAnimation("slow");
+                this.setAnimation("slow_dim");
                 break;
             case JUNGLE:
                 this.setAnimation("quick_blinks");
@@ -125,15 +136,22 @@ public class FireflyAbdomenAnimationManager {
     }
 
     public static class AbdomenAnimator {
+        /**
+         * A set of all fireflies that are using this animator.
+         * Synced fireflies will share one instance corresponding to each registered synchronized animation, regular fireflies have their own instances
+         */
         public final HashSet<FireflyEntity> fireflies = new HashSet<>();
+        /**
+         * The AbdomenAnimator instances created for the synchronized animations shouldn't have this field null
+         */
         @Nullable
-        public AbdomenAnimation animation;
+        public Animation animation;
         public float glow;
-        private int frame;
+        private int frameCounter;
         /**
          * How many frames the animation is currently paused for
          */
-        private int delay;
+        private int delayTicks;
 
         public AbdomenAnimator(@Nullable FireflyEntity firefly) {
             if (firefly != null) {
@@ -143,52 +161,53 @@ public class FireflyAbdomenAnimationManager {
 
         public void animate() {
             if (this.animation == null || this.fireflies.size() < 1) {
-                this.glow = 0;
-                this.frame = 0;
-                this.delay = 0;
+                this.glow = 0f;
+                this.frameCounter = 0;
+                this.delayTicks = 0;
                 return;
             }
 
             // Tick down the delay timer, pausing the animation at this frame.
-            if (this.delay > 0) {
-                this.delay--;
+            if (this.delayTicks > 0) {
+                this.delayTicks--;
                 return;
             }
 
             // Reset the frame counter once we're on the last frame
-            if (this.frame >= this.animation.frames.length) {
-                this.frame = 0;
+            if (this.frameCounter >= this.animation.frames.length) {
+                this.frameCounter = 0;
             }
 
-            if (this.frame == 0) {
+            if (this.frameCounter == 0) {
                 this.fireflies.forEach(firefly -> {
                     firefly.particleManager.resetAbdomenParticle();
                     firefly.playGlowSound();
                 });
             }
 
-            // Assign the glow amount to its corresponding frame
-            this.glow = this.animation.frames[this.frame];
+            final Animation.Frame frame = this.animation.frames[this.frameCounter];
+            this.glow = frame.glow;
 
-            // Check if the animation has any delays for this frame, if so assign the delay timer a random amount between the given minimum and maximum
-            Arrays.stream(this.animation.delays).filter(delay -> delay.frame == this.frame).forEach(delay -> this.delay = MathHelper.nextInt(Fireflies.RANDOM, delay.min, delay.max));
+            if (frame.delay != null) {
+                this.delayTicks = MathHelper.nextInt(Fireflies.RANDOM, frame.delay[0], frame.delay[1]);
+            }
 
-            this.frame++;
+            this.frameCounter++;
         }
     }
 
-    public static class AbdomenAnimation {
-        public Delay[] delays;
-        public float[] frames;
-        public boolean sync;
+    public static class Animation {
+        public Frame[] frames;
         public String name;
+        public boolean sync;
 
-        public static class Delay {
-            public int frame;
-            public int min;
-            public int max;
+        public static class Frame {
+            public float glow;
+            @Nullable
+            public int[] delay;
         }
     }
+
 
     public static class FireflyAnimationsLoader extends JsonReloadListener {
         private static final Gson GSON = new GsonBuilder().create();
@@ -205,15 +224,18 @@ public class FireflyAbdomenAnimationManager {
         protected void apply(Map<ResourceLocation, JsonElement> objectIn, IResourceManager resourceManagerIn, IProfiler profilerIn) {
             FireflyAbdomenAnimationManager.ANIMATIONS.clear();
             FireflyAbdomenAnimationManager.SYNCHRONIZED_ANIMATORS.clear();
+
             objectIn.forEach((rsc, element) -> {
-                final AbdomenAnimation animation = GSON.fromJson(element, AbdomenAnimation.class);
+                final Animation animation = new Animation();
+                final Animation.Frame[] frames = GSON.fromJson(element, Animation.Frame[].class);
                 animation.name = rsc.getPath();
                 animation.sync = animation.name.endsWith("synchronized");
-                FireflyAbdomenAnimationManager.ANIMATIONS.put(animation.name, animation);
+                animation.frames = frames;
+                FireflyAbdomenAnimationManager.ANIMATIONS.add(animation);
+
                 if (animation.sync) {
-                    final AbdomenAnimator animator = new AbdomenAnimator(null);
-                    animator.animation = animation;
-                    FireflyAbdomenAnimationManager.SYNCHRONIZED_ANIMATORS.put(animation.name, animator);
+                    // Each synced animation gets its own AbdomenAnimator which fireflies can be added to
+                    //FireflyAbdomenAnimationManager.SYNCHRONIZED_ANIMATORS.put(animation.name, new AbdomenAnimator(null));
                 }
             });
             Fireflies.LOGGER.info("Loaded {} firefly animations", FireflyAbdomenAnimationManager.ANIMATIONS.size());
