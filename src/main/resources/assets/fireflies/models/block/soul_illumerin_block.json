@@ -1,7 +1,0 @@
-{
-  "parent": "minecraft:block/cube_column",
-  "textures": {
-    "end": "fireflies:block/soul_illumerin_block_top",
-    "side": "fireflies:block/soul_illumerin_block_side"
-  }
-}

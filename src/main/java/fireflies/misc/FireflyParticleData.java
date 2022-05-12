@@ -67,37 +67,6 @@ public class FireflyParticleData {
         }
     }
 
-    public static class DustRedstone extends AbstractFireflyParticleData {
-        public DustRedstone(int fireflyId) {
-            super(fireflyId);
-        }
-
-        public static ParticleType<DustRedstone> get() {
-            return new ParticleType<DustRedstone>(true, new IDeserializer<DustRedstone>() {
-                @Override
-                public DustRedstone deserialize(ParticleType<DustRedstone> type, StringReader reader) throws CommandSyntaxException {
-                    reader.skipWhitespace();
-                    return new DustRedstone(reader.readInt());
-                }
-
-                @Override
-                public DustRedstone read(ParticleType<DustRedstone> type, PacketBuffer buffer) {
-                    return new DustRedstone(buffer.readVarInt());
-                }
-            }) {
-                @Override
-                public Codec<DustRedstone> func_230522_e_() {
-                    return Codec.INT.xmap(DustRedstone::new, (fireflyDustParticleData) -> fireflyDustParticleData.fireflyId);
-                }
-            };
-        }
-
-        @Override
-        protected ParticleType<?> particleType() {
-            return Registry.FIREFLY_DUST_REDSTONE_PARTICLE.get();
-        }
-    }
-
     public static class Abdomen extends AbstractFireflyParticleData {
         public Abdomen(int fireflyId) {
             super(fireflyId);
@@ -127,39 +96,6 @@ public class FireflyParticleData {
         protected ParticleType<?> particleType() {
             return Registry.FIREFLY_ABDOMEN_PARTICLE.get();
         }
-    }
-
-    public static class AbdomenRedstone extends AbstractFireflyParticleData {
-
-        public AbdomenRedstone(int fireflyId) {
-            super(fireflyId);
-        }
-
-        public static ParticleType<AbdomenRedstone> get() {
-            return new ParticleType<AbdomenRedstone>(true, new IDeserializer<AbdomenRedstone>() {
-                @Override
-                public AbdomenRedstone deserialize(ParticleType<AbdomenRedstone> type, StringReader reader) throws CommandSyntaxException {
-                    reader.skipWhitespace();
-                    return new AbdomenRedstone(reader.readInt());
-                }
-
-                @Override
-                public AbdomenRedstone read(ParticleType<AbdomenRedstone> type, PacketBuffer buffer) {
-                    return new AbdomenRedstone(buffer.readVarInt());
-                }
-            }) {
-                @Override
-                public Codec<AbdomenRedstone> func_230522_e_() {
-                    return Codec.INT.xmap(AbdomenRedstone::new, (fireflyDustParticleData) -> fireflyDustParticleData.fireflyId);
-                }
-            };
-        }
-
-        @Override
-        protected ParticleType<?> particleType() {
-            return Registry.FIREFLY_ABDOMEN_REDSTONE_PARTICLE.get();
-        }
-
     }
 
     public static class AbdomenIllumerin extends AbstractFireflyParticleData {

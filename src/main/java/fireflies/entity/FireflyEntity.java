@@ -1,7 +1,6 @@
 package fireflies.entity;
 
 import fireflies.Registry;
-import fireflies.block.GlassJarBlock;
 import fireflies.client.ClientStuff;
 import fireflies.client.entity.FireflyAbdomenAnimationManager;
 import fireflies.client.entity.FireflyParticleManager;
@@ -21,8 +20,6 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.item.crafting.Ingredient;
 import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.nbt.ListNBT;
-import net.minecraft.nbt.NBTUtil;
 import net.minecraft.network.datasync.DataParameter;
 import net.minecraft.network.datasync.DataSerializers;
 import net.minecraft.network.datasync.EntityDataManager;
@@ -30,9 +27,7 @@ import net.minecraft.pathfinding.FlyingPathNavigator;
 import net.minecraft.pathfinding.PathNavigator;
 import net.minecraft.pathfinding.PathNodeType;
 import net.minecraft.tags.ITag;
-import net.minecraft.util.ActionResultType;
 import net.minecraft.util.DamageSource;
-import net.minecraft.util.Hand;
 import net.minecraft.util.SoundEvent;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
@@ -42,18 +37,13 @@ import net.minecraft.world.World;
 import net.minecraft.world.server.ServerWorld;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
-import net.minecraftforge.common.util.Constants;
-
-import javax.annotation.Nullable;
 
 public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
-    public static final DataParameter<Boolean> IS_REDSTONE_COATED = EntityDataManager.createKey(FireflyEntity.class, DataSerializers.BOOLEAN);
     private static final DataParameter<Boolean> HAS_ILLUMERIN = EntityDataManager.createKey(FireflyEntity.class, DataSerializers.BOOLEAN);
     private static final DataParameter<Integer> ILLUMERIN_DEPOSITED = EntityDataManager.createKey(FireflyEntity.class, DataSerializers.VARINT);
 
     public final FireflyAbdomenAnimationManager animationManager = new FireflyAbdomenAnimationManager(this);
     public final FireflyParticleManager particleManager = new FireflyParticleManager(this);
-    public final RedstoneFireflyManager redstoneManager = new RedstoneFireflyManager(this);
     /**
      * Is this firefly's current goal to pathfind towards honey?
      */
@@ -67,12 +57,7 @@ public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
      */
     public int rainedOnTicks;
     /**
-     * The position of the current glass jar that the firefly is filling, if any.
-     */
-    @Nullable
-    private BlockPos currentGlassJar;
-    /**
-     * Used for checking if the current firefly has illumerin on itself, this is updated every 20 ticks.
+     * Does the current firefly have illumerin? Updated every 20 ticks.
      */
     private boolean cachedHasIllumerin;
 
@@ -101,7 +86,6 @@ public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
     @Override
     protected void registerData() {
         super.registerData();
-        this.dataManager.register(IS_REDSTONE_COATED, false);
         this.dataManager.register(HAS_ILLUMERIN, false);
         this.dataManager.register(ILLUMERIN_DEPOSITED, 0);
     }
@@ -136,29 +120,15 @@ public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
     @Override
     public void writeAdditional(CompoundNBT nbt) {
         super.writeAdditional(nbt);
-        final boolean isRedstoneCoated = this.redstoneManager.isRedstoneCoated(false);
-        nbt.putBoolean("IsRedstoneCoated", isRedstoneCoated);
         nbt.putBoolean("HasIllumerin", this.hasIllumerin(true));
         nbt.putInt("IllumerinDeposited", this.getIllumerinDeposited());
-        if (isRedstoneCoated) {
-            final ListNBT listNBT = new ListNBT();
-            this.redstoneManager.syncedLamps.forEach(pos -> listNBT.add(NBTUtil.writeBlockPos(pos)));
-            nbt.put("IllumerinLamps", listNBT);
-        }
     }
 
     @Override
     public void readAdditional(CompoundNBT nbt) {
         super.readAdditional(nbt);
-        this.redstoneManager.setRedstoneCoated(nbt.getBoolean("IsRedstoneCoated"));
         this.setHasIllumerin(nbt.getBoolean("HasIllumerin"));
         this.setIllumerinDeposited(nbt.getInt("IllumerinDeposited"));
-        if (this.redstoneManager.isRedstoneCoated(false)) {
-            final ListNBT listNBT = nbt.getList("IllumerinLamps", Constants.NBT.TAG_COMPOUND);
-            for (int i = 0; i < listNBT.size(); i++) {
-                this.redstoneManager.syncedLamps.add(NBTUtil.readBlockPos(listNBT.getCompound(i)));
-            }
-        }
     }
 
     @Override
@@ -207,52 +177,6 @@ public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
 
         if (this.underWaterTicks > 20) {
             this.attackEntityFrom(DamageSource.DROWN, 1.0F);
-        } else if (this.underWaterTicks > 10) {
-            if (this.redstoneManager.isRedstoneCoated(true)) {
-                this.redstoneManager.removeRedstoneCoated();
-            }
-        }
-
-        if (this.rainedOnTicks > 10 && this.redstoneManager.isRedstoneCoated(true)) {
-            this.redstoneManager.removeRedstoneCoated();
-            this.rainedOnTicks = 0;
-        }
-    }
-
-    @Nullable
-    private BlockPos getJarPos() {
-        for (int i = 1; i < 4; i++) {
-            final BlockPos pos = this.getPosition().down(i);
-            if (this.world.getBlockState(pos).getBlock() instanceof GlassJarBlock) {
-                this.currentGlassJar = pos;
-                return pos;
-            }
-        }
-        return null;
-    }
-
-    private void doJarLogic() {
-        if (!this.hasIllumerin(true))
-            return;
-
-        final BlockPos pos = this.getJarPos();
-        if (pos != null && this.ticksExisted % 60 == 0) {
-            final BlockState state = this.world.getBlockState(pos);
-            // Shouldn't need to check for ATTACHED since we're going to be *above* the jar
-            if (!(state.getBlock() instanceof GlassJarBlock) || !state.get(GlassJarBlock.OPEN) || state.get(GlassJarBlock.LEVEL) > 0)
-                return;
-
-            final int level = state.get(GlassJarBlock.ILLUMERIN_LEVEL);
-            if (level >= GlassJarBlock.MAX_ILLUMERIN_LEVEL)
-                return;
-
-            this.world.setBlockState(pos, state.with(GlassJarBlock.ILLUMERIN_LEVEL, level + 1), 3);
-
-            this.setIllumerinDeposited(this.getIllumerinDeposited() + 1);
-            if (this.getIllumerinDeposited() >= GlassJarBlock.MAX_ILLUMERIN_LEVEL) {
-                this.setHasIllumerin(false);
-                this.setIllumerinDeposited(0);
-            }
         }
     }
 
@@ -260,8 +184,8 @@ public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
      * @return Should this firefly have its abdomen particle, spawning dust particles, glow animation etc
      */
     public boolean shouldDoEffects() {
-        // Redstone Fireflies & Illumerin Fireflies are not affected by if it's daytime or not
-        return this.redstoneManager.isRedstoneCoated(true) || this.hasIllumerin(true) || !ClientStuff.isDayTimeClient(this.world);
+        // Fireflies with illumerin are not affected by if it's daytime or not
+        return this.hasIllumerin(true) || !ClientStuff.isDayTime(this.world);
     }
 
     @Override
@@ -281,8 +205,6 @@ public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
             }
         } else {
             if (!this.isAIDisabled()) {
-                this.redstoneManager.tick();
-                this.doJarLogic();
                 this.doWaterAndRainLogic();
             }
         }
@@ -304,26 +226,7 @@ public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
         super.onRemovedFromWorld();
         if (this.world.isRemote) {
             this.animationManager.removeFromAnimator();
-        } else {
-            if (this.redstoneManager.isRedstoneCoated(false)) {
-                this.redstoneManager.desyncLamps();
-            }
         }
-    }
-
-    @Override
-    public ActionResultType getEntityInteractionResult(PlayerEntity player, Hand hand) {
-        final ItemStack heldItem = player.getHeldItem(hand);
-        if (heldItem.getItem() == Items.REDSTONE && !this.redstoneManager.isRedstoneCoated(false)) {
-            this.redstoneManager.convertRedstoneCoated(player, heldItem);
-            return ActionResultType.SUCCESS;
-        } else if (!this.world.isRemote && hand == Hand.MAIN_HAND && this.redstoneManager.isRedstoneCoated(false) && this.redstoneManager.searchTime <= 0
-                && !(heldItem.getItem() == Items.HONEY_BOTTLE && !this.isInLove())) {
-            this.redstoneManager.startSearchForLamps();
-            return ActionResultType.SUCCESS;
-        }
-
-        return super.getEntityInteractionResult(player, hand);
     }
 
     @Override
@@ -362,17 +265,6 @@ public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
             this.particleManager.destroyAbdomenParticle();
         }
         super.onDeath(cause);
-    }
-
-    @Nullable
-    @Override
-    public Entity changeDimension(ServerWorld server) {
-        if (this.redstoneManager.isRedstoneCoated(false)) {
-            this.redstoneManager.desyncLamps();
-            this.redstoneManager.syncedLamps.clear();
-            this.redstoneManager.poweredLamps.clear();
-        }
-        return super.changeDimension(server);
     }
 
     @Override

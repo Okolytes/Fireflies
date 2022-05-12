@@ -78,15 +78,6 @@ public class FireflyAbdomenAnimationManager {
      * Updates the abdomen animation based on its circumstances
      */
     public void updateAbdomenAnimation() {
-        if (this.firefly.redstoneManager.isRedstoneCoated(true)) {
-            if (this.firefly.redstoneManager.searchTime > 0) {
-                this.setAnimation("lamp_searching");
-            } else {
-                this.setAnimation("redstone");
-            }
-            return;
-        }
-
         if (this.firefly.hasIllumerin(true)) {
             this.setAnimation("illuminated");
             return;
