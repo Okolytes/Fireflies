@@ -32,26 +32,5 @@
     "sounds": [
       "fireflies:firefly_flight_loop"
     ]
-  },
-  "firefly_apply_redstone": {
-    "category": "entity",
-    "subtitle": "subtitle.fireflies.firefly_apply_redstone",
-    "sounds": [
-      "fireflies:firefly_apply_redstone"
-    ]
-  },
-  "glass_jar_open": {
-    "category": "block",
-    "subtitle": "subtitle.fireflies.glass_jar_open",
-    "sounds": [
-      "fireflies:glass_jar_open_0"
-    ]
-  },
-  "glass_jar_close": {
-    "category": "block",
-    "subtitle": "subtitle.fireflies.glass_jar_close",
-    "sounds": [
-      "fireflies:glass_jar_close_0"
-    ]
   }
 }

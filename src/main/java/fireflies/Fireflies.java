@@ -6,32 +6,20 @@ import fireflies.client.entity.FireflyAbdomenAnimationManager;
 import fireflies.client.particle.FireflyAbdomenParticle;
 import fireflies.client.particle.FireflyDustParticle;
 import fireflies.client.render.FireflyRenderer;
-import fireflies.client.render.GlassJarRenderer;
 import fireflies.entity.FireflyEntity;
-import fireflies.item.GlassJarBlockItem;
-import fireflies.misc.FireflyMasterPotion;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screen.MainMenuScreen;
 import net.minecraft.client.particle.ParticleManager;
-import net.minecraft.client.renderer.RenderType;
-import net.minecraft.client.renderer.RenderTypeLookup;
 import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.Items;
-import net.minecraft.potion.Effect;
-import net.minecraft.potion.Potions;
 import net.minecraftforge.client.event.GuiOpenEvent;
 import net.minecraftforge.client.event.ParticleFactoryRegisterEvent;
 import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.common.brewing.BrewingRecipeRegistry;
 import net.minecraftforge.event.entity.EntityAttributeCreationEvent;
 import net.minecraftforge.eventbus.api.IEventBus;
-import net.minecraftforge.fml.client.registry.ClientRegistry;
 import net.minecraftforge.fml.client.registry.RenderingRegistry;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.ObfuscationReflectionHelper;
 import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
-import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -49,38 +37,19 @@ public class Fireflies {
         final IEventBus modEventBus = FMLJavaModLoadingContext.get().getModEventBus();
         Registry.register(modEventBus);
         modEventBus.addGenericListener(Item.class, Registry::registerSpawnEggs);
-        modEventBus.addGenericListener(Effect.class, Registry::registerEffects);
 
-        modEventBus.addListener(this::commonSetup);
         modEventBus.addListener(this::clientSetup);
         modEventBus.addListener(this::createEntityAttributes);
         modEventBus.addListener(this::registerParticleFactories);
-        modEventBus.addListener(GlassJarBlockItem::registerGlassJarColor);
 
         MinecraftForge.EVENT_BUS.addListener(this::splashTextEasterEgg);
         MinecraftForge.EVENT_BUS.addListener(IllumerinBlock::stopMobSpawning);
-        MinecraftForge.EVENT_BUS.addListener(FireflyMasterPotion::hideFireflyMasterToolTip);
         MinecraftForge.EVENT_BUS.addListener(FireflyAbdomenAnimationManager::syncFireflies);
 
         FireflyAbdomenAnimationManager.FireflyAnimationsLoader.addFireflyAnimationsReloadListener();
     }
 
-    private void commonSetup(FMLCommonSetupEvent event) {
-        event.enqueueWork(() -> {
-            // Splash, lingering, arrows etcetera get registered automatically by minecraft.
-            BrewingRecipeRegistry.addRecipe(new FireflyMasterPotion.FireflyMasterBrewingRecipe(Potions.AWKWARD, new ItemStack(Registry.ILLUMERIN.get()), Registry.FIREFLY_MASTER.get()));
-            BrewingRecipeRegistry.addRecipe(new FireflyMasterPotion.FireflyMasterBrewingRecipe(Potions.AWKWARD, new ItemStack(Registry.SOUL_ILLUMERIN.get()), Registry.FIREFLY_MASTER.get()));
-            BrewingRecipeRegistry.addRecipe(new FireflyMasterPotion.FireflyMasterBrewingRecipe(Registry.FIREFLY_MASTER.get(), new ItemStack(Items.REDSTONE), Registry.LONG_FIREFLY_MASTER.get()));
-            BrewingRecipeRegistry.addRecipe(new FireflyMasterPotion.FireflyMasterBrewingRecipe(Registry.FIREFLY_MASTER.get(), new ItemStack(Items.GLOWSTONE_DUST), Registry.STRONG_FIREFLY_MASTER.get()));
-        });
-    }
-
     private void clientSetup(FMLClientSetupEvent event) {
-        event.enqueueWork(() -> {
-            RenderTypeLookup.setRenderLayer(Registry.GLASS_JAR.get(), RenderType.getCutout());
-            GlassJarBlockItem.registerItemModelProperty();
-        });
-        ClientRegistry.bindTileEntityRenderer(Registry.GLASS_JAR_TILE_ENTITY.get(), GlassJarRenderer::new);
         RenderingRegistry.registerEntityRenderingHandler(Registry.FIREFLY.get(), FireflyRenderer::new);
     }
 
@@ -92,9 +61,7 @@ public class Fireflies {
         // Called only on the client.
         final ParticleManager pm = Minecraft.getInstance().particles;
         pm.registerFactory(Registry.FIREFLY_DUST_PARTICLE.get(), FireflyDustParticle.DustParticleFactory::new);
-        pm.registerFactory(Registry.FIREFLY_DUST_REDSTONE_PARTICLE.get(), FireflyDustParticle.DustRedstoneParticleFactory::new);
         pm.registerFactory(Registry.FIREFLY_ABDOMEN_PARTICLE.get(), FireflyAbdomenParticle.AbdomenParticleFactory::new);
-        pm.registerFactory(Registry.FIREFLY_ABDOMEN_REDSTONE_PARTICLE.get(), FireflyAbdomenParticle.AbdomenRedstoneParticleFactory::new);
         pm.registerFactory(Registry.FIREFLY_ABDOMEN_ILLUMERIN_PARTICLE.get(), FireflyAbdomenParticle.AbdomenIllumerinParticleFactory::new);
     }
 

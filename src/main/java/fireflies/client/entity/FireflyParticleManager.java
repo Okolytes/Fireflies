@@ -49,9 +49,7 @@ public class FireflyParticleManager {
     public void spawnAbdomenParticle() {
         if (this.firefly.world.isRemote && this.abdomenParticle == null) {
             final double[] pos = this.getAbdomenParticlePos();
-            this.firefly.world.addOptionalParticle(this.firefly.redstoneManager.isRedstoneCoated(true)
-                            ? new FireflyParticleData.AbdomenRedstone(this.firefly.getEntityId())
-                            : this.firefly.hasIllumerin(true)
+            this.firefly.world.addOptionalParticle(this.firefly.hasIllumerin(true)
                             ? new FireflyParticleData.AbdomenIllumerin(this.firefly.getEntityId())
                             : new FireflyParticleData.Abdomen(this.firefly.getEntityId()),
                     true, pos[0], pos[1], pos[2], 0, 0, 0);
@@ -69,7 +67,7 @@ public class FireflyParticleManager {
      * @return The appropiate dust particle for this firefly.
      */
     public IParticleData getDustParticle() {
-        return this.firefly.redstoneManager.isRedstoneCoated(true) ? new FireflyParticleData.DustRedstone(this.firefly.getEntityId()) : new FireflyParticleData.Dust(this.firefly.getEntityId());
+        return new FireflyParticleData.Dust(this.firefly.getEntityId());
     }
 
     private Vector3d rotateVector(Vector3d vector3d) {
@@ -82,7 +80,7 @@ public class FireflyParticleManager {
      * This is called every tick at {@link FireflyEntity#livingTick()}
      */
     public void spawnFallingDustParticles() {
-        if (this.firefly.ticksExisted % 10 == 0 && this.firefly.animationManager.animator.glow > 0f && this.firefly.getRNG().nextFloat() > 0.25f && !this.firefly.isInvisible()) {
+        if (this.firefly.ticksExisted % 10 == 0 && this.firefly.animationManager.animator.glow > 0f && this.firefly.getRNG().nextFloat() > 0.75f && !this.firefly.isInvisible()) {
             // Redstones fireflies & illumerin fireflies don't spawn particles as often.
             //if ((this.firefly.isRedstoneCoated(true) || this.firefly.hasIllumerin(true)) && (this.firefly.getRNG().nextFloat() > 0.5f))
             //    return;

@@ -14,7 +14,6 @@ import net.minecraft.util.math.BlockRayTraceResult;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.RayTraceContext;
 import net.minecraft.util.math.vector.Vector3d;
-import net.minecraft.world.GameRules;
 import net.minecraft.world.IWorldReader;
 import net.minecraft.world.World;
 
@@ -282,8 +281,9 @@ public class FireflyAI {
         }
 
         private void eatCompost() {
-            if (!this.world.getGameRules().getBoolean(GameRules.MOB_GRIEFING))
-                return;
+            // todo should mob griefing affect this?
+            //if (!this.world.getGameRules().getBoolean(GameRules.MOB_GRIEFING))
+            //    return;
 
             final BlockState state = this.world.getBlockState(this.destinationBlock);
             if (state.matchesBlock(Blocks.COMPOSTER)) {
@@ -297,12 +297,12 @@ public class FireflyAI {
 
         @Override
         public boolean shouldExecute() {
-            return !this.firefly.redstoneManager.isRedstoneCoated(true) && !this.firefly.hasIllumerin(true) && super.shouldExecute();
+            return !this.firefly.hasIllumerin(true) && super.shouldExecute();
         }
 
         @Override
         public boolean shouldContinueExecuting() {
-            return !this.firefly.redstoneManager.isRedstoneCoated(true) && !this.firefly.hasIllumerin(true) && super.shouldContinueExecuting();
+            return !this.firefly.hasIllumerin(true) && super.shouldContinueExecuting();
         }
 
         @Override

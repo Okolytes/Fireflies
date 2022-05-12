@@ -1,37 +1,13 @@
 {
   "block.fireflies.illumerin_block": "Illumerin Block",
-  "block.fireflies.illumerin_lamp": "Illumerin Lamp",
-  "block.fireflies.soul_illumerin_block": "Soul Illumerin Block",
-  "block.fireflies.glass_jar": "Glass Jar",
 
   "item.fireflies.illumerin": "Illumerin",
-  "item.fireflies.soul_illumerin": "Soul Illumerin",
   "item.fireflies.firefly_spawn_egg": "Firefly Spawn Egg",
-  "item.minecraft.tipped_arrow.effect.firefly_master": "Arrow of the Firefly Master",
-  "item.minecraft.potion.effect.firefly_master": "Potion of the Firefly Master",
-  "item.minecraft.splash_potion.effect.firefly_master": "Splash Potion of the Firefly Master",
-  "item.minecraft.lingering_potion.effect.firefly_master": "Lingering Potion of the Firefly Master",
 
   "entity.fireflies.firefly": "Firefly",
-
-  "fluid.fireflies.potion_fluid": "Potion",
-  "fluid.fireflies.milk_fluid": "Milk",
-  "fluid.fireflies.honey_fluid": "Honey",
-  "fluid.fireflies.dragon_breath_fluid": "Dragon Breath",
-  "fluid.fireflies.soup_fluid": "Soup",
-  "fluid.fireflies.rabbit_stew_fluid": "Rabbit Stew",
-  "fluid.fireflies.sus_stew_fluid": "Suspicious Stew",
 
   "subtitle.fireflies.firefly_hurt": "Firefly hurts",
   "subtitle.fireflies.firefly_death": "Firefly dies",
   "subtitle.fireflies.firefly_glow": "Firefly glows",
-  "subtitle.fireflies.firefly_flight_loop": "Firefly buzzes",
-  "subtitle.fireflies.firefly_apply_redstone": "Firefly transforms",
-  "subtitle.fireflies.glass_jar_open": "Glass Jar opens",
-  "subtitle.fireflies.glass_jar_close": "Glass Jar closes",
-
-  "container.glass_jar.amount": "%s %s/%s",
-
-  "stat.fireflies.fill_glass_jar": "Glass Jars Filled",
-  "stat.fireflies.use_glass_jar": "Fluid Taken from Glass Jar"
+  "subtitle.fireflies.firefly_flight_loop": "Firefly buzzes"
 }

@@ -22,7 +22,7 @@ public final class ClientStuff {
      *
      * @return Is it currently daytime in this dimension?
      */
-    public static boolean isDayTimeClient(World world) {
+    public static boolean isDayTime(World world) {
         final double d0 = 1.0D - (double) (world.getRainStrength(1.0F) * 5.0F) / 16.0D;
         final double d1 = 1.0D - (double) (world.getThunderStrength(1.0F) * 5.0F) / 16.0D;
         final double d2 = 0.5D + 2.0D * MathHelper.clamp(MathHelper.cos(world.func_242415_f(1.0F) * ((float) Math.PI * 2F)), -0.25D, 0.25D);

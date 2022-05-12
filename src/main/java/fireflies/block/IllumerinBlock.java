@@ -19,7 +19,6 @@ import net.minecraftforge.eventbus.api.Event;
 
 public class IllumerinBlock extends RotatedPillarBlock {
     private static final int ILLUMERIN_RADIUS = 8;
-    private static final int ECTO_ILLUMERIN_RADIUS = 5;
 
     public IllumerinBlock() {
         super(Properties.create(Material.GLASS, MaterialColor.SAND).hardnessAndResistance(2f).sound(SoundType.BASALT).harvestTool(ToolType.PICKAXE).setAllowsSpawn((a, b, c, d) -> false).setEmmisiveRendering((a, b, c) -> true).setNeedsPostProcessing((a, b, c) -> true));
@@ -51,10 +50,7 @@ public class IllumerinBlock extends RotatedPillarBlock {
 
                     final BlockState state = event.getWorld().getBlockState(blockPos);
                     final Block block = state.getBlock();
-                    if (block instanceof IllumerinBlock || (block instanceof IllumerinLamp && state.get(IllumerinLamp.POWERED))) {
-                        if (block instanceof SoulIllumerinBlock && !blockPos.withinDistance(mobPos, ECTO_ILLUMERIN_RADIUS))
-                            continue;
-
+                    if (block instanceof IllumerinBlock) {
                         cancelMobSpawn = true;
                         break;
                     }

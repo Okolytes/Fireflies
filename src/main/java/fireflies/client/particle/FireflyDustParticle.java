@@ -110,11 +110,4 @@ public class FireflyDustParticle extends SpriteTexturedParticle {
             super(iAnimatedSprite);
         }
     }
-
-    @OnlyIn(Dist.CLIENT)
-    public static class DustRedstoneParticleFactory extends AbstractDustParticleFactory<FireflyParticleData.DustRedstone> {
-        public DustRedstoneParticleFactory(IAnimatedSprite iAnimatedSprite) {
-            super(iAnimatedSprite);
-        }
-    }
 }
