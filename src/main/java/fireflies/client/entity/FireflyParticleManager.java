@@ -63,6 +63,11 @@ public class FireflyParticleManager {
         }
     }
 
+    public void resetAbdomenParticle() {
+        this.destroyAbdomenParticle();
+        this.spawnAbdomenParticle();
+    }
+
     /**
      * @return The appropiate dust particle for this firefly.
      */
@@ -80,11 +85,7 @@ public class FireflyParticleManager {
      * This is called every tick at {@link FireflyEntity#livingTick()}
      */
     public void spawnFallingDustParticles() {
-        if (this.firefly.ticksExisted % 10 == 0 && this.firefly.animationManager.animator.glow > 0f && this.firefly.getRNG().nextFloat() > 0.75f && !this.firefly.isInvisible()) {
-            // Redstones fireflies & illumerin fireflies don't spawn particles as often.
-            //if ((this.firefly.isRedstoneCoated(true) || this.firefly.hasIllumerin(true)) && (this.firefly.getRNG().nextFloat() > 0.5f))
-            //    return;
-
+        if (this.firefly.ticksExisted % 10 == 0 && this.firefly.animationManager.animator.glow > 0f && this.firefly.getRNG().nextFloat() > 0.33f && !this.firefly.isInvisible()) {
             // abdomens position, taken from SquidEntity#squirtInk()
             // just don't touch this I forgot how it works
             final Vector3d vector3d = this.rotateVector(new Vector3d(0.0D, -1.0D, 0.0D)).add(this.firefly.getPosX(), this.firefly.getPosY(), this.firefly.getPosZ());
@@ -98,10 +99,5 @@ public class FireflyParticleManager {
                     vector3d.x + offset, vector3d.y + (this.firefly.isChild() ? 1.1f : 1.35f) + offset, vector3d.z + offset,
                     vector3d2.x, vector3d2.y * -16, vector3d2.z);
         }
-    }
-
-    public void resetAbdomenParticle() {
-        this.destroyAbdomenParticle();
-        this.spawnAbdomenParticle();
     }
 }

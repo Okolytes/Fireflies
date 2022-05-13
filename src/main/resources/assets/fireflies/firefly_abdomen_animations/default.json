@@ -1,0 +1,176 @@
+[
+  {
+    "glow": 0.0,
+    "delay": [
+      20,
+      30
+    ]
+  },
+  {
+    "glow": 0.05,
+    "delay": null
+  },
+  {
+    "glow": 0.1,
+    "delay": null
+  },
+  {
+    "glow": 0.15000000000000002,
+    "delay": null
+  },
+  {
+    "glow": 0.2,
+    "delay": null
+  },
+  {
+    "glow": 0.25,
+    "delay": null
+  },
+  {
+    "glow": 0.3,
+    "delay": null
+  },
+  {
+    "glow": 0.35,
+    "delay": null
+  },
+  {
+    "glow": 0.39999999999999997,
+    "delay": null
+  },
+  {
+    "glow": 0.44999999999999996,
+    "delay": null
+  },
+  {
+    "glow": 0.49999999999999994,
+    "delay": null
+  },
+  {
+    "glow": 0.54999999999999993,
+    "delay": null
+  },
+  {
+    "glow": 0.6,
+    "delay": null
+  },
+  {
+    "glow": 0.65,
+    "delay": null
+  },
+  {
+    "glow": 0.70000000000000007,
+    "delay": null
+  },
+  {
+    "glow": 0.75000000000000011,
+    "delay": null
+  },
+  {
+    "glow": 0.80000000000000016,
+    "delay": null
+  },
+  {
+    "glow": 0.8500000000000002,
+    "delay": null
+  },
+  {
+    "glow": 0.90000000000000024,
+    "delay": null
+  },
+  {
+    "glow": 0.95000000000000029,
+    "delay": null
+  },
+  {
+    "glow": 1.0000000000000002,
+    "delay": null
+  },
+  {
+    "glow": 1.0000000000000002,
+    "delay": [
+      10,
+      20
+    ]
+  },
+  {
+    "glow": 0.95000000000000029,
+    "delay": null
+  },
+  {
+    "glow": 0.90000000000000024,
+    "delay": null
+  },
+  {
+    "glow": 0.8500000000000002,
+    "delay": null
+  },
+  {
+    "glow": 0.80000000000000016,
+    "delay": null
+  },
+  {
+    "glow": 0.75000000000000011,
+    "delay": null
+  },
+  {
+    "glow": 0.70000000000000007,
+    "delay": null
+  },
+  {
+    "glow": 0.65,
+    "delay": null
+  },
+  {
+    "glow": 0.6,
+    "delay": null
+  },
+  {
+    "glow": 0.54999999999999993,
+    "delay": null
+  },
+  {
+    "glow": 0.49999999999999994,
+    "delay": null
+  },
+  {
+    "glow": 0.44999999999999996,
+    "delay": null
+  },
+  {
+    "glow": 0.39999999999999997,
+    "delay": null
+  },
+  {
+    "glow": 0.35,
+    "delay": null
+  },
+  {
+    "glow": 0.3,
+    "delay": null
+  },
+  {
+    "glow": 0.25,
+    "delay": null
+  },
+  {
+    "glow": 0.2,
+    "delay": null
+  },
+  {
+    "glow": 0.15000000000000002,
+    "delay": null
+  },
+  {
+    "glow": 0.1,
+    "delay": null
+  },
+  {
+    "glow": 0.05,
+    "delay": null
+  },
+  {
+    "glow": 0.0,
+    "delay": null
+  }
+]

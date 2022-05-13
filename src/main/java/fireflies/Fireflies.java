@@ -2,6 +2,7 @@ package fireflies;
 
 import fireflies.block.IllumerinBlock;
 import fireflies.client.ClientStuff;
+import fireflies.client.entity.FireflyAbdomenAnimationLoader;
 import fireflies.client.entity.FireflyAbdomenAnimationManager;
 import fireflies.client.particle.FireflyAbdomenParticle;
 import fireflies.client.particle.FireflyDustParticle;
@@ -30,7 +31,6 @@ import java.util.Random;
 public class Fireflies {
     public static final String ID = "fireflies";
     public static final Logger LOGGER = LogManager.getLogger(ID);
-    public static final Random RANDOM = new Random();
     private boolean firstSplashTextChange = true;
 
     public Fireflies() {
@@ -45,8 +45,9 @@ public class Fireflies {
         MinecraftForge.EVENT_BUS.addListener(this::splashTextEasterEgg);
         MinecraftForge.EVENT_BUS.addListener(IllumerinBlock::stopMobSpawning);
         MinecraftForge.EVENT_BUS.addListener(FireflyAbdomenAnimationManager::syncFireflies);
+        MinecraftForge.EVENT_BUS.addListener(FireflyAbdomenAnimationManager::debugSetAnimation);
 
-        FireflyAbdomenAnimationManager.FireflyAnimationsLoader.addFireflyAnimationsReloadListener();
+        FireflyAbdomenAnimationLoader.addFireflyAnimationsReloadListener();
     }
 
     private void clientSetup(FMLClientSetupEvent event) {
