@@ -17,18 +17,16 @@ import java.util.Optional;
 
 public class FireflyAbdomenAnimationManager {
     public static final HashSet<FireflyAbdomenAnimation> ABDOMEN_ANIMATIONS = new HashSet<>();
-    public static final HashSet<FireflyAbdomenAnimator> SYNCED_ANIMATORS = new HashSet<>();
+    public final FireflyAbdomenAnimationProperties animationProperties = new FireflyAbdomenAnimationProperties();
     private final FireflyEntity firefly;
-    public FireflyAbdomenAnimator animator;
 
     public FireflyAbdomenAnimationManager(FireflyEntity firefly) {
         this.firefly = firefly;
-        this.animator = new FireflyAbdomenAnimator(firefly);
     }
 
     public static void syncFireflies(TickEvent.ClientTickEvent event) {
         if (event.phase == TickEvent.Phase.START /* Runs on both START and END */ && !ClientStuff.isGamePaused() && Minecraft.getInstance().player != null) { //todo test on server
-            SYNCED_ANIMATORS.forEach(FireflyAbdomenAnimator::animate);
+            ABDOMEN_ANIMATIONS.forEach(FireflyAbdomenAnimation::animate);
         }
     }
 
@@ -45,41 +43,24 @@ public class FireflyAbdomenAnimationManager {
      * @param name if null, no animation will be used
      */
     public void setAnimation(@Nullable String name) {
-        if (name == null) {
-            this.animator.fireflies.remove(this.firefly);
-            if (this.animator.animation != null && !this.animator.animation.sync) { // If our animator hosts a synced animation, don't set it to null
-                this.animator.animation = null;
-            }
-            return;
-        }
-
-        if (this.animator.animation == null || !this.animator.animation.name.equals(name)) {
-            final Optional<FireflyAbdomenAnimator> syncedAnimator = SYNCED_ANIMATORS.stream().filter(animator -> animator.animation.name.equals(name)).findFirst();
-            // If name is a synced animation, find its animator and add ourselves to it
-            if (syncedAnimator.isPresent()) {
-                syncedAnimator.get().fireflies.add(this.firefly);
-                this.animator.fireflies.remove(this.firefly);
-                if (this.animator.animation != null && !this.animator.animation.sync) { // If our animator hosts a synced animation, don't set it to null
-                    this.animator.animation = null;
-                }
+        for (FireflyAbdomenAnimation animation : ABDOMEN_ANIMATIONS) {
+            if (name == null && animation.fireflies.remove(this.firefly)) {
                 return;
             }
 
-            if (SYNCED_ANIMATORS.contains(this.animator)) {
-                this.animator.fireflies.remove(this.firefly);
+            // we don't know which animation we have, so keep trying until we get it right
+            if (animation.name.equals(name)) {
+                animation.fireflies.add(this.firefly);
             } else {
-                this.animator = new FireflyAbdomenAnimator(this.firefly);
+                animation.fireflies.remove(this.firefly);
             }
-
-            this.animator.animation = ABDOMEN_ANIMATIONS.stream().filter(animation -> animation.name.equals(name)).findFirst().orElse(null);
         }
     }
 
     /**
-     * Updates the abdomen animation based on its circumstances
+     * Updates the abdomen animation accordingly to the fireflies environment and condition
      */
     public void updateAbdomenAnimation() {
-        if(true)return;
         if (this.firefly.hasIllumerin(true)) {
             this.setAnimation("illuminated");
             return;

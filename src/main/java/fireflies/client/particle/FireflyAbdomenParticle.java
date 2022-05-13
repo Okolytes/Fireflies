@@ -25,9 +25,9 @@ public class FireflyAbdomenParticle extends SpriteTexturedParticle {
     public void tick() {
         super.tick();
 
-        // Setting it here because the scale will need to change accordingly as a baby firefly grows (or shrinks?)
+        // Setting it here because the scale will need to change accordingly as a baby firefly grows (or shrinks?) // todo figure out what the fuck i meant by "shrink"
         this.particleScale = this.firefly.isChild() ? 0.2f : 0.45f;
-        this.particleAlpha = this.firefly.animationManager.animator.glow;
+        this.particleAlpha = this.firefly.animationManager.animationProperties.glow;
 
         // Keep at the exact point of the abdomen
         final double[] pos = this.firefly.particleManager.getAbdomenParticlePos();

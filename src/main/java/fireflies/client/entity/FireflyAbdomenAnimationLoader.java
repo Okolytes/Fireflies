@@ -27,24 +27,10 @@ public class FireflyAbdomenAnimationLoader extends JsonReloadListener {
     @Override
     protected void apply(Map<ResourceLocation, JsonElement> objectIn, IResourceManager resourceManagerIn, IProfiler profilerIn) {
         FireflyAbdomenAnimationManager.ABDOMEN_ANIMATIONS.clear();
-        FireflyAbdomenAnimationManager.SYNCED_ANIMATORS.clear();
 
-        objectIn.forEach((rsc, element) -> {
-            final FireflyAbdomenAnimation animation = new FireflyAbdomenAnimation();
-            final FireflyAbdomenAnimation.Frame[] frames = GSON.fromJson(element, FireflyAbdomenAnimation.Frame[].class);
-            animation.name = rsc.getPath();
-            animation.sync = animation.name.endsWith("synced");
-            animation.frames = frames;
-            FireflyAbdomenAnimationManager.ABDOMEN_ANIMATIONS.add(animation);
+        objectIn.forEach((rsc, element) -> FireflyAbdomenAnimationManager.ABDOMEN_ANIMATIONS.add(
+                new FireflyAbdomenAnimation(rsc.getPath(), GSON.fromJson(element, FireflyAbdomenAnimation.FireflyAbdomenAnimationFrame[].class))));
 
-            if (animation.sync) {
-                // Each synced animation gets its own animator which fireflies can be added to
-                final FireflyAbdomenAnimator animator = new FireflyAbdomenAnimator(null);
-                animator.animation = animation;
-                FireflyAbdomenAnimationManager.SYNCED_ANIMATORS.add(animator);
-            }
-        });
-        Fireflies.LOGGER.info("Loaded {} firefly animations, {} synced",
-                FireflyAbdomenAnimationManager.ABDOMEN_ANIMATIONS.size(), FireflyAbdomenAnimationManager.SYNCED_ANIMATORS.size());
+        Fireflies.LOGGER.info("Loaded {} firefly abdomen animations", FireflyAbdomenAnimationManager.ABDOMEN_ANIMATIONS.size());
     }
 }

@@ -85,7 +85,7 @@ public class FireflyParticleManager {
      * This is called every tick at {@link FireflyEntity#livingTick()}
      */
     public void spawnFallingDustParticles() {
-        if (this.firefly.ticksExisted % 10 == 0 && this.firefly.animationManager.animator.glow > 0f && this.firefly.getRNG().nextFloat() > 0.33f && !this.firefly.isInvisible()) {
+        if (this.firefly.ticksExisted % 10 == 0 && this.firefly.animationManager.animationProperties.glow > 0f && this.firefly.getRNG().nextFloat() > 0.33f && !this.firefly.isInvisible()) {
             // abdomens position, taken from SquidEntity#squirtInk()
             // just don't touch this I forgot how it works
             final Vector3d vector3d = this.rotateVector(new Vector3d(0.0D, -1.0D, 0.0D)).add(this.firefly.getPosX(), this.firefly.getPosY(), this.firefly.getPosZ());
