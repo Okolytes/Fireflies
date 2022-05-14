@@ -2,8 +2,8 @@ package fireflies.entity;
 
 import fireflies.Registry;
 import fireflies.client.ClientStuff;
-import fireflies.client.entity.FireflyAbdomenAnimationManager;
-import fireflies.client.entity.FireflyParticleManager;
+import fireflies.client.FireflyAbdomenAnimationManager;
+import fireflies.client.particle.FireflyParticleManager;
 import fireflies.client.sound.FireflyFlightSound;
 import net.minecraft.block.BlockState;
 import net.minecraft.entity.*;
@@ -99,9 +99,7 @@ public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
             return this.cachedHasIllumerin;
         }
 
-        final boolean hasIllumerin = this.dataManager.get(HAS_ILLUMERIN);
-        this.cachedHasIllumerin = hasIllumerin;
-        return hasIllumerin;
+        return this.cachedHasIllumerin = this.dataManager.get(HAS_ILLUMERIN);
     }
 
     public void setHasIllumerin(boolean b) {
@@ -221,7 +219,7 @@ public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
     public void onRemovedFromWorld() {
         super.onRemovedFromWorld();
         if (this.world.isRemote) {
-            FireflyAbdomenAnimationManager.ABDOMEN_ANIMATIONS.forEach(animation -> animation.fireflies.remove(this));
+            FireflyAbdomenAnimationManager.ANIMATIONS.forEach(animation -> animation.fireflies.remove(this));
         }
     }
 

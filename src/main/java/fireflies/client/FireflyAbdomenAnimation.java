@@ -1,4 +1,4 @@
-package fireflies.client.entity;
+package fireflies.client;
 
 import fireflies.entity.FireflyEntity;
 import net.minecraft.util.math.MathHelper;
@@ -25,7 +25,6 @@ public class FireflyAbdomenAnimation {
 
     public void animate() {
         if (this.animationProperties != null) {
-            // todo this is scuffed
             this.animate(this.animationProperties, this.fireflies.toArray(new FireflyEntity[0]));
             for (FireflyEntity firefly : this.fireflies) {
                 firefly.animationManager.animationProperties.frameCounter = this.animationProperties.frameCounter;
@@ -52,7 +51,7 @@ public class FireflyAbdomenAnimation {
         }
 
         if (ap.frameCounter == 0) {
-            for (FireflyEntity firefly : fireflies) { // todo this is scuffed
+            for (FireflyEntity firefly : fireflies) {
                 firefly.particleManager.resetAbdomenParticle();
                 firefly.playGlowSound();
             }

@@ -2,8 +2,8 @@ package fireflies;
 
 import fireflies.block.IllumerinBlock;
 import fireflies.client.ClientStuff;
-import fireflies.client.entity.FireflyAbdomenAnimationLoader;
-import fireflies.client.entity.FireflyAbdomenAnimationManager;
+import fireflies.client.FireflyAbdomenAnimationLoader;
+import fireflies.client.FireflyAbdomenAnimationManager;
 import fireflies.client.particle.FireflyAbdomenParticle;
 import fireflies.client.particle.FireflyDustParticle;
 import fireflies.client.render.FireflyRenderer;

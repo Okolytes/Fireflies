@@ -1,6 +1,5 @@
-package fireflies.client.entity;
+package fireflies.client;
 
-import fireflies.client.ClientStuff;
 import fireflies.entity.FireflyEntity;
 import net.minecraft.client.Minecraft;
 import net.minecraft.entity.Entity;
@@ -16,9 +15,11 @@ import java.util.Objects;
 import java.util.Optional;
 
 public class FireflyAbdomenAnimationManager {
-    public static final HashSet<FireflyAbdomenAnimation> ABDOMEN_ANIMATIONS = new HashSet<>();
+    public static final HashSet<FireflyAbdomenAnimation> ANIMATIONS = new HashSet<>();
     public final FireflyAbdomenAnimationProperties animationProperties = new FireflyAbdomenAnimationProperties();
     private final FireflyEntity firefly;
+    @Nullable
+    private String currentAnimation;
 
     public FireflyAbdomenAnimationManager(FireflyEntity firefly) {
         this.firefly = firefly;
@@ -26,7 +27,7 @@ public class FireflyAbdomenAnimationManager {
 
     public static void syncFireflies(TickEvent.ClientTickEvent event) {
         if (event.phase == TickEvent.Phase.START /* Runs on both START and END */ && !ClientStuff.isGamePaused() && Minecraft.getInstance().player != null) { //todo test on server
-            ABDOMEN_ANIMATIONS.forEach(FireflyAbdomenAnimation::animate);
+            ANIMATIONS.forEach(FireflyAbdomenAnimation::animate);
         }
     }
 
@@ -43,16 +44,16 @@ public class FireflyAbdomenAnimationManager {
      * @param name if null, no animation will be used
      */
     public void setAnimation(@Nullable String name) {
-        for (FireflyAbdomenAnimation animation : ABDOMEN_ANIMATIONS) {
-            if (name == null && animation.fireflies.remove(this.firefly)) {
-                return;
-            }
+        if (Objects.equals(name, this.currentAnimation)) {
+            return;
+        }
 
-            // we don't know which animation we have, so keep trying until we get it right
-            if (animation.name.equals(name)) {
-                animation.fireflies.add(this.firefly);
-            } else {
-                animation.fireflies.remove(this.firefly);
+        for (FireflyAbdomenAnimation animation : ANIMATIONS) {
+            if (animation.name.equals(name) && animation.fireflies.add(this.firefly)) {
+                this.currentAnimation = name;
+            } else if (animation.fireflies.remove(this.firefly) && name == null) {
+                this.currentAnimation = null;
+                return;
             }
         }
     }

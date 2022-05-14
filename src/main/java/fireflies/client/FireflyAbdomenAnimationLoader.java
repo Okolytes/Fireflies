@@ -1,4 +1,4 @@
-package fireflies.client.entity;
+package fireflies.client;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -26,11 +26,11 @@ public class FireflyAbdomenAnimationLoader extends JsonReloadListener {
 
     @Override
     protected void apply(Map<ResourceLocation, JsonElement> objectIn, IResourceManager resourceManagerIn, IProfiler profilerIn) {
-        FireflyAbdomenAnimationManager.ABDOMEN_ANIMATIONS.clear();
+        FireflyAbdomenAnimationManager.ANIMATIONS.clear();
 
-        objectIn.forEach((rsc, element) -> FireflyAbdomenAnimationManager.ABDOMEN_ANIMATIONS.add(
+        objectIn.forEach((rsc, element) -> FireflyAbdomenAnimationManager.ANIMATIONS.add(
                 new FireflyAbdomenAnimation(rsc.getPath(), GSON.fromJson(element, FireflyAbdomenAnimation.FireflyAbdomenAnimationFrame[].class))));
 
-        Fireflies.LOGGER.info("Loaded {} firefly abdomen animations", FireflyAbdomenAnimationManager.ABDOMEN_ANIMATIONS.size());
+        Fireflies.LOGGER.info("Loaded {} firefly abdomen animations", FireflyAbdomenAnimationManager.ANIMATIONS.size());
     }
 }

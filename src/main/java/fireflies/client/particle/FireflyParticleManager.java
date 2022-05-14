@@ -1,6 +1,5 @@
-package fireflies.client.entity;
+package fireflies.client.particle;
 
-import fireflies.client.particle.FireflyAbdomenParticle;
 import fireflies.entity.FireflyEntity;
 import fireflies.misc.FireflyParticleData;
 import net.minecraft.particles.IParticleData;

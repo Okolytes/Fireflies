@@ -1,4 +1,4 @@
-package fireflies.client.entity;
+package fireflies.client;
 
 public class FireflyAbdomenAnimationProperties {
     public float glow;
