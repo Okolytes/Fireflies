@@ -16,8 +16,8 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 
 @OnlyIn(Dist.CLIENT)
 public class FireflyAbdomenLayer<T extends FireflyEntity, M extends EntityModel<T>> extends LayerRenderer<T, M> {
-    private static final ResourceLocation ABDOMEN = new ResourceLocation(Fireflies.ID, "textures/entity/firefly_layer_abdomen.png");
-    private static final ResourceLocation ABDOMEN_ILLUMERIN = new ResourceLocation(Fireflies.ID, "textures/entity/firefly_layer_abdomen_illumerin.png");
+    private static final ResourceLocation ABDOMEN = new ResourceLocation(Fireflies.MODID, "textures/entity/firefly_layer_abdomen.png");
+    private static final ResourceLocation ABDOMEN_ILLUMERIN = new ResourceLocation(Fireflies.MODID, "textures/entity/firefly_layer_abdomen_illumerin.png");
 
     public FireflyAbdomenLayer(IEntityRenderer<T, M> entityRenderer) {
         super(entityRenderer);
@@ -25,7 +25,7 @@ public class FireflyAbdomenLayer<T extends FireflyEntity, M extends EntityModel<
 
     @Override
     protected ResourceLocation getEntityTexture(T fireflyEntity) {
-        return fireflyEntity.hasIllumerin(true) ? ABDOMEN_ILLUMERIN : ABDOMEN;
+        return fireflyEntity.hasIllumerin() ? ABDOMEN_ILLUMERIN : ABDOMEN;
     }
 
     @Override

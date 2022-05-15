@@ -48,7 +48,7 @@ public class FireflyParticleManager {
     public void spawnAbdomenParticle() {
         if (this.firefly.world.isRemote && this.abdomenParticle == null) {
             final double[] pos = this.getAbdomenParticlePos();
-            this.firefly.world.addOptionalParticle(this.firefly.hasIllumerin(true)
+            this.firefly.world.addOptionalParticle(this.firefly.hasIllumerin()
                             ? new FireflyParticleData.AbdomenIllumerin(this.firefly.getEntityId())
                             : new FireflyParticleData.Abdomen(this.firefly.getEntityId()),
                     true, pos[0], pos[1], pos[2], 0, 0, 0);

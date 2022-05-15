@@ -90,16 +90,12 @@ public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
         this.dataManager.register(ILLUMERIN_DEPOSITED, 0);
     }
 
-    public boolean hasIllumerin(boolean getCached) {
-        if (getCached) {
-            // This method is called every frame in our abdomen layer renderer, so this statement *will* pass
-            if (this.ticksExisted % 20 == 0) {
-                this.cachedHasIllumerin = this.dataManager.get(HAS_ILLUMERIN);
-            }
-            return this.cachedHasIllumerin;
+    public boolean hasIllumerin() {
+        // This method is called every frame in our abdomen layer renderer, so this statement *will* pass
+        if (this.ticksExisted % 20 == 0) {
+            this.cachedHasIllumerin = this.dataManager.get(HAS_ILLUMERIN);
         }
-
-        return this.cachedHasIllumerin = this.dataManager.get(HAS_ILLUMERIN);
+        return this.cachedHasIllumerin;
     }
 
     public void setHasIllumerin(boolean b) {
@@ -118,7 +114,7 @@ public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
     @Override
     public void writeAdditional(CompoundNBT nbt) {
         super.writeAdditional(nbt);
-        nbt.putBoolean("HasIllumerin", this.hasIllumerin(true));
+        nbt.putBoolean("HasIllumerin", this.hasIllumerin());
         nbt.putInt("IllumerinDeposited", this.getIllumerinDeposited());
     }
 
@@ -169,29 +165,12 @@ public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
         }
     }
 
-    private void doWaterAndRainLogic() {
-        this.underWaterTicks = this.isInWaterOrBubbleColumn() ? this.underWaterTicks + 1 : 0;
-        this.rainedOnTicks = this.world.isRainingAt(this.getPosition()) ? this.rainedOnTicks + 1 : 0;
-
-        if (this.underWaterTicks > 20) {
-            this.attackEntityFrom(DamageSource.DROWN, 1.0F);
-        }
-    }
-
-    /**
-     * @return Should this firefly have its abdomen particle, spawning dust particles, glow animation etc
-     */
-    public boolean shouldDoEffects() {
-        // Fireflies with illumerin are not affected by if it's daytime or not
-        return this.hasIllumerin(true) || !ClientStuff.isDayTime(this.world);
-    }
-
     @Override
     public void livingTick() {
         super.livingTick();
 
         if (this.world.isRemote) {
-            if (this.shouldDoEffects()) {
+            if (this.hasIllumerin() || !ClientStuff.isDayTime(this.world)) {
                 this.animationManager.updateAbdomenAnimation();
                 this.particleManager.spawnFallingDustParticles();
             } else {
@@ -199,7 +178,12 @@ public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
             }
         } else {
             if (!this.isAIDisabled()) {
-                this.doWaterAndRainLogic();
+                this.underWaterTicks = this.isInWaterOrBubbleColumn() ? this.underWaterTicks + 1 : 0;
+                this.rainedOnTicks = this.world.isRainingAt(this.getPosition()) ? this.rainedOnTicks + 1 : 0;
+
+                if (this.underWaterTicks > 20) {
+                    this.attackEntityFrom(DamageSource.DROWN, 1.0F);
+                }
             }
         }
     }

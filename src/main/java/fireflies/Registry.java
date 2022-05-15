@@ -29,11 +29,11 @@ import net.minecraftforge.registries.DeferredRegister;
 import net.minecraftforge.registries.ForgeRegistries;
 
 public final class Registry {
-    private static final DeferredRegister<Block> BLOCKS = DeferredRegister.create(ForgeRegistries.BLOCKS, Fireflies.ID);
-    private static final DeferredRegister<Item> ITEMS = DeferredRegister.create(ForgeRegistries.ITEMS, Fireflies.ID);
-    private static final DeferredRegister<EntityType<?>> ENTITIES = DeferredRegister.create(ForgeRegistries.ENTITIES, Fireflies.ID);
-    private static final DeferredRegister<ParticleType<?>> PARTICLES = DeferredRegister.create(ForgeRegistries.PARTICLE_TYPES, Fireflies.ID);
-    private static final DeferredRegister<SoundEvent> SOUNDS = DeferredRegister.create(ForgeRegistries.SOUND_EVENTS, Fireflies.ID);
+    private static final DeferredRegister<Block> BLOCKS = DeferredRegister.create(ForgeRegistries.BLOCKS, Fireflies.MODID);
+    private static final DeferredRegister<Item> ITEMS = DeferredRegister.create(ForgeRegistries.ITEMS, Fireflies.MODID);
+    private static final DeferredRegister<EntityType<?>> ENTITIES = DeferredRegister.create(ForgeRegistries.ENTITIES, Fireflies.MODID);
+    private static final DeferredRegister<ParticleType<?>> PARTICLES = DeferredRegister.create(ForgeRegistries.PARTICLE_TYPES, Fireflies.MODID);
+    private static final DeferredRegister<SoundEvent> SOUNDS = DeferredRegister.create(ForgeRegistries.SOUND_EVENTS, Fireflies.MODID);
 
     // Blocks
     public static final RegistryObject<Block> ILLUMERIN_BLOCK = BLOCKS.register("illumerin_block", IllumerinBlock::new);
@@ -45,7 +45,7 @@ public final class Registry {
     // Entities / Spawn Eggs
     private static final EntityType<FireflyEntity> FIREFLY_ENTITY_TYPE = EntityType.Builder.create(FireflyEntity::new, EntityClassification.CREATURE).size(0.5f, 0.5f).trackingRange(10).build("firefly");
     //private static final EntityType<SoulFireflyEntity> SOUL_FIREFLY_ENTITY_TYPE = EntityType.Builder.create(SoulFireflyEntity::new, EntityClassification.CREATURE).size(0.5f, 0.5f).trackingRange(10).build("soul_firefly");
-    private static final Item FIREFLY_SPAWN_EGG = new FireflySpawnEgg(FIREFLY_ENTITY_TYPE, 0x5B1313, 0xF7DD36, false).setRegistryName(Fireflies.ID, "firefly_spawn_egg");
+    private static final Item FIREFLY_SPAWN_EGG = new FireflySpawnEgg(FIREFLY_ENTITY_TYPE, 0x5B1313, 0xF7DD36, false).setRegistryName(Fireflies.MODID, "firefly_spawn_egg");
     //private static final Item SOUL_FIREFLY_SPAWN_EGG = new FireflySpawnEgg(SOUL_FIREFLY_ENTITY_TYPE, 0x5B1313, 0xF7DD36, true).setRegistryName(Fireflies.ID, "soul_firefly_spawn_egg");
     public static final RegistryObject<EntityType<FireflyEntity>> FIREFLY = ENTITIES.register("firefly", () -> FIREFLY_ENTITY_TYPE);
     //public static final RegistryObject<EntityType<SoulFireflyEntity>> SOUL_FIREFLY = ENTITIES.register("soul_firefly", () -> SOUL_FIREFLY_ENTITY_TYPE);
@@ -73,7 +73,7 @@ public final class Registry {
         SOUNDS.register(bus);
     }
 
-    public static void registerSpawnEggs( RegistryEvent.Register<Item> event) {
+    public static void registerSpawnEggs(RegistryEvent.Register<Item> event) {
         event.getRegistry().registerAll(
                 FIREFLY_SPAWN_EGG//, SOUL_FIREFLY_SPAWN_EGG
         );
@@ -86,7 +86,7 @@ public final class Registry {
      * Registers the spawn egg's dispenser behaviour.
      * Taken from IDispenseItemBehavior#init L192
      */
-    private static void registerSpawnEggDispenserBehaviour(IItemProvider egg) { //todo forge had some PR for mob eggs
+    private static void registerSpawnEggDispenserBehaviour(IItemProvider egg) {
         DispenserBlock.registerDispenseBehavior(egg, new DefaultDispenseItemBehavior() {
             public ItemStack dispenseStack(IBlockSource source, ItemStack stack) {
                 final Direction direction = source.getBlockState().get(DispenserBlock.FACING);
@@ -99,12 +99,12 @@ public final class Registry {
     }
 
     private static RegistryObject<SoundEvent> registerSoundEvent(String name) {
-        return SOUNDS.register(name, () -> new SoundEvent(new ResourceLocation(Fireflies.ID, name)));
+        return SOUNDS.register(name, () -> new SoundEvent(new ResourceLocation(Fireflies.MODID, name)));
     }
 
     private static ResourceLocation registerCustomStat(String name) {
         // https://forums.minecraftforge.net/topic/72454-custom-stats-1143/?do=findComment&comment=392617
-        final ResourceLocation rsc = new ResourceLocation(Fireflies.ID, name);
+        final ResourceLocation rsc = new ResourceLocation(Fireflies.MODID, name);
         net.minecraft.util.registry.Registry.register(net.minecraft.util.registry.Registry.CUSTOM_STAT, name, rsc);
         Stats.CUSTOM.get(rsc, IStatFormatter.DEFAULT);
         return rsc;

@@ -297,12 +297,12 @@ public class FireflyAI {
 
         @Override
         public boolean shouldExecute() {
-            return !this.firefly.hasIllumerin(true) && super.shouldExecute();
+            return !this.firefly.hasIllumerin() && super.shouldExecute();
         }
 
         @Override
         public boolean shouldContinueExecuting() {
-            return !this.firefly.hasIllumerin(true) && super.shouldContinueExecuting();
+            return !this.firefly.hasIllumerin() && super.shouldContinueExecuting();
         }
 
         @Override

@@ -1,19 +1,23 @@
 package fireflies.client;
 
+import fireflies.Fireflies;
 import fireflies.entity.FireflyEntity;
 import net.minecraft.client.Minecraft;
-import net.minecraft.entity.Entity;
 import net.minecraft.util.RegistryKey;
 import net.minecraft.world.biome.Biome;
 import net.minecraft.world.biome.Biomes;
-import net.minecraftforge.client.event.ClientChatEvent;
+import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.event.TickEvent;
+import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.minecraftforge.fml.common.Mod;
 
 import javax.annotation.Nullable;
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.Optional;
 
+
+@Mod.EventBusSubscriber(value = Dist.CLIENT, modid = Fireflies.MODID, bus = Mod.EventBusSubscriber.Bus.FORGE)
 public class FireflyAbdomenAnimationManager {
     public static final HashSet<FireflyAbdomenAnimation> ANIMATIONS = new HashSet<>();
     public final FireflyAbdomenAnimationProperties animationProperties = new FireflyAbdomenAnimationProperties();
@@ -25,18 +29,10 @@ public class FireflyAbdomenAnimationManager {
         this.firefly = firefly;
     }
 
+    @SubscribeEvent
     public static void syncFireflies(TickEvent.ClientTickEvent event) {
-        if (event.phase == TickEvent.Phase.START /* Runs on both START and END */ && !ClientStuff.isGamePaused() && Minecraft.getInstance().player != null) { //todo test on server
+        if (event.phase == TickEvent.Phase.START /* Runs on both START and END */ && !Minecraft.getInstance().isGamePaused() && Minecraft.getInstance().player != null) {
             ANIMATIONS.forEach(FireflyAbdomenAnimation::animate);
-        }
-    }
-
-    public static void debugSetAnimation(ClientChatEvent event) { //todo
-        if (event.getMessage().startsWith("sus ")) {
-            final Entity pointedEntity = Minecraft.getInstance().pointedEntity;
-            if (pointedEntity instanceof FireflyEntity) {
-                ((FireflyEntity) pointedEntity).animationManager.setAnimation(event.getMessage().split(" ")[1]);
-            }
         }
     }
 
@@ -62,7 +58,7 @@ public class FireflyAbdomenAnimationManager {
      * Updates the abdomen animation accordingly to the fireflies environment and condition
      */
     public void updateAbdomenAnimation() {
-        if (this.firefly.hasIllumerin(true)) {
+        if (this.firefly.hasIllumerin()) {
             this.setAnimation("illuminated");
             return;
         }

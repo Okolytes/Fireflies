@@ -37,7 +37,7 @@ public class FireflyDustParticle extends SpriteTexturedParticle {
         } else {
             this.maxAge = (int) (20f / (this.rand.nextFloat() * 0.8f + 0.2f)) + 32;
             this.particleScale = 0.1f * (this.rand.nextFloat() * 0.25f + 0.1f);
-            if (fireflyEntity.hasIllumerin(true)) {
+            if (fireflyEntity.hasIllumerin()) {
                 this.particleRed = 0.9f;
                 this.particleGreen = 0.55f;
                 this.particleBlue = 0.18f;

@@ -1,5 +1,6 @@
 package fireflies.block;
 
+import fireflies.Fireflies;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.RotatedPillarBlock;
@@ -16,7 +17,10 @@ import net.minecraft.world.IBlockReader;
 import net.minecraftforge.common.ToolType;
 import net.minecraftforge.event.entity.living.LivingSpawnEvent;
 import net.minecraftforge.eventbus.api.Event;
+import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.minecraftforge.fml.common.Mod;
 
+@Mod.EventBusSubscriber(modid = Fireflies.MODID)
 public class IllumerinBlock extends RotatedPillarBlock {
     private static final int ILLUMERIN_RADIUS = 8;
 
@@ -25,6 +29,7 @@ public class IllumerinBlock extends RotatedPillarBlock {
         this.setDefaultState(this.stateContainer.getBaseState().with(AXIS, Direction.Axis.Y));
     }
 
+    @SubscribeEvent
     public static void stopMobSpawning(LivingSpawnEvent.CheckSpawn event) {
         if (event.getWorld() == null || event.getWorld().isRemote() || event.getEntity() == null)
             return;
