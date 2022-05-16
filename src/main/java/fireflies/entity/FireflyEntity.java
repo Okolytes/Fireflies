@@ -10,6 +10,7 @@ import net.minecraft.entity.*;
 import net.minecraft.entity.ai.attributes.AttributeModifierMap;
 import net.minecraft.entity.ai.attributes.Attributes;
 import net.minecraft.entity.ai.goal.FollowParentGoal;
+import net.minecraft.entity.ai.goal.PanicGoal;
 import net.minecraft.entity.ai.goal.SwimGoal;
 import net.minecraft.entity.ai.goal.TemptGoal;
 import net.minecraft.entity.passive.AnimalEntity;
@@ -130,13 +131,14 @@ public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
     @Override
     protected void registerGoals() {
         // Register all of our fireflies AI goals. (0 being the highest priority, of course -_-)
-        this.goalSelector.addGoal(0, new FireflyAI.MateGoal(this, 1f));
-        this.goalSelector.addGoal(1, new TemptGoal(this, 1.15f, Ingredient.fromItems(Items.HONEY_BOTTLE, Items.HONEY_BLOCK), false));
-        this.goalSelector.addGoal(2, new FireflyAI.EatCompostGoal(this, 1f, 22));
-        this.goalSelector.addGoal(3, new FireflyAI.EntrancedByHoneyGoal(this));
-        this.goalSelector.addGoal(4, new FollowParentGoal(this, 1.15f));
-        this.goalSelector.addGoal(5, new FireflyAI.WanderGoal(this));
-        this.goalSelector.addGoal(6, new SwimGoal(this));
+        this.goalSelector.addGoal(0, new PanicGoal(this, 2.5f));
+        this.goalSelector.addGoal(1, new FireflyAI.MateGoal(this, 1f));
+        this.goalSelector.addGoal(2, new TemptGoal(this, 1.15f, Ingredient.fromItems(Items.HONEY_BOTTLE, Items.HONEY_BLOCK), false));
+        this.goalSelector.addGoal(3, new FireflyAI.EatCompostGoal(this, 1f, 22));
+        this.goalSelector.addGoal(4, new FireflyAI.EntrancedByHoneyGoal(this));
+        this.goalSelector.addGoal(5, new FollowParentGoal(this, 1.15f));
+        this.goalSelector.addGoal(6, new FireflyAI.WanderGoal(this));
+        this.goalSelector.addGoal(7, new SwimGoal(this));
     }
 
     @Override
