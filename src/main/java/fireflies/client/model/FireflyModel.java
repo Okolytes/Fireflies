@@ -31,13 +31,13 @@ public class FireflyModel<T extends FireflyEntity> extends AgeableModel<T> {
         this.head.setRotationPoint(0.0F, 18.5F, -1.0F);
         this.head.setTextureOffset(16, 24).addBox(-2.0F, -1.5F, -4.0F, 4.0F, 4.0F, 4.0F, 0.0F, false);
 
-        ModelRenderer antennae = new ModelRenderer(this);
+        final ModelRenderer antennae = new ModelRenderer(this);
         antennae.setRotationPoint(0.0F, -0.5F, -4.0F);
         this.head.addChild(antennae);
         this.setRotationAngle(antennae, 0.775F, 0.0F, 0.0F);
         antennae.setTextureOffset(0, 27).addBox(-4.0F, -5.0F, 0.0F, 8.0F, 5.0F, 0.0F, 0.0F, false);
 
-        ModelRenderer wings = new ModelRenderer(this);
+        final ModelRenderer wings = new ModelRenderer(this);
         wings.setRotationPoint(0.0F, -0.75F, -0.75F);
         this.head.addChild(wings);
 
@@ -72,7 +72,7 @@ public class FireflyModel<T extends FireflyEntity> extends AgeableModel<T> {
         this.head.rotateAngleX = 0.75f - ((float) Math.PI / 4F) + this.animSpeed(ageInTicks, 0.1F) * 0.1F;
 
         // Bob abdomen
-        this.abdomen.rotateAngleX = 0.5F - ((float) Math.PI / 4F) + this.animSpeed(ageInTicks, 0.1F) * 0.05F;
+        this.abdomen.rotateAngleX = (fireflyEntity.hasIllumerin() ? .1f : 0.5f) - ((float) Math.PI / 4F) + this.animSpeed(ageInTicks, 0.1F) * 0.05F;
         // Update the particle position offset
         fireflyEntity.particleManager.abdomenParticlePositionOffset = this.abdomen.rotateAngleX;
 

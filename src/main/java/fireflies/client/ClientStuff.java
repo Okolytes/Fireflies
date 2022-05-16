@@ -4,14 +4,17 @@ import fireflies.Fireflies;
 import fireflies.Registry;
 import fireflies.client.particle.FireflyAbdomenParticle;
 import fireflies.client.particle.FireflyDustParticle;
+import fireflies.client.render.FireflyRenderer;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screen.MainMenuScreen;
 import net.minecraft.client.particle.ParticleManager;
+import net.minecraft.client.renderer.texture.AtlasTexture;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.world.World;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.GuiOpenEvent;
 import net.minecraftforge.client.event.ParticleFactoryRegisterEvent;
+import net.minecraftforge.client.event.TextureStitchEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.ObfuscationReflectionHelper;
@@ -42,6 +45,13 @@ public final class ClientStuff {
             pm.registerFactory(Registry.FIREFLY_DUST_PARTICLE.get(), FireflyDustParticle.DustParticleFactory::new);
             pm.registerFactory(Registry.FIREFLY_ABDOMEN_PARTICLE.get(), FireflyAbdomenParticle.AbdomenParticleFactory::new);
             pm.registerFactory(Registry.FIREFLY_ABDOMEN_ILLUMERIN_PARTICLE.get(), FireflyAbdomenParticle.AbdomenIllumerinParticleFactory::new);
+        }
+
+        @SubscribeEvent
+        public static void onTextureStitch(TextureStitchEvent.Pre event) {
+            if (event.getMap().getTextureLocation().equals(AtlasTexture.LOCATION_BLOCKS_TEXTURE)) {
+                event.addSprite(FireflyRenderer.ILLUMERIN_GOOP);
+            }
         }
     }
 

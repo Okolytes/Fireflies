@@ -37,7 +37,7 @@ public class FireflyParticleManager {
     public double[] getAbdomenParticlePos() {
         return new double[] {
                 this.firefly.getPosX() - -this.firefly.getWidth() * 0.35f * MathHelper.sin(this.firefly.renderYawOffset * ((float) Math.PI / 180F)),
-                this.firefly.getPosYEye() + this.abdomenParticlePositionOffset + 0.3f,
+                this.firefly.getPosYEye() + this.abdomenParticlePositionOffset + (this.firefly.hasIllumerin() ? 0.6f : 0.3f),
                 this.firefly.getPosZ() + -this.firefly.getWidth() * 0.35f * MathHelper.cos(this.firefly.renderYawOffset * ((float) Math.PI / 180F))
         };
     }
