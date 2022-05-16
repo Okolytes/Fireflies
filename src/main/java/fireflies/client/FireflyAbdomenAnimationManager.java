@@ -41,14 +41,19 @@ public class FireflyAbdomenAnimationManager {
      * @param newAnimation null = no animation
      */
     public void setAnimation(@Nullable String newAnimation) {
-        if (Objects.equals(newAnimation, this.curAnimation)) {
+        final boolean hurt = Objects.equals(newAnimation, "hurt");
+        if (Objects.equals(newAnimation, this.curAnimation) && !hurt) {
             return;
         }
 
-        this.prevAnimation = this.curAnimation;
+        if (!hurt) {
+            this.prevAnimation = this.curAnimation;
+        }
+        if (this.curAnimation != null) {
+            WANTS_OUT.put(this.curAnimation, this.firefly);
+        }
         this.curAnimation = newAnimation;
         this.resetAnimationProperties();
-        WANTS_OUT.put(this.curAnimation, this.firefly);
         if (newAnimation != null) {
             WANTS_IN.put(newAnimation, this.firefly);
         }

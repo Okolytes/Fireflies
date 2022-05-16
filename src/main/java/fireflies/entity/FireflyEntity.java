@@ -218,8 +218,8 @@ public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
 
     @Override
     public boolean attackEntityFrom(DamageSource source, float amount) {
-        if (this.world.isRemote) {
-            final int particleCount = (int) MathHelper.clamp(amount, 1, 5);
+        if (this.world.isRemote && amount > 0) { // todo for some reason it runs twice, second time the source is 'generic' and amount is 0
+            final int particleCount = (int) MathHelper.clamp(amount, 2, 8);
             for (int i = 0; i < particleCount; i++) {
                 this.world.addParticle(this.particleManager.getDustParticle(), this.getPosX(), this.getPosY(), this.getPosZ(), 0, 0, 0);
             }
