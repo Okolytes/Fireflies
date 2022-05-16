@@ -281,10 +281,6 @@ public class FireflyAI {
         }
 
         private void eatCompost() {
-            // todo should mob griefing affect this?
-            //if (!this.world.getGameRules().getBoolean(GameRules.MOB_GRIEFING))
-            //    return;
-
             final BlockState state = this.world.getBlockState(this.destinationBlock);
             if (state.matchesBlock(Blocks.COMPOSTER)) {
                 this.lookAtCompost();

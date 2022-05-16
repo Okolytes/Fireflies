@@ -62,7 +62,6 @@ public final class ClientStuff {
                             "I'd get a thousand hugs, from ten thousand lightning bugs",
                             "OK."
                     };
-                    // Choose a random splash text
                     final String newSplashText = sus ? splashes[0] : splashes[new Random().nextInt(splashes.length)];
 
                     try {

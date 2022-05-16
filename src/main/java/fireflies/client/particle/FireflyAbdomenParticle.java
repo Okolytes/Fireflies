@@ -18,7 +18,7 @@ public class FireflyAbdomenParticle extends SpriteTexturedParticle {
         this.firefly = fireflyEntity;
         fireflyEntity.particleManager.abdomenParticle = this;
         // Something's probably gone wrong if it has existed for this long.
-        this.maxAge = 10000;
+        this.maxAge = 1000;
     }
 
     @Override

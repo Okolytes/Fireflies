@@ -38,6 +38,8 @@ import net.minecraft.world.server.ServerWorld;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
+import java.util.Objects;
+
 public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
     private static final DataParameter<Boolean> HAS_ILLUMERIN = EntityDataManager.createKey(FireflyEntity.class, DataSerializers.BOOLEAN);
     private static final DataParameter<Integer> ILLUMERIN_DEPOSITED = EntityDataManager.createKey(FireflyEntity.class, DataSerializers.VARINT);
@@ -170,9 +172,16 @@ public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
         super.livingTick();
 
         if (this.world.isRemote) {
-            if (this.hasIllumerin() || !ClientStuff.isDayTime(this.world)) {
-                this.animationManager.updateAbdomenAnimation();
-                this.particleManager.spawnFallingDustParticles();
+            if (/*this.hasIllumerin() || */!ClientStuff.isDayTime(this.world)) {
+                if (!Objects.equals(this.animationManager.curAnimation, "hurt")) {
+                    if (this.hasIllumerin()) {
+
+                        this.animationManager.setAnimation("calm_synced"); // todo add cases
+                    } else {
+                        this.animationManager.setAnimation("starry_night");
+                    }
+                    this.particleManager.spawnFallingDustParticles();
+                }
             } else {
                 this.animationManager.setAnimation(null);
             }
@@ -203,17 +212,18 @@ public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
     public void onRemovedFromWorld() {
         super.onRemovedFromWorld();
         if (this.world.isRemote) {
-            FireflyAbdomenAnimationManager.ANIMATIONS.forEach(animation -> animation.fireflies.remove(this));
+            this.animationManager.setAnimation(null);
         }
     }
 
     @Override
     public boolean attackEntityFrom(DamageSource source, float amount) {
-        // Puff out some particles on hit, the amount depending on damage.
         if (this.world.isRemote) {
-            for (int i = 0; i < (int) MathHelper.clamp(amount, 2, 5); i++) {
+            final int particleCount = (int) MathHelper.clamp(amount, 1, 5);
+            for (int i = 0; i < particleCount; i++) {
                 this.world.addParticle(this.particleManager.getDustParticle(), this.getPosX(), this.getPosY(), this.getPosZ(), 0, 0, 0);
             }
+            this.animationManager.setAnimation("hurt");
         }
         return super.attackEntityFrom(source, amount);
     }

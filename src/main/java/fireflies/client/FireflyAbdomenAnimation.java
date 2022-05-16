@@ -5,6 +5,7 @@ import net.minecraft.util.math.MathHelper;
 
 import javax.annotation.Nullable;
 import java.util.HashSet;
+import java.util.Objects;
 import java.util.Random;
 
 public class FireflyAbdomenAnimation {
@@ -23,7 +24,11 @@ public class FireflyAbdomenAnimation {
         this.animationProperties = this.synced ? new FireflyAbdomenAnimationProperties() : null;
     }
 
-    public void animate() {
+    public void tick() {
+        // Avoiding the rare occasions we can get a ConcurrentModificationException while iterating this.fireflies (e.g. firefly dies and is removed from the set, or a new firefly added to the set)
+        FireflyAbdomenAnimationManager.WANTS_OUT.entrySet().removeIf(entry -> entry.getKey().equals(this.name) && this.fireflies.remove(entry.getValue()));
+        FireflyAbdomenAnimationManager.WANTS_IN.entrySet().removeIf(entry -> entry.getKey().equals(this.name) && this.fireflies.add(entry.getValue()));
+
         if (this.animationProperties != null) {
             this.animate(this.animationProperties, this.fireflies.toArray(new FireflyEntity[0]));
             for (FireflyEntity firefly : this.fireflies) {
@@ -45,14 +50,26 @@ public class FireflyAbdomenAnimation {
             return;
         }
 
-        // Reset the frame counter once we're on the last frame
+        // Last frame of animation
         if (ap.frameCounter >= this.frames.length) {
+            // Reset the frame counter
             ap.frameCounter = 0;
+
+            // Hurt animation ended, return to previous animation
+            if (this.name.equals("hurt")) {
+                for (FireflyEntity firefly : fireflies) {
+                    firefly.animationManager.setAnimation(firefly.animationManager.prevAnimation);
+                }
+            }
         }
 
         if (ap.frameCounter == 0) {
             for (FireflyEntity firefly : fireflies) {
-                firefly.particleManager.resetAbdomenParticle();
+                if (Objects.equals(firefly.animationManager.curAnimation, "hurt")) {
+                    firefly.particleManager.destroyAbdomenParticle();
+                } else {
+                    firefly.particleManager.resetAbdomenParticle();
+                }
                 firefly.playGlowSound();
             }
         }
