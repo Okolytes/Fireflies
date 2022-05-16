@@ -9,7 +9,6 @@ import net.minecraft.client.renderer.entity.IEntityRenderer;
 import net.minecraft.client.renderer.entity.layers.LayerRenderer;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.math.MathHelper;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
@@ -30,9 +29,7 @@ public class FireflyEyesLayer<T extends FireflyEntity, M extends FireflyModel<T>
     @Override
     public void render(MatrixStack matrixStack, IRenderTypeBuffer buffer, int packedLight, T fireflyEntity, float limbSwing, float limbSwingAmount, float partialTicks, float ageInTicks, float netHeadYaw, float headPitch) {
         if (!fireflyEntity.isInvisible()) {
-            final float eyeGlow = MathHelper.cos(ageInTicks * 0.05F) * 0.3F + 0.7f;
-            this.getEntityModel().render(matrixStack, buffer.getBuffer(RenderType.getEyes(this.getEntityTexture(fireflyEntity))), 15728640, OverlayTexture.NO_OVERLAY,
-                    eyeGlow, eyeGlow, eyeGlow, eyeGlow);
+            this.getEntityModel().render(matrixStack, buffer.getBuffer(RenderType.getEyes(this.getEntityTexture(fireflyEntity))), 15728640, OverlayTexture.NO_OVERLAY, 1f, 1f, 1f, 1f);
         }
     }
 }
