@@ -10,12 +10,13 @@ import net.minecraftforge.fml.common.Mod;
 
 import javax.annotation.Nullable;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Objects;
 
 
 @Mod.EventBusSubscriber(value = Dist.CLIENT, modid = Fireflies.MODID, bus = Mod.EventBusSubscriber.Bus.FORGE)
 public class FireflyAbdomenAnimationManager {
-    public static final HashMap<String, FireflyAbdomenAnimation> ANIMATIONS = new HashMap<>();
+    public static final HashSet<FireflyAbdomenAnimation> ANIMATIONS = new HashSet<>();
     public static final HashMap<String, FireflyEntity> WANTS_IN = new HashMap<>();
     public static final HashMap<String, FireflyEntity> WANTS_OUT = new HashMap<>();
     public final FireflyAbdomenAnimationProperties animationProperties = new FireflyAbdomenAnimationProperties();
@@ -32,7 +33,7 @@ public class FireflyAbdomenAnimationManager {
     @SubscribeEvent
     public static void tickAnimations(TickEvent.ClientTickEvent event) {
         if (event.phase == TickEvent.Phase.START /* Runs on both START and END */ && !Minecraft.getInstance().isGamePaused() && Minecraft.getInstance().player != null) {
-            ANIMATIONS.values().forEach(FireflyAbdomenAnimation::tick);
+            ANIMATIONS.forEach(FireflyAbdomenAnimation::tick);
         }
     }
 

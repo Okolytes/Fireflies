@@ -28,7 +28,7 @@ public class FireflyAbdomenAnimationLoader extends JsonReloadListener {
     protected void apply(Map<ResourceLocation, JsonElement> objectIn, IResourceManager resourceManagerIn, IProfiler profilerIn) {
         FireflyAbdomenAnimationManager.ANIMATIONS.clear();
 
-        objectIn.forEach((rsc, element) -> FireflyAbdomenAnimationManager.ANIMATIONS.put(rsc.getPath(),
+        objectIn.forEach((rsc, element) -> FireflyAbdomenAnimationManager.ANIMATIONS.add(
                 new FireflyAbdomenAnimation(rsc.getPath(), GSON.fromJson(element, FireflyAbdomenAnimation.FireflyAbdomenAnimationFrame[].class))));
 
         Fireflies.LOGGER.info("Loaded {} firefly abdomen animations", FireflyAbdomenAnimationManager.ANIMATIONS.size());
