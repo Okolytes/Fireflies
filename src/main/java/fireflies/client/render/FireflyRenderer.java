@@ -24,7 +24,6 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 public class FireflyRenderer extends MobRenderer<FireflyEntity, FireflyModel<FireflyEntity>> {
     public static final ResourceLocation ILLUMERIN_GOOP = new ResourceLocation(Fireflies.MODID, "entity/firefly_illumerin_goop");
     private static final ResourceLocation DEFAULT = new ResourceLocation(Fireflies.MODID, "textures/entity/firefly.png");
-    private static final ResourceLocation ILLUMERIN = new ResourceLocation(Fireflies.MODID, "textures/entity/firefly_illumerin.png");
 
     public FireflyRenderer(EntityRendererManager manager) {
         super(manager, new FireflyModel<>(), 0.3f);
@@ -34,7 +33,7 @@ public class FireflyRenderer extends MobRenderer<FireflyEntity, FireflyModel<Fir
 
     @Override
     public ResourceLocation getEntityTexture(FireflyEntity fireflyEntity) {
-        return fireflyEntity.hasIllumerin() ? ILLUMERIN : DEFAULT;
+        return DEFAULT;
     }
 
     @Override

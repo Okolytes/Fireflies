@@ -97,35 +97,4 @@ public class FireflyParticleData {
             return Registry.FIREFLY_ABDOMEN_PARTICLE.get();
         }
     }
-
-    public static class AbdomenIllumerin extends AbstractFireflyParticleData {
-        public AbdomenIllumerin(int fireflyId) {
-            super(fireflyId);
-        }
-
-        public static ParticleType<AbdomenIllumerin> get() {
-            return new ParticleType<AbdomenIllumerin>(true, new IDeserializer<AbdomenIllumerin>() {
-                @Override
-                public AbdomenIllumerin deserialize(ParticleType<AbdomenIllumerin> type, StringReader reader) throws CommandSyntaxException {
-                    reader.skipWhitespace();
-                    return new AbdomenIllumerin(reader.readInt());
-                }
-
-                @Override
-                public AbdomenIllumerin read(ParticleType<AbdomenIllumerin> type, PacketBuffer buffer) {
-                    return new AbdomenIllumerin(buffer.readVarInt());
-                }
-            }) {
-                @Override
-                public Codec<AbdomenIllumerin> func_230522_e_() {
-                    return Codec.INT.xmap(AbdomenIllumerin::new, (fireflyDustParticleData) -> fireflyDustParticleData.fireflyId);
-                }
-            };
-        }
-
-        @Override
-        protected ParticleType<?> particleType() {
-            return Registry.FIREFLY_ABDOMEN_ILLUMERIN_PARTICLE.get();
-        }
-    }
 }

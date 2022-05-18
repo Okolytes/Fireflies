@@ -48,10 +48,6 @@ public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
     public final FireflyAbdomenAnimationManager animationManager = new FireflyAbdomenAnimationManager(this);
     public final FireflyParticleManager particleManager = new FireflyParticleManager(this);
     /**
-     * Is this firefly's current goal to pathfind towards honey?
-     */
-    public boolean isEntrancedByHoney;
-    /**
      * How many ticks this firefly has been underwater for
      */
     public int underWaterTicks;
@@ -133,9 +129,8 @@ public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
         // Register all of our fireflies AI goals. (0 being the highest priority, of course -_-)
         this.goalSelector.addGoal(0, new PanicGoal(this, 2.5f));
         this.goalSelector.addGoal(1, new FireflyAI.MateGoal(this, 1f));
-        this.goalSelector.addGoal(2, new TemptGoal(this, 1.15f, Ingredient.fromItems(Items.HONEY_BOTTLE, Items.HONEY_BLOCK), false));
+        this.goalSelector.addGoal(2, new TemptGoal(this, 1.15f, Ingredient.fromItems(Items.HONEY_BOTTLE), false));
         this.goalSelector.addGoal(3, new FireflyAI.EatCompostGoal(this, 1f, 22));
-        this.goalSelector.addGoal(4, new FireflyAI.EntrancedByHoneyGoal(this));
         this.goalSelector.addGoal(5, new FollowParentGoal(this, 1.15f));
         this.goalSelector.addGoal(6, new FireflyAI.WanderGoal(this));
         this.goalSelector.addGoal(7, new SwimGoal(this));

@@ -36,9 +36,9 @@ public class FireflyParticleManager {
      */
     public double[] getAbdomenParticlePos() {
         return new double[] {
-                this.firefly.getPosX() - -this.firefly.getWidth() * 0.35f * MathHelper.sin(this.firefly.renderYawOffset * ((float) Math.PI / 180F)),
-                this.firefly.getPosYEye() + this.abdomenParticlePositionOffset + (this.firefly.hasIllumerin() ? 0.6f : 0.3f),
-                this.firefly.getPosZ() + -this.firefly.getWidth() * 0.35f * MathHelper.cos(this.firefly.renderYawOffset * ((float) Math.PI / 180F))
+                this.firefly.getPosX() - -this.firefly.getWidth() * 0.25f * MathHelper.sin(this.firefly.renderYawOffset * ((float) Math.PI / 180F)),
+                this.firefly.getPosYEye() + this.abdomenParticlePositionOffset + 0.6f,
+                this.firefly.getPosZ() + -this.firefly.getWidth() * 0.25f * MathHelper.cos(this.firefly.renderYawOffset * ((float) Math.PI / 180F))
         };
     }
 
@@ -48,10 +48,7 @@ public class FireflyParticleManager {
     public void spawnAbdomenParticle() {
         if (this.firefly.world.isRemote && this.abdomenParticle == null) {
             final double[] pos = this.getAbdomenParticlePos();
-            this.firefly.world.addOptionalParticle(this.firefly.hasIllumerin()
-                            ? new FireflyParticleData.AbdomenIllumerin(this.firefly.getEntityId())
-                            : new FireflyParticleData.Abdomen(this.firefly.getEntityId()),
-                    true, pos[0], pos[1], pos[2], 0, 0, 0);
+            this.firefly.world.addOptionalParticle(new FireflyParticleData.Abdomen(this.firefly.getEntityId()), true, pos[0], pos[1], pos[2], 0, 0, 0);
         }
     }
 

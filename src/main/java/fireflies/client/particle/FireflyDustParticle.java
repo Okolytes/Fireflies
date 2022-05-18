@@ -19,10 +19,6 @@ public class FireflyDustParticle extends SpriteTexturedParticle {
         this.rotSpeed = (this.rand.nextFloat() - 0.1f) * 0.05f;
         this.maxAge = (int) (20f / (this.rand.nextFloat() * 0.8f + 0.2f)) + 32;
         this.particleScale = 0.1f * (this.rand.nextFloat() * 0.25f + 0.1f);
-        if (fireflyEntity.hasIllumerin()) {
-            this.particleRed = 0.8f;
-            this.particleBlue = 0.1f;
-        }
         this.selectSpriteRandomly(spriteWithAge);
     }
 

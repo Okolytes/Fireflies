@@ -70,11 +70,4 @@ public class FireflyAbdomenParticle extends SpriteTexturedParticle {
             super(iAnimatedSprite);
         }
     }
-
-    @OnlyIn(Dist.CLIENT)
-    public static class AbdomenIllumerinParticleFactory extends AbstractAbdomenParticleFactory<FireflyParticleData.AbdomenIllumerin> {
-        public AbdomenIllumerinParticleFactory(IAnimatedSprite iAnimatedSprite) {
-            super(iAnimatedSprite);
-        }
-    }
 }

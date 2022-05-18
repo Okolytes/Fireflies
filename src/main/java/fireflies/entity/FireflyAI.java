@@ -1,7 +1,9 @@
 package fireflies.entity;
 
-import net.minecraft.block.*;
-import net.minecraft.entity.CreatureEntity;
+import net.minecraft.block.BlockState;
+import net.minecraft.block.Blocks;
+import net.minecraft.block.ComposterBlock;
+import net.minecraft.block.LeavesBlock;
 import net.minecraft.entity.EntityPredicate;
 import net.minecraft.entity.ai.RandomPositionGenerator;
 import net.minecraft.entity.ai.controller.FlyingMovementController;
@@ -10,9 +12,7 @@ import net.minecraft.entity.ai.goal.MoveToBlockGoal;
 import net.minecraft.entity.ai.goal.RandomWalkingGoal;
 import net.minecraft.util.SoundEvents;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.BlockRayTraceResult;
 import net.minecraft.util.math.MathHelper;
-import net.minecraft.util.math.RayTraceContext;
 import net.minecraft.util.math.vector.Vector3d;
 import net.minecraft.world.IWorldReader;
 import net.minecraft.world.World;
@@ -36,12 +36,7 @@ public class FireflyAI {
 
         @Override
         public boolean shouldExecute() {
-            return !this.firefly.isEntrancedByHoney && this.firefly.ticksExisted % 20 == 0 && super.shouldExecute();
-        }
-
-        @Override
-        public boolean shouldContinueExecuting() {
-            return !this.firefly.isEntrancedByHoney && super.shouldContinueExecuting();
+            return this.firefly.ticksExisted % 20 == 0 && super.shouldExecute();
         }
 
         @Nullable
@@ -123,7 +118,7 @@ public class FireflyAI {
             super.tick();
 
             // Do random accelerations / dashes every so often.
-            if (this.firefly.ticksExisted % 100 == 0 && this.firefly.getRNG().nextFloat() > 0.75f && !this.firefly.isEntrancedByHoney) {
+            if (this.firefly.ticksExisted % 100 == 0 && this.firefly.getRNG().nextFloat() > 0.75f) {
                 final float accelAmount = 0.125f;
                 this.firefly.addMotion(
                         MathHelper.clamp(this.firefly.getLook(0).getX(), -accelAmount, accelAmount),
@@ -138,7 +133,7 @@ public class FireflyAI {
                 this.firefly.addMotion(0, -0.025f, 0);
             }
 
-            if (this.firefly.ticksExisted % 20 == 0 && !this.firefly.isEntrancedByHoney) {
+            if (this.firefly.ticksExisted % 20 == 0) {
                 // Stay off the ground
                 if (this.world.getBlockState(this.firefly.getPosition().down()).isSolid() || this.firefly.isOnGround()) {
                     this.moveForward(1.2f, 1.5f, 0.85f);
@@ -160,70 +155,6 @@ public class FireflyAI {
                 }
                 this.prevBlockPos = this.firefly.getPosition();
             }
-        }
-    }
-
-    public static class EntrancedByHoneyGoal extends MoveToBlockGoal {
-        private final FireflyEntity firefly;
-        private final World world;
-
-        public EntrancedByHoneyGoal(FireflyEntity firefly) {
-            super(firefly, 1.15, 8);
-            this.firefly = firefly;
-            this.world = this.firefly.world;
-        }
-
-        private boolean isHoneyBlockVisible(BlockPos destinationBlock) {
-            final BlockRayTraceResult rayTraceResult = this.world.rayTraceBlocks(new RayTraceContext(
-                    this.firefly.getPositionVec().add(0, this.firefly.getEyeHeight(), 0), Vector3d.copyCentered(destinationBlock),
-                    RayTraceContext.BlockMode.COLLIDER, RayTraceContext.FluidMode.NONE, this.firefly));
-
-            return this.firefly.world.getBlockState(rayTraceResult.getPos()).getBlock() instanceof HoneyBlock;
-        }
-
-        @Override
-        protected int getRunDelay(CreatureEntity creatureIn) {
-            return 20 + this.firefly.getRNG().nextInt(20);
-        }
-
-        @Override
-        public void startExecuting() {
-            super.startExecuting();
-            this.firefly.isEntrancedByHoney = true;
-        }
-
-        @Override
-        public void resetTask() {
-            super.resetTask();
-            this.firefly.isEntrancedByHoney = false;
-        }
-
-        @Override
-        public void tick() {
-            super.tick();
-            final Vector3d destinationBlockCentered = Vector3d.copyCentered(this.destinationBlock);
-            // Stare at the honey block.
-            this.firefly.getLookController().setLookPosition(destinationBlockCentered);
-
-            // Keep close to the honey block.
-            if (this.firefly.ticksExisted % 20 == 0 && this.firefly.getDistanceSq(destinationBlockCentered) > 1.5f) {
-                this.attemptToMove();
-            }
-        }
-
-        @Override
-        protected boolean shouldMoveTo(IWorldReader worldReader, BlockPos blockPos) {
-            if (this.world.getBlockState(blockPos).getBlock() instanceof HoneyBlock && this.isHoneyBlockVisible(blockPos)) {
-                this.firefly.isEntrancedByHoney = true;
-                return true;
-            }
-            return false;
-        }
-
-        @Override
-        protected void attemptToMove() {
-            final Vector3d destinationBlockCentered = Vector3d.copyCentered(this.destinationBlock);
-            this.firefly.getNavigator().tryMoveToXYZ(destinationBlockCentered.getX(), destinationBlockCentered.getY(), destinationBlockCentered.getZ(), this.movementSpeed);
         }
     }
 

@@ -39,12 +39,12 @@ public final class ClientStuff {
 
     @Mod.EventBusSubscriber(value = Dist.CLIENT, modid = Fireflies.MODID, bus = Mod.EventBusSubscriber.Bus.MOD)
     public static final class ModEvents {
+
         @SubscribeEvent
         public static void registerParticleFactories(ParticleFactoryRegisterEvent event) {
             final ParticleManager pm = Minecraft.getInstance().particles;
             pm.registerFactory(Registry.FIREFLY_DUST_PARTICLE.get(), FireflyDustParticle.DustParticleFactory::new);
             pm.registerFactory(Registry.FIREFLY_ABDOMEN_PARTICLE.get(), FireflyAbdomenParticle.AbdomenParticleFactory::new);
-            pm.registerFactory(Registry.FIREFLY_ABDOMEN_ILLUMERIN_PARTICLE.get(), FireflyAbdomenParticle.AbdomenIllumerinParticleFactory::new);
         }
 
         @SubscribeEvent
@@ -57,6 +57,7 @@ public final class ClientStuff {
 
     @Mod.EventBusSubscriber(value = Dist.CLIENT, modid = Fireflies.MODID, bus = Mod.EventBusSubscriber.Bus.FORGE)
     public static final class ForgeEvents {
+
         @SubscribeEvent
         public static void splashTextEasterEgg(GuiOpenEvent event) {
             if (firstSplashTextChange && event.getGui() instanceof MainMenuScreen) {

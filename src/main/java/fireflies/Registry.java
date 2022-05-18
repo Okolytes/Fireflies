@@ -53,7 +53,6 @@ public final class Registry {
     // Particles
     public static final RegistryObject<ParticleType<FireflyParticleData.Dust>> FIREFLY_DUST_PARTICLE = PARTICLES.register("firefly_dust_particle", FireflyParticleData.Dust::get);
     public static final RegistryObject<ParticleType<FireflyParticleData.Abdomen>> FIREFLY_ABDOMEN_PARTICLE = PARTICLES.register("firefly_abdomen_particle", FireflyParticleData.Abdomen::get);
-    public static final RegistryObject<ParticleType<FireflyParticleData.AbdomenIllumerin>> FIREFLY_ABDOMEN_ILLUMERIN_PARTICLE = PARTICLES.register("firefly_abdomen_illumerin_particle", FireflyParticleData.AbdomenIllumerin::get);
 
     // Sounds
     public static final RegistryObject<SoundEvent> FIREFLY_HURT = registerSoundEvent("firefly_hurt");

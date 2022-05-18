@@ -72,7 +72,7 @@ public class FireflyModel<T extends FireflyEntity> extends AgeableModel<T> {
         this.head.rotateAngleX = 0.75f - ((float) Math.PI / 4F) + this.animSpeed(ageInTicks, 0.1F) * 0.1F;
 
         // Bob abdomen
-        this.abdomen.rotateAngleX = (fireflyEntity.hasIllumerin() ? .1f : 0.5f) - ((float) Math.PI / 4F) + this.animSpeed(ageInTicks, 0.1F) * 0.05F;
+        this.abdomen.rotateAngleX = .1f - ((float) Math.PI / 4F) + this.animSpeed(ageInTicks, 0.1F) * 0.05F;
         // Update the particle position offset
         fireflyEntity.particleManager.abdomenParticlePositionOffset = this.abdomen.rotateAngleX;
 
