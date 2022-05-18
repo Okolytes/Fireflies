@@ -319,15 +319,6 @@ public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
         this.addMotion(0f, 0.01f, 0f);
     }
 
-    public boolean isDarkEnoughToBreed() {
-        return this.world.getLight(this.getPosition()) <= 4;
-    }
-
-    @Override
-    public boolean canFallInLove() {
-        return this.isDarkEnoughToBreed() && super.canFallInLove();
-    }
-
     @OnlyIn(Dist.CLIENT)
     @Override
     public Vector3d getLeashStartPosition() {

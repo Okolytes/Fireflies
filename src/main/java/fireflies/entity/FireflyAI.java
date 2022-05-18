@@ -167,8 +167,8 @@ public class FireflyAI {
         }
 
         @Override
-        public boolean shouldExecute() {
-            return this.firefly.isDarkEnoughToBreed() && super.shouldExecute();
+        public boolean shouldContinueExecuting() {
+            return this.world.getLight(this.firefly.getPosition()) <= 4 && super.shouldContinueExecuting();
         }
     }
 
