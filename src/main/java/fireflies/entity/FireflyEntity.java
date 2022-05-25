@@ -155,15 +155,6 @@ public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
         return world.isAirBlock(blockPos) ? 10.0F : 0.0F;
     }
 
-    /**
-     * (Client) Unused for now - play a sound when the firefly starts glowing.
-     */
-    public void playGlowSound() {
-        if (!this.isSilent()) {
-            //this.world.playSound(this.getPosX(), this.getPosY(), this.getPosZ(), FirefliesRegistration.FIREFLY_GLOW.get(), SoundCategory.NEUTRAL, 0.33f, 1, false);
-        }
-    }
-
     @Override
     public void livingTick() {
         super.livingTick();

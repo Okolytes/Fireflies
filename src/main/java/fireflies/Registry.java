@@ -57,7 +57,6 @@ public final class Registry {
     // Sounds
     public static final RegistryObject<SoundEvent> FIREFLY_HURT = registerSoundEvent("firefly_hurt");
     public static final RegistryObject<SoundEvent> FIREFLY_DEATH = registerSoundEvent("firefly_death");
-    // public static final RegistryObject<SoundEvent> FIREFLY_GLOW = registerSoundEvent("firefly_glow"); // unused for now
     public static final RegistryObject<SoundEvent> FIREFLY_FLIGHT_LOOP = registerSoundEvent("firefly_flight_loop");
 
     // Stats

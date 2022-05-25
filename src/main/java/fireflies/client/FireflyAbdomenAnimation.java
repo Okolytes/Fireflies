@@ -70,7 +70,6 @@ public class FireflyAbdomenAnimation {
                 } else {
                     firefly.particleManager.resetAbdomenParticle();
                 }
-                firefly.playGlowSound();
             }
         }
 
