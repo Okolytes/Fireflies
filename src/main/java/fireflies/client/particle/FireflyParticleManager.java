@@ -76,6 +76,10 @@ public class FireflyParticleManager {
         return vector3d1.rotateYaw(-this.firefly.prevRenderYawOffset * ((float) Math.PI / 180F));
     }
 
+    public boolean canSpawnDustParticles(){
+        return this.firefly.animationManager.animationProperties.glow > 0f && !this.firefly.isInvisible();
+    }
+
     /**
      * Spawn falling particles every so often, at the abdomen's position. Falling angle depends on fireflies speed.
      */

@@ -6,19 +6,23 @@ import net.minecraft.client.particle.*;
 import net.minecraft.client.world.ClientWorld;
 import net.minecraft.entity.Entity;
 import net.minecraft.particles.IParticleData;
+import net.minecraft.util.math.MathHelper;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
 @OnlyIn(Dist.CLIENT)
 public class FireflyDustParticle extends SpriteTexturedParticle {
     private final float rotSpeed;
+    public static final float[] SCALE = new float[] { 0.025f, 0.05f };
+    public static final int[] AGE = new int[] { 50, 100  };
+    public static final float[] ROT_SPEED = new float[] { 0.05f, 0.1f };
+    public static final float[] MOTION_Y = new float[] { 0.025f };
 
     private FireflyDustParticle(FireflyEntity fireflyEntity, ClientWorld clientWorld, double x, double y, double z, double xSpeed, double ySpeed, double zSpeed, IAnimatedSprite spriteWithAge) {
         super(clientWorld, x, y, z, xSpeed, ySpeed, zSpeed);
-        this.particleAngle = this.rand.nextFloat() * ((float) Math.PI * 2f);
-        this.rotSpeed = (this.rand.nextFloat() - 0.1f) * 0.05f;
-        this.maxAge = (int) (20f / (this.rand.nextFloat() * 0.8f + 0.2f)) + 32;
-        this.particleScale = 0.1f * (this.rand.nextFloat() * 0.25f + 0.1f);
+        this.rotSpeed = MathHelper.nextFloat(this.rand, ROT_SPEED[0], ROT_SPEED[1]);
+        this.maxAge = MathHelper.nextInt(this.rand, AGE[0], AGE[1]);
+        this.particleScale = MathHelper.nextFloat(this.rand, SCALE[0], SCALE[1]);
         this.selectSpriteRandomly(spriteWithAge);
     }
 
@@ -40,11 +44,11 @@ public class FireflyDustParticle extends SpriteTexturedParticle {
             this.setExpired();
         } else {
             this.prevParticleAngle = this.particleAngle;
-            this.particleAngle += (float) Math.PI * this.rotSpeed * 1.25f;
+            this.particleAngle += this.rotSpeed;
 
             this.move(this.motionX, this.motionY, this.motionZ);
-            this.motionY -= 0.025f;
-            this.motionY = Math.max(this.motionY, -0.025f);
+            this.motionY -= MOTION_Y[0];
+            this.motionY = Math.max(this.motionY, -MOTION_Y[0]);
 
             // Kil once it touches the ground
             if (this.onGround) {

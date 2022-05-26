@@ -2,7 +2,7 @@ package fireflies.entity;
 
 import fireflies.Registry;
 import fireflies.client.ClientStuff;
-import fireflies.client.DebugStuff;
+import fireflies.client.DebugScreen;
 import fireflies.client.FireflyAbdomenAnimationManager;
 import fireflies.client.particle.FireflyParticleManager;
 import fireflies.client.sound.FireflyFlightSound;
@@ -158,7 +158,7 @@ public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
 
     @Override
     public boolean isGlowing() {
-        if (this.world.isRemote && this.equals(DebugStuff.DebugScreen.selectedFirefly)) {
+        if (this.world.isRemote && this.equals(DebugScreen.selectedFirefly)) {
             return true;
         }
         return super.isGlowing();
@@ -172,10 +172,7 @@ public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
             if (/*this.hasIllumerin() || */!ClientStuff.isDayTime(this.world)) {
                 if (!Objects.equals(this.animationManager.curAnimation, "hurt")) {
 
-                    if (this.ticksExisted % 10 == 0
-                            && this.animationManager.animationProperties.glow > 0f
-                            && this.rand.nextFloat() > (1f - this.animationManager.animationProperties.glow) // higher glow value = higher chance of spawning particles
-                            && !this.isInvisible()) {
+                    if (this.ticksExisted % 10 == 0 && this.particleManager.canSpawnDustParticles() && this.rand.nextFloat() > (1f - this.animationManager.animationProperties.glow)) { // higher glow value = higher chance of spawning particles
                         this.particleManager.spawnDustParticle();
                     }
                 }
