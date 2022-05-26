@@ -59,7 +59,7 @@ public class FireflyAbdomenAnimationManager {
         }
     }
 
-    private void resetAnimationProperties() {
+    public void resetAnimationProperties() {
         this.animationProperties.delayTicks = 0;
         this.animationProperties.glow = 0f;
         this.animationProperties.frameCounter = 0;

@@ -2,6 +2,7 @@ package fireflies.entity;
 
 import fireflies.Registry;
 import fireflies.client.ClientStuff;
+import fireflies.client.DebugStuff;
 import fireflies.client.FireflyAbdomenAnimationManager;
 import fireflies.client.particle.FireflyParticleManager;
 import fireflies.client.sound.FireflyFlightSound;
@@ -156,19 +157,27 @@ public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
     }
 
     @Override
+    public boolean isGlowing() {
+        if (this.world.isRemote && this.equals(DebugStuff.DebugScreen.selectedFirefly)) {
+            return true;
+        }
+        return super.isGlowing();
+    }
+
+    @Override
     public void livingTick() {
         super.livingTick();
 
         if (this.world.isRemote) {
             if (/*this.hasIllumerin() || */!ClientStuff.isDayTime(this.world)) {
                 if (!Objects.equals(this.animationManager.curAnimation, "hurt")) {
-                    if (this.hasIllumerin()) {
 
-                        this.animationManager.setAnimation("calm_synced"); // todo add cases
-                    } else {
-                        this.animationManager.setAnimation("starry_night");
+                    if (this.ticksExisted % 10 == 0
+                            && this.animationManager.animationProperties.glow > 0f
+                            && this.rand.nextFloat() > (1f - this.animationManager.animationProperties.glow) // higher glow value = higher chance of spawning particles
+                            && !this.isInvisible()) {
+                        this.particleManager.spawnDustParticle();
                     }
-                    this.particleManager.spawnFallingDustParticles();
                 }
             } else {
                 this.animationManager.setAnimation(null);

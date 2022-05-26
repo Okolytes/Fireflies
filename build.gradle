@@ -21,6 +21,7 @@ repositories {
         name 'tterrag maven'
         url "http://maven.tterrag.com/"
     }
+    mavenCentral()
 }
 
 
@@ -148,7 +149,7 @@ dependencies {
     // For more info...
     // http://www.gradle.org/docs/current/userguide/artifact_dependencies_tutorial.html
     // http://www.gradle.org/docs/current/userguide/dependency_management.html
-
+    implementation "io.github.spair:imgui-java-app:${imgui_version}"
     runtimeOnly fg.deobf("mezz.jei:jei-${jei_version}")
 
     compile fg.deobf(project.dependencies.create("mcjty.theoneprobe:TheOneProbe-${top_version}") {

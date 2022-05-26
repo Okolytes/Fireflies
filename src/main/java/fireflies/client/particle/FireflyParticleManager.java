@@ -78,24 +78,19 @@ public class FireflyParticleManager {
 
     /**
      * Spawn falling particles every so often, at the abdomen's position. Falling angle depends on fireflies speed.
-     * This is called every tick at {@link FireflyEntity#livingTick()}
      */
-    public void spawnFallingDustParticles() {
-        if (this.firefly.ticksExisted % 10 == 0 && this.firefly.animationManager.animationProperties.glow > 0f
-                && this.firefly.getRNG().nextFloat() > (1f - this.firefly.animationManager.animationProperties.glow) // higher glow value = higher chance of spawning particles
-                && !this.firefly.isInvisible()) {
-            // abdomens position, taken from SquidEntity#squirtInk()
-            // just don't touch this I forgot how it works
-            final Vector3d vector3d = this.rotateVector(new Vector3d(0.0D, -1.0D, 0.0D)).add(this.firefly.getPosX(), this.firefly.getPosY(), this.firefly.getPosZ());
-            final Vector3d vector3d1 = this.rotateVector(new Vector3d(this.firefly.getRNG().nextFloat(), -1.0D, this.firefly.getRNG().nextFloat() * Math.abs(this.firefly.getMotion().getZ()) * 10 + 2));
-            final Vector3d vector3d2 = vector3d1.scale(-5f + this.firefly.getRNG().nextFloat() * 2.0F);
+    public void spawnDustParticle() {
+        // abdomens position, taken from SquidEntity#squirtInk()
+        // just don't touch this I forgot how it works
+        final Vector3d vector3d = this.rotateVector(new Vector3d(0.0D, -1.0D, 0.0D)).add(this.firefly.getPosX(), this.firefly.getPosY(), this.firefly.getPosZ());
+        final Vector3d vector3d1 = this.rotateVector(new Vector3d(this.firefly.getRNG().nextFloat(), -1.0D, this.firefly.getRNG().nextFloat() * Math.abs(this.firefly.getMotion().getZ()) * 10 + 2));
+        final Vector3d vector3d2 = vector3d1.scale(-5f + this.firefly.getRNG().nextFloat() * 2.0F);
 
-            // Small random offset around the abdomen, baby fireflies don't have it
-            final float offset = this.firefly.isChild() ? 0f : MathHelper.nextFloat(this.firefly.getRNG(), -0.2f, 0.2f);
+        // Small random offset around the abdomen, baby fireflies don't have it
+        final float offset = this.firefly.isChild() ? 0f : MathHelper.nextFloat(this.firefly.getRNG(), -0.2f, 0.2f);
 
-            this.firefly.world.addParticle(this.getDustParticle(),
-                    vector3d.x + offset, vector3d.y + (this.firefly.isChild() ? 1.1f : 1.35f) + offset, vector3d.z + offset,
-                    vector3d2.x, vector3d2.y * -16, vector3d2.z);
-        }
+        this.firefly.world.addParticle(this.getDustParticle(),
+                vector3d.x + offset, vector3d.y + (this.firefly.isChild() ? 1.1f : 1.35f) + offset, vector3d.z + offset,
+                vector3d2.x, vector3d2.y * -16, vector3d2.z);
     }
 }

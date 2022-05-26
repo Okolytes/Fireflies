@@ -83,6 +83,17 @@ public class FireflyAbdomenAnimation {
         ap.frameCounter++;
     }
 
+    @Override
+    public String toString() {
+        return "FireflyAbdomenAnimation{" +
+                "fireflies=" + this.fireflies.size() +
+                ", name='" + this.name + '\'' +
+                ", synced=" + this.synced +
+                ", animationProperties=" + this.animationProperties +
+                ", frames=" + this.frames.length +
+                '}';
+    }
+
     public static class FireflyAbdomenAnimationFrame {
         public float glow;
         @Nullable

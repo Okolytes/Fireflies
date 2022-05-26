@@ -22,7 +22,6 @@ import net.minecraftforge.fml.common.ObfuscationReflectionHelper;
 import java.util.Random;
 
 public final class ClientStuff {
-    private static boolean firstSplashTextChange = true;
 
     /**
      * Taken from {@link World#calculateInitialSkylight} because {@link World#isDaytime} does not work when called from the client.
@@ -57,6 +56,7 @@ public final class ClientStuff {
 
     @Mod.EventBusSubscriber(value = Dist.CLIENT, modid = Fireflies.MODID, bus = Mod.EventBusSubscriber.Bus.FORGE)
     public static final class ForgeEvents {
+        private static boolean firstSplashTextChange = true;
 
         @SubscribeEvent
         public static void splashTextEasterEgg(GuiOpenEvent event) {
