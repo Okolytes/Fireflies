@@ -7,11 +7,14 @@ import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.vector.Vector3d;
 
 import javax.annotation.Nullable;
+import java.util.Objects;
 
 /**
  * Client class for handling the abdomen particle
  */
 public class FireflyParticleManager {
+    public static final float[] DUST_SPAWN_CHANCE = new float[] { .1f };
+    public static final float[] DUST_FALL_SPEED = new float[] { 0.025f };
     private final FireflyEntity firefly;
 
     /**
@@ -59,11 +62,6 @@ public class FireflyParticleManager {
         }
     }
 
-    public void resetAbdomenParticle() {
-        this.destroyAbdomenParticle();
-        this.spawnAbdomenParticle();
-    }
-
     /**
      * @return The appropiate dust particle for this firefly.
      */
@@ -71,30 +69,22 @@ public class FireflyParticleManager {
         return new FireflyParticleData.Dust(this.firefly.getEntityId());
     }
 
-    private Vector3d rotateVector(Vector3d vector3d) {
-        final Vector3d vector3d1 = vector3d.rotatePitch((float) Math.PI / 180F);
-        return vector3d1.rotateYaw(-this.firefly.prevRenderYawOffset * ((float) Math.PI / 180F));
+    public void trySpawnDustParticles() {
+        if (this.canSpawnDustParticles() && this.firefly.getRNG().nextFloat() < DUST_SPAWN_CHANCE[0] * this.firefly.abdomenAnimationManager.abdomenAnimationProperties.glow) {
+            this.spawnDustParticle();
+        }
     }
 
-    public boolean canSpawnDustParticles(){
-        return this.firefly.animationManager.animationProperties.glow > 0f && !this.firefly.isInvisible();
+    public boolean canSpawnDustParticles() {
+        return this.firefly.abdomenAnimationManager.abdomenAnimationProperties.glow > 0f
+                && !this.firefly.isInvisible()
+                && !Objects.equals(this.firefly.abdomenAnimationManager.curAnimation, "hurt");
     }
 
-    /**
-     * Spawn falling particles every so often, at the abdomen's position. Falling angle depends on fireflies speed.
-     */
     public void spawnDustParticle() {
-        // abdomens position, taken from SquidEntity#squirtInk()
-        // just don't touch this I forgot how it works
-        final Vector3d vector3d = this.rotateVector(new Vector3d(0.0D, -1.0D, 0.0D)).add(this.firefly.getPosX(), this.firefly.getPosY(), this.firefly.getPosZ());
-        final Vector3d vector3d1 = this.rotateVector(new Vector3d(this.firefly.getRNG().nextFloat(), -1.0D, this.firefly.getRNG().nextFloat() * Math.abs(this.firefly.getMotion().getZ()) * 10 + 2));
-        final Vector3d vector3d2 = vector3d1.scale(-5f + this.firefly.getRNG().nextFloat() * 2.0F);
-
-        // Small random offset around the abdomen, baby fireflies don't have it
-        final float offset = this.firefly.isChild() ? 0f : MathHelper.nextFloat(this.firefly.getRNG(), -0.2f, 0.2f);
-
-        this.firefly.world.addParticle(this.getDustParticle(),
-                vector3d.x + offset, vector3d.y + (this.firefly.isChild() ? 1.1f : 1.35f) + offset, vector3d.z + offset,
-                vector3d2.x, vector3d2.y * -16, vector3d2.z);
+        final double[] abdomenPos = this.getAbdomenParticlePos();
+        final Vector3d look = this.firefly.getLookVec();
+        this.firefly.world.addParticle(this.getDustParticle(), abdomenPos[0], abdomenPos[1], abdomenPos[2],
+                -look.x, 0, -look.z);
     }
 }

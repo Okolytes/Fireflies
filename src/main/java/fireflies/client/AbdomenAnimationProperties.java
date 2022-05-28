@@ -1,6 +1,6 @@
 package fireflies.client;
 
-public class FireflyAbdomenAnimationProperties {
+public class AbdomenAnimationProperties {
     public float glow;
     public int frameCounter;
     /**
@@ -10,10 +10,10 @@ public class FireflyAbdomenAnimationProperties {
 
     @Override
     public String toString() {
-        return "FireflyAbdomenAnimationProperties{" +
+        return "AbdomenAnimationProperties(" +
                 "glow=" + this.glow +
                 ", frameCounter=" + this.frameCounter +
                 ", delayTicks=" + this.delayTicks +
-                '}';
+                ')';
     }
 }

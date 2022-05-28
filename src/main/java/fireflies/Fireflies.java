@@ -1,6 +1,6 @@
 package fireflies;
 
-import fireflies.client.FireflyAbdomenAnimationLoader;
+import fireflies.client.AbdomenAnimationLoader;
 import fireflies.client.render.FireflyRenderer;
 import fireflies.entity.FireflyEntity;
 import net.minecraft.item.Item;
@@ -27,7 +27,7 @@ public class Fireflies {
         modEventBus.addListener(this::clientSetup);
         modEventBus.addListener(this::createEntityAttributes);
 
-        DistExecutor.safeRunWhenOn(Dist.CLIENT, () -> FireflyAbdomenAnimationLoader::addFireflyAnimationsReloadListener);
+        DistExecutor.safeRunWhenOn(Dist.CLIENT, () -> AbdomenAnimationLoader::addFireflyAnimationsReloadListener);
     }
 
     private void clientSetup(FMLClientSetupEvent event) {

@@ -13,24 +13,24 @@ import net.minecraft.util.ResourceLocation;
 
 import java.util.Map;
 
-public class FireflyAbdomenAnimationLoader extends JsonReloadListener {
+public class AbdomenAnimationLoader extends JsonReloadListener {
     private static final Gson GSON = new GsonBuilder().create();
 
-    public FireflyAbdomenAnimationLoader() {
+    public AbdomenAnimationLoader() {
         super(GSON, "firefly_abdomen_animations");
     }
 
     public static void addFireflyAnimationsReloadListener() {
-        ((IReloadableResourceManager) Minecraft.getInstance().getResourceManager()).addReloadListener(new FireflyAbdomenAnimationLoader());
+        ((IReloadableResourceManager) Minecraft.getInstance().getResourceManager()).addReloadListener(new AbdomenAnimationLoader());
     }
 
     @Override
     protected void apply(Map<ResourceLocation, JsonElement> objectIn, IResourceManager resourceManagerIn, IProfiler profilerIn) {
-        FireflyAbdomenAnimationManager.ANIMATIONS.clear();
+        AbdomenAnimationManager.ANIMATIONS.clear();
 
-        objectIn.forEach((rsc, element) -> FireflyAbdomenAnimationManager.ANIMATIONS.add(
-                new FireflyAbdomenAnimation(rsc.getPath(), GSON.fromJson(element, FireflyAbdomenAnimation.FireflyAbdomenAnimationFrame[].class))));
+        objectIn.forEach((rsc, element) -> AbdomenAnimationManager.ANIMATIONS.put(rsc.getPath(),
+                new AbdomenAnimation(rsc.getPath(), GSON.fromJson(element, AbdomenAnimation.Frame[].class))));
 
-        Fireflies.LOGGER.info("Loaded {} firefly abdomen animations", FireflyAbdomenAnimationManager.ANIMATIONS.size());
+        Fireflies.LOGGER.info("Loaded {} firefly abdomen animations", AbdomenAnimationManager.ANIMATIONS.size());
     }
 }

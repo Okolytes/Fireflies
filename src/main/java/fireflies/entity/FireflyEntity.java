@@ -1,9 +1,9 @@
 package fireflies.entity;
 
 import fireflies.Registry;
+import fireflies.client.AbdomenAnimationManager;
 import fireflies.client.ClientStuff;
 import fireflies.client.DebugScreen;
-import fireflies.client.FireflyAbdomenAnimationManager;
 import fireflies.client.particle.FireflyParticleManager;
 import fireflies.client.sound.FireflyFlightSound;
 import net.minecraft.block.BlockState;
@@ -40,22 +40,19 @@ import net.minecraft.world.server.ServerWorld;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
-import java.util.Objects;
-
 public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
     private static final DataParameter<Boolean> HAS_ILLUMERIN = EntityDataManager.createKey(FireflyEntity.class, DataSerializers.BOOLEAN);
     private static final DataParameter<Integer> ILLUMERIN_DEPOSITED = EntityDataManager.createKey(FireflyEntity.class, DataSerializers.VARINT);
-
-    public final FireflyAbdomenAnimationManager animationManager = new FireflyAbdomenAnimationManager(this);
+    public final AbdomenAnimationManager abdomenAnimationManager = new AbdomenAnimationManager(this);
     public final FireflyParticleManager particleManager = new FireflyParticleManager(this);
     /**
      * How many ticks this firefly has been underwater for
      */
-    public int underWaterTicks;
+    private int underWaterTicks;
     /**
      * How many ticks this firefly has been rained on for
      */
-    public int rainedOnTicks;
+    private int rainedOnTicks;
     /**
      * Does the current firefly have illumerin? Updated every 20 ticks.
      */
@@ -169,15 +166,11 @@ public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
         super.livingTick();
 
         if (this.world.isRemote) {
-            if (/*this.hasIllumerin() || */!ClientStuff.isDayTime(this.world)) {
-                if (!Objects.equals(this.animationManager.curAnimation, "hurt")) {
-
-                    if (this.ticksExisted % 10 == 0 && this.particleManager.canSpawnDustParticles() && this.rand.nextFloat() > (1f - this.animationManager.animationProperties.glow)) { // higher glow value = higher chance of spawning particles
-                        this.particleManager.spawnDustParticle();
-                    }
-                }
+            if (!ClientStuff.isDayTime(this.world)) {
+                this.particleManager.trySpawnDustParticles();
+                // todo setAnimation ... this fireflies default animation
             } else {
-                this.animationManager.setAnimation(null);
+                this.abdomenAnimationManager.setAnimation(null);
             }
         } else {
             if (!this.isAIDisabled()) {
@@ -198,16 +191,18 @@ public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
             if (!this.isSilent()) {
                 FireflyFlightSound.beginFireflyFlightSound(this);
             }
-            this.particleManager.spawnAbdomenParticle();
+            if (this.abdomenAnimationManager.abdomenAnimationProperties.glow > 0) {
+                this.particleManager.spawnAbdomenParticle(); // we don't want them popping in to view without a particle
+            }
         }
     }
 
     @Override
     public void onRemovedFromWorld() {
-        super.onRemovedFromWorld();
         if (this.world.isRemote) {
-            this.animationManager.setAnimation(null);
+            this.abdomenAnimationManager.setAnimation(null);
         }
+        super.onRemovedFromWorld();
     }
 
     @Override
@@ -217,7 +212,7 @@ public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
             for (int i = 0; i < particleCount; i++) {
                 this.world.addParticle(this.particleManager.getDustParticle(), this.getPosX(), this.getPosY(), this.getPosZ(), 0, 0, 0);
             }
-            this.animationManager.setAnimation("hurt");
+            this.abdomenAnimationManager.setAnimation("hurt");
         }
         return super.attackEntityFrom(source, amount);
     }

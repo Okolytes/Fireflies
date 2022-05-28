@@ -13,10 +13,9 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 @OnlyIn(Dist.CLIENT)
 public class FireflyDustParticle extends SpriteTexturedParticle {
     private final float rotSpeed;
-    public static final float[] SCALE = new float[] { 0.025f, 0.05f };
+    public static final float[] SCALE = new float[] { 0.025f, 0.04f };
     public static final int[] AGE = new int[] { 50, 100  };
     public static final float[] ROT_SPEED = new float[] { 0.05f, 0.1f };
-    public static final float[] MOTION_Y = new float[] { 0.025f };
 
     private FireflyDustParticle(FireflyEntity fireflyEntity, ClientWorld clientWorld, double x, double y, double z, double xSpeed, double ySpeed, double zSpeed, IAnimatedSprite spriteWithAge) {
         super(clientWorld, x, y, z, xSpeed, ySpeed, zSpeed);
@@ -47,10 +46,9 @@ public class FireflyDustParticle extends SpriteTexturedParticle {
             this.particleAngle += this.rotSpeed;
 
             this.move(this.motionX, this.motionY, this.motionZ);
-            this.motionY -= MOTION_Y[0];
-            this.motionY = Math.max(this.motionY, -MOTION_Y[0]);
+            this.motionY -= FireflyParticleManager.DUST_FALL_SPEED[0];
+            this.motionY = Math.max(this.motionY, -FireflyParticleManager.DUST_FALL_SPEED[0]);
 
-            // Kil once it touches the ground
             if (this.onGround) {
                 this.setExpired();
             }
