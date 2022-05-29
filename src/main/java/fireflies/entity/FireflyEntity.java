@@ -191,6 +191,7 @@ public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
             if (!this.isSilent()) {
                 FireflyFlightSound.beginFireflyFlightSound(this);
             }
+            this.abdomenAnimationManager.setAnimation("default");
             if (this.abdomenAnimationManager.abdomenAnimationProperties.glow > 0) {
                 this.particleManager.spawnAbdomenParticle(); // we don't want them popping in to view without a particle
             }

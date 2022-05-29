@@ -13,6 +13,8 @@ import net.minecraft.util.ResourceLocation;
 
 import java.util.Map;
 
+import static fireflies.client.AbdomenAnimationManager.ANIMATIONS;
+
 public class AbdomenAnimationLoader extends JsonReloadListener {
     private static final Gson GSON = new GsonBuilder().create();
 
@@ -26,11 +28,16 @@ public class AbdomenAnimationLoader extends JsonReloadListener {
 
     @Override
     protected void apply(Map<ResourceLocation, JsonElement> objectIn, IResourceManager resourceManagerIn, IProfiler profilerIn) {
-        AbdomenAnimationManager.ANIMATIONS.clear();
+        objectIn.forEach((rsc, element) -> {
+            String name = rsc.getPath();
+            AbdomenAnimation.Frame[] frames = GSON.fromJson(element, AbdomenAnimation.Frame[].class);
+            if (ANIMATIONS.containsKey(name)) {
+                ANIMATIONS.get(name).frames = frames;
+            } else {
+                ANIMATIONS.put(name, new AbdomenAnimation(name, frames));
+            }
+        });
 
-        objectIn.forEach((rsc, element) -> AbdomenAnimationManager.ANIMATIONS.put(rsc.getPath(),
-                new AbdomenAnimation(rsc.getPath(), GSON.fromJson(element, AbdomenAnimation.Frame[].class))));
-
-        Fireflies.LOGGER.info("Loaded {} firefly abdomen animations", AbdomenAnimationManager.ANIMATIONS.size());
+        Fireflies.LOGGER.debug("Loaded abdomen animations: {}", ANIMATIONS.toString());
     }
 }

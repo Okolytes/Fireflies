@@ -7,6 +7,7 @@ import fireflies.client.particle.FireflyParticleManager;
 import fireflies.entity.FireflyEntity;
 import imgui.ImGui;
 import imgui.ImGuiIO;
+import imgui.flag.ImGuiCond;
 import imgui.flag.ImGuiConfigFlags;
 import imgui.flag.ImGuiWindowFlags;
 import imgui.gl3.ImGuiImplGl3;
@@ -70,10 +71,10 @@ public class DebugScreen extends Screen { // https://github.com/codingminecraft/
             if (this.minecraft.getSession().getUsername().equals("lerrific")) {
                 ImGui.showDemoWindow();
             }
-            ImGui.begin("Fireflies debug screen", ImGuiWindowFlags.AlwaysAutoResize);
+            ImGui.setNextWindowSize(666, 420, ImGuiCond.FirstUseEver);
+            ImGui.begin("Fireflies debug screen");
 
-            ImGui.beginGroup();
-            ImGui.beginChild("Fireflies selection", 200, 400, true, ImGuiWindowFlags.HorizontalScrollbar);
+            ImGui.beginChild("Fireflies selection", 200, 0, true, ImGuiWindowFlags.HorizontalScrollbar);
             for (Entity entity : this.minecraft.world.getAllEntities()) {
                 if (!(entity instanceof FireflyEntity)) continue;
                 final FireflyEntity firefly = (FireflyEntity) entity;
@@ -87,8 +88,6 @@ public class DebugScreen extends Screen { // https://github.com/codingminecraft/
                 }
             }
             ImGui.endChild();
-
-            ImGui.endGroup();
 
             ImGui.sameLine();
 
@@ -104,11 +103,13 @@ public class DebugScreen extends Screen { // https://github.com/codingminecraft/
                 textValue("getAbdomenParticlePos", Arrays.toString(selectedFirefly.particleManager.getAbdomenParticlePos()));
                 textValue("canSpawnDustParticles", selectedFirefly.particleManager.canSpawnDustParticles());
                 if (ImGui.treeNode("Dust particles properties")) {
+                    ImGui.pushItemWidth(300);
                     ImGui.sliderFloat("DUST_SPAWN_CHANCE", FireflyParticleManager.DUST_SPAWN_CHANCE, 0, 1f);
                     ImGui.sliderFloat("DUST_FALL_SPEED", FireflyParticleManager.DUST_FALL_SPEED, 0, .1f);
                     ImGui.sliderFloat2("SCALE (min/max)", FireflyDustParticle.SCALE, 0, 0.1f);
                     ImGui.sliderInt2("AGE (min/max) (ticks)", FireflyDustParticle.AGE, 0, 200);
                     ImGui.sliderFloat2("ROT_SPEED (min/max)", FireflyDustParticle.ROT_SPEED, 0, 1f);
+                    ImGui.popItemWidth();
 
                     ImGui.treePop();
                 }
@@ -159,7 +160,7 @@ public class DebugScreen extends Screen { // https://github.com/codingminecraft/
     private static void textValue(String s, @Nullable Object o) {
         ImGui.text(s + ":");
         ImGui.sameLine(250);
-        ImGui.text(o == null ? "null" : o.toString().replace(',', '\n').replace('(', '\n').replace(')', ' '));
+        ImGui.text(o == null ? "null" : o.toString());
     }
 
     @Override

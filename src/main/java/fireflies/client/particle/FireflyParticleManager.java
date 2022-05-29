@@ -14,7 +14,7 @@ import java.util.Objects;
  */
 public class FireflyParticleManager {
     public static final float[] DUST_SPAWN_CHANCE = new float[] { .1f };
-    public static final float[] DUST_FALL_SPEED = new float[] { 0.025f };
+    public static final float[] DUST_FALL_SPEED = new float[] { 0.05f };
     private final FireflyEntity firefly;
 
     /**

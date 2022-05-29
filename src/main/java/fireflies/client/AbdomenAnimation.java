@@ -1,5 +1,6 @@
 package fireflies.client;
 
+import com.google.common.base.MoreObjects;
 import fireflies.entity.FireflyEntity;
 import net.minecraft.util.math.MathHelper;
 
@@ -10,8 +11,8 @@ import java.util.Random;
 public class AbdomenAnimation {
     private static final Random RANDOM = new Random();
     public final HashSet<FireflyEntity> fireflies = new HashSet<>();
-    public final Frame[] frames;
     public final String name;
+    public Frame[] frames;
     @Nullable
     private final AbdomenAnimationProperties abdomenAnimationProperties;
 
@@ -22,20 +23,27 @@ public class AbdomenAnimation {
     }
 
     public void tick() {
-        final FireflyEntity[] copy = this.fireflies.toArray(new FireflyEntity[0]); // sometimes the fireflies set will be modified while we're iterating it
+        // ultra scuffed way of avoiding CME
+//        final ImmutableList<FireflyEntity> copy = ImmutableList.copyOf(this.fireflies);
+//        final FireflyEntity[] copy1 = new FireflyEntity[copy.size()];
+//        for (int i = 0; i < copy.size(); i++) {
+//            FireflyEntity firefly = copy.get(i);
+//            if (firefly != null) { // if we just use .toArray(new FireflyEntity[0]); we could get ArrayStoreException
+//                copy1[i] = firefly;
+//            }
+//        }
+        final FireflyEntity[] copy1 = this.fireflies.toArray(new FireflyEntity[0]);
         if (this.abdomenAnimationProperties != null) {
-            if (copy.length > 0) {
-                this.animate(this.abdomenAnimationProperties, copy);
-                for (FireflyEntity firefly : copy) {
+            if (copy1.length > 0) {
+                this.animate(this.abdomenAnimationProperties, copy1);
+                for (FireflyEntity firefly : copy1) {
                     firefly.abdomenAnimationManager.abdomenAnimationProperties.frameCounter = this.abdomenAnimationProperties.frameCounter;
                     firefly.abdomenAnimationManager.abdomenAnimationProperties.glow = this.abdomenAnimationProperties.glow;
                     firefly.abdomenAnimationManager.abdomenAnimationProperties.delayTicks = this.abdomenAnimationProperties.delayTicks;
                 }
             }
-        } else {
-            for (FireflyEntity firefly : copy) {
-                this.animate(firefly.abdomenAnimationManager.abdomenAnimationProperties, firefly);
-            }
+        } else for (FireflyEntity firefly : copy1) {
+            this.animate(firefly.abdomenAnimationManager.abdomenAnimationProperties, firefly);
         }
     }
 
@@ -72,12 +80,11 @@ public class AbdomenAnimation {
 
     @Override
     public String toString() {
-        return "AbdomenAnimation(" +
-                "fireflies=" + this.fireflies.size() +
-                ", name='" + this.name + '\'' +
-                ", animationProperties=" + this.abdomenAnimationProperties +
-                ", frames=" + this.frames.length +
-                ')';
+        return MoreObjects.toStringHelper(this)
+                .add("frames count", frames.length)
+                .add("name", name)
+                .add("abdomenAnimationProperties", abdomenAnimationProperties)
+                .toString();
     }
 
     public static class Frame {

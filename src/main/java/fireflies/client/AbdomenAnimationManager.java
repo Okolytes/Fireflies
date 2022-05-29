@@ -29,7 +29,11 @@ public class AbdomenAnimationManager {
 
     @SubscribeEvent
     public static void tickAnimations(TickEvent.ClientTickEvent event) {
-        if (event.phase == TickEvent.Phase.START /* Runs on both START and END */ && !Minecraft.getInstance().isGamePaused() && Minecraft.getInstance().player != null) {
+        if (event.phase == TickEvent.Phase.END) {
+            return;
+        }
+        Minecraft mc = Minecraft.getInstance();
+        if (!mc.isGamePaused() && mc.world != null && mc.player != null) {
             ANIMATIONS.values().forEach(AbdomenAnimation::tick);
         }
     }

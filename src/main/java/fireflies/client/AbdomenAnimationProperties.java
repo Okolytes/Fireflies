@@ -1,5 +1,7 @@
 package fireflies.client;
 
+import com.google.common.base.MoreObjects;
+
 public class AbdomenAnimationProperties {
     public float glow;
     public int frameCounter;
@@ -8,12 +10,13 @@ public class AbdomenAnimationProperties {
      */
     public int delayTicks;
 
+
     @Override
     public String toString() {
-        return "AbdomenAnimationProperties(" +
-                "glow=" + this.glow +
-                ", frameCounter=" + this.frameCounter +
-                ", delayTicks=" + this.delayTicks +
-                ')';
+        return MoreObjects.toStringHelper(this)
+                .add("glow", glow)
+                .add("frameCounter", frameCounter)
+                .add("delayTicks", delayTicks)
+                .toString();
     }
 }
