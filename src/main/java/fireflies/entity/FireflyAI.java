@@ -216,8 +216,10 @@ public class FireflyAI {
             if (state.matchesBlock(Blocks.COMPOSTER)) {
                 this.lookAtCompost();
                 this.firefly.playSound(SoundEvents.BLOCK_COMPOSTER_EMPTY, 1.0F, 1.0F);
-                final int i = state.get(ComposterBlock.LEVEL);
-                this.world.setBlockState(this.destinationBlock, state.with(ComposterBlock.LEVEL, i - (i == 8 ? 2 : 1)), 3);
+                if (this.firefly.getRNG().nextFloat() >= 0.5f) {
+                    final int i = state.get(ComposterBlock.LEVEL);
+                    this.world.setBlockState(this.destinationBlock, state.with(ComposterBlock.LEVEL, i - (i == 8 ? 2 : 1)), 3);
+                }
                 this.firefly.setHasIllumerin(true);
             }
         }
