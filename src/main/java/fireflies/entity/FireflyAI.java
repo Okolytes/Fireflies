@@ -191,7 +191,7 @@ public class FireflyAI {
             final BlockPos up = pos.up();
             if (worldIn.isAirBlock(up) && state.matchesBlock(Blocks.COMPOSTER) && state.get(ComposterBlock.LEVEL) > 0) {
                 final BlockState above = worldIn.getBlockState(up);
-                return (above.getBlock() instanceof TrapDoorBlock && above.get(TrapDoorBlock.OPEN));
+                return above.getBlock() instanceof TrapDoorBlock && above.get(TrapDoorBlock.OPEN);
             }
             return false;
         }
