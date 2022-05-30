@@ -3,7 +3,6 @@ package fireflies.entity;
 import fireflies.Registry;
 import fireflies.client.AbdomenAnimationManager;
 import fireflies.client.ClientStuff;
-import fireflies.client.DebugScreen;
 import fireflies.client.particle.FireflyParticleManager;
 import fireflies.client.sound.FireflyFlightSound;
 import net.minecraft.block.BlockState;
@@ -151,14 +150,6 @@ public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
     @Override
     public float getBlockPathWeight(BlockPos blockPos, IWorldReader world) {
         return world.isAirBlock(blockPos) ? 10.0F : 0.0F;
-    }
-
-    @Override
-    public boolean isGlowing() {
-        if (this.world.isRemote && this.equals(DebugScreen.selectedFirefly)) {
-            return true;
-        }
-        return super.isGlowing();
     }
 
     @Override
