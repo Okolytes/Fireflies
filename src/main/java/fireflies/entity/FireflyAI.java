@@ -15,6 +15,7 @@ import net.minecraft.world.IWorldReader;
 import net.minecraft.world.World;
 
 import javax.annotation.Nullable;
+import java.util.Optional;
 
 public class FireflyAI {
 
@@ -40,25 +41,30 @@ public class FireflyAI {
         @Override
         protected Vector3d getPosition() {
             Vector3d position;
+            final Optional<BlockPos> closestComposter = BlockPos.getClosestMatchingPosition(this.firefly.getPosition(), 20, 5, pos -> EatCompostGoal.isComposterDesirable(this.firefly.world, pos));
 
-            // Find some place to go in the air.
-            position = RandomPositionGenerator.findAirTarget(this.firefly, 3, 1,
-                    this.firefly.getLook(0), (float) (Math.PI / 2f), 2, 1);
+            if (closestComposter.isPresent()) {
+                position = RandomPositionGenerator.findRandomTargetBlockTowards(this.firefly, 10, 3, Vector3d.copyCentered(closestComposter.get()));
+            } else {
+                // Find some place to go in the air.
+                position = RandomPositionGenerator.findAirTarget(this.firefly, 3, 1,
+                        this.firefly.getLook(0), (float) (Math.PI / 2f), 2, 1);
 
-            // Try again...
-            if (position == null) {
-                position = RandomPositionGenerator.findRandomTarget(this.firefly, 3, 1);
-            }
+                // Try again...
+                if (position == null) {
+                    position = RandomPositionGenerator.findRandomTarget(this.firefly, 3, 1);
+                }
 
-            // Ok, we'll just try to go to another firefly then.
-            if (position == null && !this.firefly.isChild()) {
-                // Search within 8 block radius.
-                final FireflyEntity closestFirefly = this.world.getClosestEntityWithinAABB(FireflyEntity.class, this.fireflyPredicate, this.firefly,
-                        this.firefly.getPosX(), this.firefly.getPosY(), this.firefly.getPosZ(),
-                        this.firefly.getBoundingBox().grow(8f, 2.5f, 8f));
+                // Ok, we'll just try to go to another firefly then.
+                if (position == null && !this.firefly.isChild()) {
+                    // Search within 8 block radius.
+                    final FireflyEntity closestFirefly = this.world.getClosestEntityWithinAABB(FireflyEntity.class, this.fireflyPredicate, this.firefly,
+                            this.firefly.getPosX(), this.firefly.getPosY(), this.firefly.getPosZ(),
+                            this.firefly.getBoundingBox().grow(8f, 2.5f, 8f));
 
-                if (closestFirefly != null) {
-                    position = closestFirefly.getPositionVec();
+                    if (closestFirefly != null) {
+                        position = closestFirefly.getPositionVec();
+                    }
                 }
             }
 
@@ -187,13 +193,17 @@ public class FireflyAI {
 
         @Override
         protected boolean shouldMoveTo(IWorldReader worldIn, BlockPos pos) {
-            final BlockState state = worldIn.getBlockState(pos);
             final BlockPos up = pos.up();
-            if (worldIn.isAirBlock(up) && state.matchesBlock(Blocks.COMPOSTER) && state.get(ComposterBlock.LEVEL) > 0) {
+            if (isComposterDesirable(worldIn, pos)) {
                 final BlockState above = worldIn.getBlockState(up);
-                return above.getBlock() instanceof TrapDoorBlock && above.get(TrapDoorBlock.OPEN);
+                return worldIn.isAirBlock(up) || (above.getBlock() instanceof TrapDoorBlock && above.get(TrapDoorBlock.OPEN));
             }
             return false;
+        }
+
+        public static boolean isComposterDesirable(IWorldReader world, BlockPos pos) {
+            final BlockState state = world.getBlockState(pos);
+            return state.matchesBlock(Blocks.COMPOSTER) && state.get(ComposterBlock.LEVEL) > 0;
         }
 
         private void lookAtCompost() {
