@@ -13,15 +13,12 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 @OnlyIn(Dist.CLIENT)
 public class FireflyDustParticle extends SpriteTexturedParticle {
     private final float rotSpeed;
-    public static final float[] SCALE = new float[] { 0.025f, 0.04f };
-    public static final int[] AGE = new int[] { 50, 100  };
-    public static final float[] ROT_SPEED = new float[] { 0.05f, 0.1f };
 
     private FireflyDustParticle(FireflyEntity fireflyEntity, ClientWorld clientWorld, double x, double y, double z, double xSpeed, double ySpeed, double zSpeed, IAnimatedSprite spriteWithAge) {
         super(clientWorld, x, y, z, xSpeed, ySpeed, zSpeed);
-        this.rotSpeed = MathHelper.nextFloat(this.rand, ROT_SPEED[0], ROT_SPEED[1]);
-        this.maxAge = MathHelper.nextInt(this.rand, AGE[0], AGE[1]);
-        this.particleScale = MathHelper.nextFloat(this.rand, SCALE[0], SCALE[1]);
+        this.rotSpeed = MathHelper.nextFloat(this.rand, 0.05f, 0.1f);
+        this.maxAge = MathHelper.nextInt(this.rand, 50, 100);
+        this.particleScale = MathHelper.nextFloat(this.rand,  0.025f, 0.04f);
         this.selectSpriteRandomly(spriteWithAge);
     }
 
@@ -46,8 +43,8 @@ public class FireflyDustParticle extends SpriteTexturedParticle {
             this.particleAngle += this.rotSpeed;
 
             this.move(this.motionX, this.motionY, this.motionZ);
-            this.motionY -= FireflyParticleManager.DUST_FALL_SPEED[0];
-            this.motionY = Math.max(this.motionY, -FireflyParticleManager.DUST_FALL_SPEED[0]);
+            this.motionY -= 0.05f;
+            this.motionY = Math.max(this.motionY, -0.05f);
 
             if (this.onGround) {
                 this.setExpired();

@@ -13,7 +13,6 @@ import java.util.Objects;
  * Client class for handling the abdomen particle
  */
 public class FireflyParticleManager {
-    public static final float[] DUST_SPAWN_CHANCE = new float[] { .1f };
     private final FireflyEntity firefly;
 
     /**
@@ -69,7 +68,7 @@ public class FireflyParticleManager {
     }
 
     public void trySpawnDustParticles() {
-        if (this.canSpawnDustParticles() && this.firefly.getRNG().nextFloat() < DUST_SPAWN_CHANCE[0] * this.firefly.abdomenAnimationManager.abdomenAnimationProperties.glow) {
+        if (this.canSpawnDustParticles() && this.firefly.getRNG().nextFloat() < .1f * this.firefly.abdomenAnimationManager.abdomenAnimationProperties.glow) {
             this.spawnDustParticle();
         }
     }
