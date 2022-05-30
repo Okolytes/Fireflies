@@ -7,12 +7,15 @@ import net.minecraft.entity.ai.controller.FlyingMovementController;
 import net.minecraft.entity.ai.goal.BreedGoal;
 import net.minecraft.entity.ai.goal.MoveToBlockGoal;
 import net.minecraft.entity.ai.goal.RandomWalkingGoal;
+import net.minecraft.particles.BlockParticleData;
+import net.minecraft.particles.ParticleTypes;
 import net.minecraft.util.SoundEvents;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.vector.Vector3d;
 import net.minecraft.world.IWorldReader;
 import net.minecraft.world.World;
+import net.minecraft.world.server.ServerWorld;
 
 import javax.annotation.Nullable;
 import java.util.Optional;
@@ -41,7 +44,7 @@ public class FireflyAI {
         @Override
         protected Vector3d getPosition() {
             Vector3d position;
-            final Optional<BlockPos> closestComposter = BlockPos.getClosestMatchingPosition(this.firefly.getPosition(), 20, 5, pos -> EatCompostGoal.isComposterDesirable(this.firefly.world, pos));
+            final Optional<BlockPos> closestComposter = BlockPos.getClosestMatchingPosition(this.firefly.getPosition(), 20, 4, pos -> EatCompostGoal.isComposterDesirable(this.firefly.world, pos));
 
             if (closestComposter.isPresent()) {
                 position = RandomPositionGenerator.findRandomTargetBlockTowards(this.firefly, 10, 3, Vector3d.copyCentered(closestComposter.get()));
@@ -227,10 +230,17 @@ public class FireflyAI {
             final BlockState state = this.world.getBlockState(this.destinationBlock);
             if (state.matchesBlock(Blocks.COMPOSTER)) {
                 this.lookAtCompost();
-                this.firefly.playSound(SoundEvents.BLOCK_COMPOSTER_EMPTY, 1.0F, 1.0F);
-                if (this.firefly.getRNG().nextFloat() >= 0.5f) {
+                final boolean eaten = this.firefly.getRNG().nextFloat() >= 0.5f;
+                this.firefly.playSound(eaten ? SoundEvents.BLOCK_COMPOSTER_EMPTY : SoundEvents.BLOCK_COMPOSTER_FILL, 1.0F, 1.0F);
+                if (eaten) {
                     final int i = state.get(ComposterBlock.LEVEL);
                     this.world.setBlockState(this.destinationBlock, state.with(ComposterBlock.LEVEL, i - (i == 8 ? 2 : 1)), 3);
+                }
+                for (int i = 0; i < 3; i++) {
+                ((ServerWorld) this.world).spawnParticle(new BlockParticleData(ParticleTypes.BLOCK, state).setPos(this.destinationBlock),
+                        this.destinationBlock.getX() + this.firefly.getRNG().nextFloat(),
+                        this.destinationBlock.up().getY() + this.firefly.getRNG().nextFloat(),
+                        this.destinationBlock.getZ() + this.firefly.getRNG().nextFloat(), 1, 0, 0, 0, 0);
                 }
                 this.firefly.setHasIllumerin(true);
             }
