@@ -1,9 +1,6 @@
 package fireflies.entity;
 
-import net.minecraft.block.BlockState;
-import net.minecraft.block.Blocks;
-import net.minecraft.block.ComposterBlock;
-import net.minecraft.block.LeavesBlock;
+import net.minecraft.block.*;
 import net.minecraft.entity.EntityPredicate;
 import net.minecraft.entity.ai.RandomPositionGenerator;
 import net.minecraft.entity.ai.controller.FlyingMovementController;
@@ -191,7 +188,12 @@ public class FireflyAI {
         @Override
         protected boolean shouldMoveTo(IWorldReader worldIn, BlockPos pos) {
             final BlockState state = worldIn.getBlockState(pos);
-            return state.matchesBlock(Blocks.COMPOSTER) && state.get(ComposterBlock.LEVEL) > 0;
+            final BlockPos up = pos.up();
+            if (worldIn.isAirBlock(up) && state.matchesBlock(Blocks.COMPOSTER) && state.get(ComposterBlock.LEVEL) > 0) {
+                final BlockState above = worldIn.getBlockState(up);
+                return (above.getBlock() instanceof TrapDoorBlock && above.get(TrapDoorBlock.OPEN));
+            }
+            return false;
         }
 
         private void lookAtCompost() {
