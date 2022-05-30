@@ -64,97 +64,91 @@ public class DebugScreen extends Screen { // https://github.com/codingminecraft/
     @Override
     public void render(MatrixStack pMatrixStack, int pMouseX, int pMouseY, float pPartialTicks) {
         if (this.minecraft == null || this.minecraft.world == null) return;
-        try {
-            IMGUI_GLFW.newFrame();
-            ImGui.newFrame();
-            ImGui.styleColorsClassic();
-            if (this.minecraft.getSession().getUsername().equals("lerrific")) {
-                ImGui.showDemoWindow();
+        IMGUI_GLFW.newFrame();
+        ImGui.newFrame();
+        ImGui.styleColorsClassic();
+        ImGui.showDemoWindow();
+        ImGui.setNextWindowSize(666, 420, ImGuiCond.FirstUseEver);
+        ImGui.begin("Fireflies debug screen");
+
+        ImGui.beginChild("Fireflies selection", 200, 0, true, ImGuiWindowFlags.HorizontalScrollbar);
+        for (Entity entity : this.minecraft.world.getAllEntities()) {
+            if (!(entity instanceof FireflyEntity)) continue;
+            final FireflyEntity firefly = (FireflyEntity) entity;
+
+            final boolean flag = firefly.equals(selectedFirefly);
+            if (ImGui.selectable(firefly.getName().getString() + " - " + firefly.getPosition().getCoordinatesAsString(), flag)) {
+                selectedFirefly = flag ? null : firefly;
             }
-            ImGui.setNextWindowSize(666, 420, ImGuiCond.FirstUseEver);
-            ImGui.begin("Fireflies debug screen");
-
-            ImGui.beginChild("Fireflies selection", 200, 0, true, ImGuiWindowFlags.HorizontalScrollbar);
-            for (Entity entity : this.minecraft.world.getAllEntities()) {
-                if (!(entity instanceof FireflyEntity)) continue;
-                final FireflyEntity firefly = (FireflyEntity) entity;
-
-                final boolean flag = firefly.equals(selectedFirefly);
-                if (ImGui.selectable(firefly.getName().getString() + " - " + firefly.getPosition().getCoordinatesAsString(), flag)) {
-                    selectedFirefly = flag ? null : firefly;
-                }
-                if (ImGui.isItemHovered()) {
-                    ImGui.setTooltip(firefly.toString());
-                }
+            if (ImGui.isItemHovered()) {
+                ImGui.setTooltip(firefly.toString());
             }
-            ImGui.endChild();
-
-            ImGui.sameLine();
-
-            if (selectedFirefly != null && selectedFirefly.isAddedToWorld()) {
-                ImGui.beginGroup();
-
-                textValue("hasIllumerin", selectedFirefly.hasIllumerin());
-
-                ImGui.separator();
-
-                textValue("abdomenParticle", selectedFirefly.particleManager.abdomenParticle);
-                textValue("abdomenParticlePositionOffset", selectedFirefly.particleManager.abdomenParticlePositionOffset);
-                textValue("getAbdomenParticlePos", Arrays.toString(selectedFirefly.particleManager.getAbdomenParticlePos()));
-                textValue("canSpawnDustParticles", selectedFirefly.particleManager.canSpawnDustParticles());
-                if (ImGui.treeNode("Dust particles properties")) {
-                    ImGui.pushItemWidth(300);
-                    ImGui.sliderFloat("DUST_SPAWN_CHANCE", FireflyParticleManager.DUST_SPAWN_CHANCE, 0, 1f);
-                    ImGui.sliderFloat("DUST_FALL_SPEED", FireflyParticleManager.DUST_FALL_SPEED, 0, .1f);
-                    ImGui.sliderFloat2("SCALE (min/max)", FireflyDustParticle.SCALE, 0, 0.1f);
-                    ImGui.sliderInt2("AGE (min/max) (ticks)", FireflyDustParticle.AGE, 0, 200);
-                    ImGui.sliderFloat2("ROT_SPEED (min/max)", FireflyDustParticle.ROT_SPEED, 0, 1f);
-                    ImGui.popItemWidth();
-
-                    ImGui.treePop();
-                }
-                if (ImGui.button("spawnDustParticle()")) {
-                    selectedFirefly.particleManager.spawnDustParticle();
-                }
-                if (ImGui.button("spawnAbdomenParticle()")) {
-                    selectedFirefly.particleManager.spawnAbdomenParticle();
-                }
-                if (ImGui.button("destroyAbdomenParticle()")) {
-                    selectedFirefly.particleManager.destroyAbdomenParticle();
-                }
-
-                ImGui.separator();
-
-                textValue("curAnimation", selectedFirefly.abdomenAnimationManager.curAnimation);
-                textValue("prevAnimation", selectedFirefly.abdomenAnimationManager.prevAnimation);
-
-                if (ImGui.treeNode("setAnimation()")) {
-                    for (AbdomenAnimation animation : AbdomenAnimationManager.ANIMATIONS.values()) {
-                        final boolean flag = Objects.equals(animation.name, selectedFirefly.abdomenAnimationManager.curAnimation);
-                        if (ImGui.selectable(animation.name, flag)) {
-                            selectedFirefly.abdomenAnimationManager.setAnimation(flag ? null : animation.name);
-                        }
-                        if (ImGui.isItemHovered()) {
-                            ImGui.setTooltip(animation.toString());
-                        }
-                    }
-                    ImGui.treePop();
-                }
-
-                textValue("animationProperties", selectedFirefly.abdomenAnimationManager.abdomenAnimationProperties);
-                if (ImGui.button("resetAnimationProperties()")) {
-                    selectedFirefly.abdomenAnimationManager.resetAbdomenAnimationProperties();
-                }
-
-                ImGui.endGroup();
-            }
-
-            ImGui.end();
-            ImGui.render();
-            IMGUI_GL3.renderDrawData(ImGui.getDrawData());
-        } catch (Exception e) {
-            e.printStackTrace(); //todo remove
         }
+        ImGui.endChild();
+
+        ImGui.sameLine();
+
+        if (selectedFirefly != null && selectedFirefly.isAddedToWorld()) {
+            ImGui.beginGroup();
+
+            textValue("hasIllumerin", selectedFirefly.hasIllumerin());
+
+            ImGui.separator();
+
+            textValue("abdomenParticle", selectedFirefly.particleManager.abdomenParticle);
+            textValue("abdomenParticlePositionOffset", selectedFirefly.particleManager.abdomenParticlePositionOffset);
+            textValue("getAbdomenParticlePos", Arrays.toString(selectedFirefly.particleManager.getAbdomenParticlePos()));
+            textValue("canSpawnDustParticles", selectedFirefly.particleManager.canSpawnDustParticles());
+            if (ImGui.treeNode("Dust particles properties")) {
+                ImGui.pushItemWidth(300);
+                ImGui.sliderFloat("DUST_SPAWN_CHANCE", FireflyParticleManager.DUST_SPAWN_CHANCE, 0, 1f);
+                ImGui.sliderFloat("DUST_FALL_SPEED", FireflyParticleManager.DUST_FALL_SPEED, 0, .1f);
+                ImGui.sliderFloat2("SCALE (min/max)", FireflyDustParticle.SCALE, 0, 0.1f);
+                ImGui.sliderInt2("AGE (min/max) (ticks)", FireflyDustParticle.AGE, 0, 200);
+                ImGui.sliderFloat2("ROT_SPEED (min/max)", FireflyDustParticle.ROT_SPEED, 0, 1f);
+                ImGui.popItemWidth();
+
+                ImGui.treePop();
+            }
+            if (ImGui.button("spawnDustParticle()")) {
+                selectedFirefly.particleManager.spawnDustParticle();
+            }
+            if (ImGui.button("spawnAbdomenParticle()")) {
+                selectedFirefly.particleManager.spawnAbdomenParticle();
+            }
+            if (ImGui.button("destroyAbdomenParticle()")) {
+                selectedFirefly.particleManager.destroyAbdomenParticle();
+            }
+
+            ImGui.separator();
+
+            textValue("curAnimation", selectedFirefly.abdomenAnimationManager.curAnimation);
+            textValue("prevAnimation", selectedFirefly.abdomenAnimationManager.prevAnimation);
+
+            if (ImGui.treeNode("setAnimation()")) {
+                for (AbdomenAnimation animation : AbdomenAnimationManager.ANIMATIONS.values()) {
+                    final boolean flag = Objects.equals(animation.name, selectedFirefly.abdomenAnimationManager.curAnimation);
+                    if (ImGui.selectable(animation.name, flag)) {
+                        selectedFirefly.abdomenAnimationManager.setAnimation(flag ? null : animation.name);
+                    }
+                    if (ImGui.isItemHovered()) {
+                        ImGui.setTooltip(animation.toString());
+                    }
+                }
+                ImGui.treePop();
+            }
+
+            textValue("animationProperties", selectedFirefly.abdomenAnimationManager.abdomenAnimationProperties);
+            if (ImGui.button("resetAnimationProperties()")) {
+                selectedFirefly.abdomenAnimationManager.resetAbdomenAnimationProperties();
+            }
+
+            ImGui.endGroup();
+        }
+
+        ImGui.end();
+        ImGui.render();
+        IMGUI_GL3.renderDrawData(ImGui.getDrawData());
     }
 
     private static void textValue(String s, @Nullable Object o) {
