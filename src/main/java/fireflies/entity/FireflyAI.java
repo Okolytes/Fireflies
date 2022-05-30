@@ -19,6 +19,7 @@ import net.minecraft.world.server.ServerWorld;
 
 import javax.annotation.Nullable;
 import java.util.Optional;
+import java.util.Random;
 
 public class FireflyAI {
 
@@ -230,30 +231,36 @@ public class FireflyAI {
             final BlockState state = this.world.getBlockState(this.destinationBlock);
             if (state.matchesBlock(Blocks.COMPOSTER)) {
                 this.lookAtCompost();
-                final boolean eaten = this.firefly.getRNG().nextFloat() >= 0.5f;
+                Random random = this.firefly.getRNG();
+                final boolean eaten = random.nextFloat() >= 0.5f;
                 this.firefly.playSound(eaten ? SoundEvents.BLOCK_COMPOSTER_EMPTY : SoundEvents.BLOCK_COMPOSTER_FILL, 1.0F, 1.0F);
                 if (eaten) {
                     final int i = state.get(ComposterBlock.LEVEL);
                     this.world.setBlockState(this.destinationBlock, state.with(ComposterBlock.LEVEL, i - (i == 8 ? 2 : 1)), 3);
                 }
                 for (int i = 0; i < 3; i++) {
-                ((ServerWorld) this.world).spawnParticle(new BlockParticleData(ParticleTypes.BLOCK, state).setPos(this.destinationBlock),
-                        this.destinationBlock.getX() + this.firefly.getRNG().nextFloat(),
-                        this.destinationBlock.up().getY() + this.firefly.getRNG().nextFloat(),
-                        this.destinationBlock.getZ() + this.firefly.getRNG().nextFloat(), 1, 0, 0, 0, 0);
+                    ((ServerWorld) this.world).spawnParticle(new BlockParticleData(ParticleTypes.BLOCK, state).setPos(this.destinationBlock),
+                            this.destinationBlock.getX() + random.nextFloat(),
+                            this.destinationBlock.getY() + random.nextFloat() + .5f,
+                            this.destinationBlock.getZ() + random.nextFloat(), 1, 0, 0, 0, 0);
                 }
+                this.firefly.timeUntilCanEatCompostAgain = 1200;
                 this.firefly.setHasIllumerin(true);
             }
         }
 
         @Override
         public boolean shouldExecute() {
-            return !this.firefly.hasIllumerin() && super.shouldExecute();
+            return canEat() && super.shouldExecute();
         }
 
         @Override
         public boolean shouldContinueExecuting() {
-            return !this.firefly.hasIllumerin() && super.shouldContinueExecuting();
+            return canEat() && super.shouldContinueExecuting();
+        }
+
+        private boolean canEat(){
+            return !this.firefly.hasIllumerin() && this.firefly.timeUntilCanEatCompostAgain <= 0;
         }
 
         @Override

@@ -30,6 +30,7 @@ import net.minecraft.pathfinding.PathNodeType;
 import net.minecraft.tags.ITag;
 import net.minecraft.util.DamageSource;
 import net.minecraft.util.SoundEvent;
+import net.minecraft.util.SoundEvents;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.vector.Vector3d;
@@ -41,9 +42,9 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 
 public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
     private static final DataParameter<Boolean> HAS_ILLUMERIN = EntityDataManager.createKey(FireflyEntity.class, DataSerializers.BOOLEAN);
-    private static final DataParameter<Integer> ILLUMERIN_DEPOSITED = EntityDataManager.createKey(FireflyEntity.class, DataSerializers.VARINT);
     public final AbdomenAnimationManager abdomenAnimationManager = new AbdomenAnimationManager(this);
     public final FireflyParticleManager particleManager = new FireflyParticleManager(this);
+    public int timeUntilCanEatCompostAgain = 0;
     /**
      * How many ticks this firefly has been underwater for
      */
@@ -52,10 +53,8 @@ public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
      * How many ticks this firefly has been rained on for
      */
     private int rainedOnTicks;
-    /**
-     * Does the current firefly have illumerin? Updated every 20 ticks.
-     */
     private boolean cachedHasIllumerin;
+    private int timeUntilIllumerinDrop;
 
     public FireflyEntity(EntityType<? extends FireflyEntity> entityType, World world) {
         super(entityType, world);
@@ -83,42 +82,39 @@ public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
     protected void registerData() {
         super.registerData();
         this.dataManager.register(HAS_ILLUMERIN, false);
-        this.dataManager.register(ILLUMERIN_DEPOSITED, 0);
     }
 
     public boolean hasIllumerin() {
         // This method is called every frame in our abdomen layer renderer, so this statement *will* pass
-        if (this.ticksExisted % 20 == 0) {
+        if (this.ticksExisted % 10 == 0) {
             this.cachedHasIllumerin = this.dataManager.get(HAS_ILLUMERIN);
         }
         return this.cachedHasIllumerin;
     }
 
     public void setHasIllumerin(boolean b) {
+        if (b) {
+            this.setRandomIllumerinDropTime();
+        }
         this.cachedHasIllumerin = b;
         this.dataManager.set(HAS_ILLUMERIN, b);
     }
 
-    public int getIllumerinDeposited() {
-        return this.dataManager.get(ILLUMERIN_DEPOSITED);
-    }
-
-    public void setIllumerinDeposited(int i) {
-        this.dataManager.set(ILLUMERIN_DEPOSITED, i);
-    }
 
     @Override
     public void writeAdditional(CompoundNBT nbt) {
         super.writeAdditional(nbt);
         nbt.putBoolean("HasIllumerin", this.hasIllumerin());
-        nbt.putInt("IllumerinDeposited", this.getIllumerinDeposited());
+        nbt.putInt("IllumerinDropTime", this.timeUntilIllumerinDrop);
+        nbt.putInt("EatCompostCooldown", this.timeUntilCanEatCompostAgain);
     }
 
     @Override
     public void readAdditional(CompoundNBT nbt) {
         super.readAdditional(nbt);
         this.setHasIllumerin(nbt.getBoolean("HasIllumerin"));
-        this.setIllumerinDeposited(nbt.getInt("IllumerinDeposited"));
+        this.timeUntilIllumerinDrop = nbt.getInt("IllumerinDropTime");
+        this.timeUntilCanEatCompostAgain = nbt.getInt("EatCompostCooldown");
     }
 
     @Override
@@ -170,6 +166,19 @@ public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
 
                 if (this.underWaterTicks > 20) {
                     this.attackEntityFrom(DamageSource.DROWN, 1.0F);
+                }
+
+                if (this.timeUntilCanEatCompostAgain > 0) {
+                    this.timeUntilCanEatCompostAgain--;
+                }
+
+                if (this.hasIllumerin()) {
+                    if (this.timeUntilIllumerinDrop-- <= 0) {
+                        this.playSound(SoundEvents.ENTITY_CHICKEN_EGG, 1.0F, (this.rand.nextFloat() - this.rand.nextFloat()) * 0.2F + 1.0F);
+                        this.entityDropItem(Registry.ILLUMERIN.get());
+                        this.setHasIllumerin(false);
+                        this.setRandomIllumerinDropTime();
+                    }
                 }
             }
         }
@@ -315,5 +324,9 @@ public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
         // About 2x the render distance of players.
         final double d0 = 128 * getRenderDistanceWeight();
         return distance < d0 * d0;
+    }
+
+    private void setRandomIllumerinDropTime() {
+        this.timeUntilIllumerinDrop = MathHelper.nextInt(this.rand, 3600, 7200); // 3600, 7200
     }
 }
