@@ -36,7 +36,7 @@ public class FireflyAI {
 
         @Override
         public boolean shouldExecute() {
-            return this.firefly.ticksExisted % 20 == 0 && super.shouldExecute();
+            return this.firefly.ticksExisted % 30 == 0 && super.shouldExecute();
         }
 
         @Nullable
