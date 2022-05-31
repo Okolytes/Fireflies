@@ -174,7 +174,7 @@ public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
 
                 if (this.hasIllumerin()) {
                     if (this.timeUntilIllumerinDrop-- <= 0) {
-                        this.playSound(SoundEvents.ENTITY_CHICKEN_EGG, 1.0F, (this.rand.nextFloat() - this.rand.nextFloat()) * 0.2F + 1.0F);
+                        this.playSound(SoundEvents.ENTITY_CHICKEN_EGG, 1.0F, MathHelper.nextFloat(this.rand, 0.5f, 1.5f));
                         this.entityDropItem(Registry.ILLUMERIN.get());
                         this.setHasIllumerin(false);
                         this.setRandomIllumerinDropTime();
