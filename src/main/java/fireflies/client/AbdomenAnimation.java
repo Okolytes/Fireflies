@@ -63,10 +63,16 @@ public class AbdomenAnimation {
 
         if (ap.frameCounter++ >= this.frames.length - 1) {
             ap.frameCounter = 0;
+        }
 
-            for (FireflyEntity firefly : fireflies) {
-                if (firefly == null) continue;
+        for (FireflyEntity firefly : fireflies) {
+            if (firefly == null) continue;
 
+            if (frame.particleIndex != -1 && firefly.particleManager.abdomenParticle != null) {
+                firefly.particleManager.abdomenParticle.setSprite(frame.particleIndex);
+            }
+
+            if (ap.frameCounter == 0) {
                 firefly.particleManager.destroyAbdomenParticle();
                 firefly.particleManager.spawnAbdomenParticle();
 
@@ -91,6 +97,7 @@ public class AbdomenAnimation {
         public float glow;
         @Nullable
         public int[] delay;
+        public int particleIndex = -1;
     }
 }
 

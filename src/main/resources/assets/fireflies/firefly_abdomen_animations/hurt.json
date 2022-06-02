@@ -1,137 +1,82 @@
 [
   {
-    "glow": 0.0,
-    "delay": null
+    "glow": 0.0
   },
   {
-    "glow": 0.33000000000000013,
-    "delay": null
+    "glow": 0.33
   },
   {
-    "glow": 0.66000000000000025,
-    "delay": null
+    "glow": 0.66
   },
   {
-    "glow": 0.99000000000000044,
-    "delay": null
+    "glow": 1.0
   },
   {
-    "glow": 1.0,
-    "delay": null
+    "glow": 0.66
   },
   {
-    "glow": 0.99000000000000044,
-    "delay": null
+    "glow": 0.33
   },
   {
-    "glow": 0.66000000000000025,
-    "delay": null
+    "glow": 0.0
   },
   {
-    "glow": 0.33000000000000013,
-    "delay": null
+    "glow": 0.33
   },
   {
-    "glow": 0.0,
-    "delay": null
+    "glow": 0.66
   },
   {
-    "glow": 0.33000000000000013,
-    "delay": null
+    "glow": 1.0
   },
   {
-    "glow": 0.66000000000000025,
-    "delay": null
+    "glow": 0.66
   },
   {
-    "glow": 0.99000000000000044,
-    "delay": null
+    "glow": 0.33
   },
   {
-    "glow": 1.0,
-    "delay": null
+    "glow": 0.0
   },
   {
-    "glow": 0.99000000000000044,
-    "delay": null
+    "glow": 0.33
   },
   {
-    "glow": 0.66000000000000025,
-    "delay": null
+    "glow": 0.66
   },
   {
-    "glow": 0.33000000000000013,
-    "delay": null
+    "glow": 1.0
   },
   {
-    "glow": 0.0,
-    "delay": null
+    "glow": 0.66
   },
   {
-    "glow": 0.33000000000000013,
-    "delay": null
+    "glow": 0.33
   },
   {
-    "glow": 0.66000000000000025,
-    "delay": null
+    "glow": 0.0
   },
   {
-    "glow": 0.99000000000000044,
-    "delay": null
+    "glow": 0.33
   },
   {
-    "glow": 1.0,
-    "delay": null
+    "glow": 0.66
   },
   {
-    "glow": 0.99000000000000044,
-    "delay": null
+    "glow": 1.0
   },
   {
-    "glow": 0.66000000000000025,
-    "delay": null
+    "glow": 0.66
   },
   {
-    "glow": 0.33000000000000013,
-    "delay": null
-  },
-  {
-    "glow": 0.0,
-    "delay": null
-  },
-  {
-    "glow": 0.33000000000000013,
-    "delay": null
-  },
-  {
-    "glow": 0.66000000000000025,
-    "delay": null
-  },
-  {
-    "glow": 0.99000000000000044,
-    "delay": null
-  },
-  {
-    "glow": 1.0,
-    "delay": null
-  },
-  {
-    "glow": 0.99000000000000044,
-    "delay": null
-  },
-  {
-    "glow": 0.66000000000000025,
-    "delay": null
-  },
-  {
-    "glow": 0.33000000000000013,
-    "delay": null
+    "glow": 0.33
   },
   {
     "glow": 0,
     "delay": [
       30,
       60
-    ]
+    ],
+    "particleIndex": -1
   }
 ]

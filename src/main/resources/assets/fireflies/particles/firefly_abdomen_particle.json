@@ -1,5 +1,9 @@
 {
   "textures": [
-    "fireflies:firefly_abdomen_particle"
+    "fireflies:firefly_abdomen_particle_0",
+    "fireflies:firefly_abdomen_particle_1",
+    "fireflies:firefly_abdomen_particle_2",
+    "fireflies:firefly_abdomen_particle_3",
+    "fireflies:firefly_abdomen_particle_4"
   ]
 }

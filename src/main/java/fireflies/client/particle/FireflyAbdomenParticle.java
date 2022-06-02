@@ -10,27 +10,31 @@ import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
 @OnlyIn(Dist.CLIENT)
-public class FireflyAbdomenParticle extends SpriteTexturedParticle {
+public class FireflyAbdomenParticle extends SimpleAnimatedParticle {
     private final FireflyEntity firefly;
 
-    protected FireflyAbdomenParticle(ClientWorld clientWorld, double x, double y, double z, FireflyEntity fireflyEntity) {
-        super(clientWorld, x, y, z);
-        this.firefly = fireflyEntity;
-        fireflyEntity.particleManager.abdomenParticle = this;
+    public FireflyAbdomenParticle(ClientWorld world, double x, double y, double z, IAnimatedSprite sprites, float yAccel, FireflyEntity firefly) {
+        super(world, x, y, z, sprites, yAccel);
+        this.firefly = firefly;
+        firefly.particleManager.abdomenParticle = this;
+        this.setAlphaF(0f);
+        this.setSprite(0);
         // Something's probably gone wrong if it has existed for this long.
         this.maxAge = 1000;
     }
 
     @Override
     public void tick() {
-        super.tick();
+        this.prevPosX = this.posX;
+        this.prevPosY = this.posY;
+        this.prevPosZ = this.posZ;
 
         if (this.age++ >= this.maxAge) {
             this.firefly.particleManager.destroyAbdomenParticle();
             return;
         }
 
-        // Setting it here because the scale will need to change accordingly as a baby firefly grows (or shrinks?) // todo figure out what the fuck i meant by "shrink"
+        // Setting it in the tick() methods because the scale will need to change accordingly as a baby firefly grows (or shrinks?) // todo figure out what the fuck i meant by "shrink"
         this.particleScale = this.firefly.isChild() ? 0.2f : 0.45f;
         this.particleAlpha = this.firefly.abdomenAnimationManager.abdomenAnimationProperties.glow;
 
@@ -39,40 +43,34 @@ public class FireflyAbdomenParticle extends SpriteTexturedParticle {
         this.setPosition(pos[0], pos[1], pos[2]);
     }
 
-    public IParticleRenderType getRenderType() {
-        return IParticleRenderType.PARTICLE_SHEET_TRANSLUCENT;
+    @Override
+    public int getBrightnessForRender(float partialTick) {
+        return 240; // fullbright
     }
 
-    @Override
-    protected int getBrightnessForRender(float partialTick) {
-        return 240; // fullbright
+    public void setSprite(int idx) {
+        this.setSprite(this.spriteWithAge.get(idx, 4)); // magic number: how many sprites this particle has, minus one.
     }
 
     @OnlyIn(Dist.CLIENT)
     private static abstract class AbstractAbdomenParticleFactory<T extends IParticleData> implements IParticleFactory<T> {
-        protected final IAnimatedSprite iAnimatedSprite;
+        protected final IAnimatedSprite sprites;
 
-        public AbstractAbdomenParticleFactory(IAnimatedSprite iAnimatedSprite) {
-            this.iAnimatedSprite = iAnimatedSprite;
+        public AbstractAbdomenParticleFactory(IAnimatedSprite sprites) {
+            this.sprites = sprites;
         }
 
         @Override
         public Particle makeParticle(T particleData, ClientWorld clientWorld, double x, double y, double z, double xSpeed, double ySpeed, double zSpeed) {
             final Entity entity = clientWorld.getEntityByID(((FireflyParticleData.AbstractFireflyParticleData) particleData).fireflyId);
-            if (entity == null || !entity.isAlive() || !(entity instanceof FireflyEntity))
-                return null;
-
-            final FireflyAbdomenParticle fireflyAbdomenParticle = new FireflyAbdomenParticle(clientWorld, x, y, z, (FireflyEntity) entity);
-            fireflyAbdomenParticle.selectSpriteRandomly(this.iAnimatedSprite);
-            fireflyAbdomenParticle.setAlphaF(0);
-            return fireflyAbdomenParticle;
+            return !(entity instanceof FireflyEntity) || !entity.isAlive() ? null : new FireflyAbdomenParticle(clientWorld, x, y, z, sprites, 0, (FireflyEntity) entity);
         }
     }
 
     @OnlyIn(Dist.CLIENT)
     public static class AbdomenParticleFactory extends AbstractAbdomenParticleFactory<FireflyParticleData.Abdomen> {
-        public AbdomenParticleFactory(IAnimatedSprite iAnimatedSprite) {
-            super(iAnimatedSprite);
+        public AbdomenParticleFactory(IAnimatedSprite sprites) {
+            super(sprites);
         }
     }
 }
