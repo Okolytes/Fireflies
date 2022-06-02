@@ -47,14 +47,14 @@ public class FireflyParticleManager {
      * Spawns the appropiate abdomen particle for the firefly at the exact location of the abdomen
      */
     public void spawnAbdomenParticle() {
-        if (this.firefly.world.isRemote && this.abdomenParticle == null) {
+        if (this.abdomenParticle == null) {
             final double[] pos = this.getAbdomenParticlePos();
             this.firefly.world.addOptionalParticle(new FireflyParticleData.Abdomen(this.firefly.getEntityId()), true, pos[0], pos[1], pos[2], 0, 0, 0);
         }
     }
 
     public void destroyAbdomenParticle() {
-        if (this.firefly.world.isRemote && this.abdomenParticle != null) {
+        if (this.abdomenParticle != null) {
             this.abdomenParticle.setExpired();
             this.abdomenParticle = null;
         }

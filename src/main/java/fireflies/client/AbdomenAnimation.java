@@ -1,6 +1,5 @@
 package fireflies.client;
 
-import com.google.common.base.MoreObjects;
 import fireflies.entity.FireflyEntity;
 import net.minecraft.util.math.MathHelper;
 
@@ -23,26 +22,17 @@ public class AbdomenAnimation {
     }
 
     public void tick() {
-        // ultra scuffed way of avoiding CME
-//        final ImmutableList<FireflyEntity> copy = ImmutableList.copyOf(this.fireflies);
-//        final FireflyEntity[] copy1 = new FireflyEntity[copy.size()];
-//        for (int i = 0; i < copy.size(); i++) {
-//            FireflyEntity firefly = copy.get(i);
-//            if (firefly != null) { // if we just use .toArray(new FireflyEntity[0]); we could get ArrayStoreException
-//                copy1[i] = firefly;
-//            }
-//        }
-        final FireflyEntity[] copy1 = this.fireflies.toArray(new FireflyEntity[0]);
+        final FireflyEntity[] copy = this.fireflies.toArray(new FireflyEntity[0]);
         if (this.abdomenAnimationProperties != null) {
-            if (copy1.length > 0) {
-                this.animate(this.abdomenAnimationProperties, copy1);
-                for (FireflyEntity firefly : copy1) {
+            if (copy.length > 0) {
+                this.animate(this.abdomenAnimationProperties, copy);
+                for (FireflyEntity firefly : copy) {
                     firefly.abdomenAnimationManager.abdomenAnimationProperties.frameCounter = this.abdomenAnimationProperties.frameCounter;
                     firefly.abdomenAnimationManager.abdomenAnimationProperties.glow = this.abdomenAnimationProperties.glow;
                     firefly.abdomenAnimationManager.abdomenAnimationProperties.delayTicks = this.abdomenAnimationProperties.delayTicks;
                 }
             }
-        } else for (FireflyEntity firefly : copy1) {
+        } else for (FireflyEntity firefly : copy) {
             this.animate(firefly.abdomenAnimationManager.abdomenAnimationProperties, firefly);
         }
     }
@@ -82,15 +72,6 @@ public class AbdomenAnimation {
                 }
             }
         }
-    }
-
-    @Override
-    public String toString() {
-        return MoreObjects.toStringHelper(this)
-                .add("frames count", frames.length)
-                .add("name", name)
-                .add("abdomenAnimationProperties", abdomenAnimationProperties)
-                .toString();
     }
 
     public static class Frame {

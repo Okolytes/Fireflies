@@ -45,6 +45,7 @@ public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
     public final AbdomenAnimationManager abdomenAnimationManager = new AbdomenAnimationManager(this);
     public final FireflyParticleManager particleManager = new FireflyParticleManager(this);
     public int timeUntilCanEatCompostAgain = 0;
+    public int timeUntilCanEatCompostAgain;
     /**
      * How many ticks this firefly has been underwater for
      */
@@ -155,7 +156,6 @@ public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
         if (this.world.isRemote) {
             if (!ClientStuff.isDayTime(this.world)) {
                 this.particleManager.trySpawnDustParticles();
-                // todo setAnimation ... this fireflies default animation
             } else {
                 this.abdomenAnimationManager.setAnimation(null);
             }
@@ -191,10 +191,10 @@ public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
             if (!this.isSilent()) {
                 FireflyFlightSound.beginFireflyFlightSound(this);
             }
-            this.abdomenAnimationManager.setAnimation("default");
             if (this.abdomenAnimationManager.abdomenAnimationProperties.glow > 0) {
                 this.particleManager.spawnAbdomenParticle(); // we don't want them popping in to view without a particle
             }
+            this.abdomenAnimationManager.setAnimation("default");
         }
     }
 

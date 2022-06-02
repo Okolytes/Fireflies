@@ -38,6 +38,6 @@ public class AbdomenAnimationLoader extends JsonReloadListener {
             }
         });
 
-        Fireflies.LOGGER.debug("Loaded abdomen animations: {}", ANIMATIONS.toString());
+        Fireflies.LOGGER.debug("Loaded abdomen animations: {}", ANIMATIONS.keySet().toString());
     }
 }
