@@ -42,9 +42,10 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 
 public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
     private static final DataParameter<Boolean> HAS_ILLUMERIN = EntityDataManager.createKey(FireflyEntity.class, DataSerializers.BOOLEAN);
-    public final AbdomenAnimationManager abdomenAnimationManager = new AbdomenAnimationManager(this);
-    public final FireflyParticleManager particleManager = new FireflyParticleManager(this);
-    public int timeUntilCanEatCompostAgain = 0;
+    // client only
+    public final AbdomenAnimationManager abdomenAnimationManager;
+    // client only
+    public final FireflyParticleManager particleManager;
     public int timeUntilCanEatCompostAgain;
     /**
      * How many ticks this firefly has been underwater for
@@ -59,6 +60,13 @@ public class FireflyEntity extends AnimalEntity implements IFlyingAnimal {
 
     public FireflyEntity(EntityType<? extends FireflyEntity> entityType, World world) {
         super(entityType, world);
+        if (world.isRemote) {
+            abdomenAnimationManager = new AbdomenAnimationManager(this);
+            particleManager = new FireflyParticleManager(this);
+        } else {
+            abdomenAnimationManager = null;
+            particleManager = null;
+        }
         this.moveController = new FireflyAI.FlyingMovementHelper(this);
         this.setPathPriority(PathNodeType.DANGER_FIRE, -1.0F);
         this.setPathPriority(PathNodeType.WATER, -1.0F);
