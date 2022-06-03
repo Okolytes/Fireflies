@@ -16,23 +16,33 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 
 @OnlyIn(Dist.CLIENT)
 public class FireflyAbdomenLayer<T extends FireflyEntity, M extends EntityModel<T>> extends LayerRenderer<T, M> {
-    private static final ResourceLocation ABDOMEN = new ResourceLocation(Fireflies.MODID, "textures/entity/firefly_layer_abdomen.png");
-
+    private static final ResourceLocation ABDOMEN0 = new ResourceLocation(Fireflies.MODID, "textures/entity/firefly_layer_abdomen_0.png");
+    private static final ResourceLocation ABDOMEN1 = new ResourceLocation(Fireflies.MODID, "textures/entity/firefly_layer_abdomen_1.png");
+    private static final ResourceLocation ABDOMEN2 = new ResourceLocation(Fireflies.MODID, "textures/entity/firefly_layer_abdomen_2.png");
     public FireflyAbdomenLayer(IEntityRenderer<T, M> entityRenderer) {
         super(entityRenderer);
     }
 
     @Override
-    protected ResourceLocation getEntityTexture(T fireflyEntity) {
-        return ABDOMEN;
+    protected ResourceLocation getEntityTexture(T firefly) {
+        final float glow = firefly.abdomenAnimationManager.abdomenAnimationProperties.glow;
+        if(glow >= .75f){
+            return ABDOMEN0;
+        } else if(glow >= .5f){
+            return ABDOMEN1;
+        }
+        else if(glow >= .25f){
+            return ABDOMEN2;
+        }
+        return null;
     }
 
     @Override
     public void render(MatrixStack matrixStack, IRenderTypeBuffer buffer, int packedLight, T firefly, float limbSwing, float limbSwingAmount, float partialTicks, float ageInTicks, float netHeadYaw, float headPitch) {
         final float glow = firefly.abdomenAnimationManager.abdomenAnimationProperties.glow;
-        if (!firefly.isInvisible() && glow > 0) {
-            this.getEntityModel().render(matrixStack, buffer.getBuffer(RenderType.getEyes(this.getEntityTexture(firefly))),
-                    15728640, OverlayTexture.NO_OVERLAY, glow, glow, glow, glow);
+        if (!firefly.isInvisible() && glow > .25f) {
+            this.getEntityModel().render(matrixStack, buffer.getBuffer(glow >= .5f ? RenderType.getEyes(this.getEntityTexture(firefly)): RenderType.getEntityTranslucent(this.getEntityTexture(firefly)) ),
+                    15728640, OverlayTexture.NO_OVERLAY, 1, 1, 1, 1);
         }
     }
 }

@@ -32,7 +32,7 @@ public class FireflyRenderer extends MobRenderer<FireflyEntity, FireflyModel<Fir
     }
 
     @Override
-    public ResourceLocation getEntityTexture(FireflyEntity fireflyEntity) {
+    public ResourceLocation getEntityTexture(FireflyEntity firefly) {
         return DEFAULT;
     }
 
