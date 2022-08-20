@@ -2,9 +2,9 @@ package fireflies.client.particle;
 
 import fireflies.entity.FireflyEntity;
 import fireflies.misc.FireflyParticleData;
-import net.minecraft.particles.IParticleData;
-import net.minecraft.util.math.MathHelper;
-import net.minecraft.util.math.vector.Vector3d;
+import net.minecraft.core.particles.ParticleOptions;
+import net.minecraft.util.Mth;
+import net.minecraft.world.phys.Vec3;
 
 import javax.annotation.Nullable;
 import java.util.Objects;
@@ -37,9 +37,9 @@ public class FireflyParticleManager {
      */
     public double[] getAbdomenParticlePos() {
         return new double[] {
-                this.firefly.getPosX() - -this.firefly.getWidth() * 0.5f * MathHelper.sin(this.firefly.renderYawOffset * ((float) Math.PI / 180F)),
-                this.firefly.getPosYEye() + this.abdomenParticlePositionOffset + (this.firefly.hasIllumerin() ? 0.6f : 0.3f),
-                this.firefly.getPosZ() + -this.firefly.getWidth() * 0.5f * MathHelper.cos(this.firefly.renderYawOffset * ((float) Math.PI / 180F))
+                this.firefly.getX() - -this.firefly.getBbWidth() * 0.5f * Mth.sin(this.firefly.yBodyRot * ((float) Math.PI / 180F)),
+                this.firefly.getEyeY() + this.abdomenParticlePositionOffset + (this.firefly.hasIllumerin() ? 0.6f : 0.3f),
+                this.firefly.getZ() + -this.firefly.getBbWidth() * 0.5f * Mth.cos(this.firefly.yBodyRot * ((float) Math.PI / 180F))
         };
     }
 
@@ -49,13 +49,13 @@ public class FireflyParticleManager {
     public void spawnAbdomenParticle() {
         if (this.abdomenParticle == null) {
             final double[] pos = this.getAbdomenParticlePos();
-            this.firefly.world.addOptionalParticle(new FireflyParticleData.Abdomen(this.firefly.getEntityId()), true, pos[0], pos[1], pos[2], 0, 0, 0);
+            this.firefly.level.addAlwaysVisibleParticle(new FireflyParticleData.Abdomen(this.firefly.getId()), true, pos[0], pos[1], pos[2], 0, 0, 0);
         }
     }
 
     public void destroyAbdomenParticle() {
         if (this.abdomenParticle != null) {
-            this.abdomenParticle.setExpired();
+            this.abdomenParticle.remove();
             this.abdomenParticle = null;
         }
     }
@@ -63,12 +63,12 @@ public class FireflyParticleManager {
     /**
      * @return The appropiate dust particle for this firefly.
      */
-    public IParticleData getDustParticle() {
-        return new FireflyParticleData.Dust(this.firefly.getEntityId());
+    public ParticleOptions getDustParticle() {
+        return new FireflyParticleData.Dust(this.firefly.getId());
     }
 
     public void trySpawnDustParticles() {
-        if (this.canSpawnDustParticles() && this.firefly.getRNG().nextFloat() < .1f * this.firefly.abdomenAnimationManager.abdomenAnimationProperties.glow) {
+        if (this.canSpawnDustParticles() && this.firefly.getRandom().nextFloat() < .1f * this.firefly.abdomenAnimationManager.abdomenAnimationProperties.glow) {
             this.spawnDustParticle();
         }
     }
@@ -81,8 +81,8 @@ public class FireflyParticleManager {
 
     public void spawnDustParticle() {
         final double[] abdomenPos = this.getAbdomenParticlePos();
-        final Vector3d look = this.firefly.getLookVec();
-        this.firefly.world.addParticle(this.getDustParticle(), abdomenPos[0], abdomenPos[1], abdomenPos[2],
+        final Vec3 look = this.firefly.getLookAngle();
+        this.firefly.level.addParticle(this.getDustParticle(), abdomenPos[0], abdomenPos[1], abdomenPos[2],
                 -look.x, 0, -look.z);
     }
 }
