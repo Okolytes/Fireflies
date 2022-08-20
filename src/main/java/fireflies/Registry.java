@@ -35,8 +35,7 @@ public final class Registry {
 
     // Entities / Spawn Eggs
     public static final RegistryObject<EntityType<FireflyEntity>> FIREFLY = ENTITY_TYPES.register("firefly", () -> EntityType.Builder.of(FireflyEntity::new, MobCategory.CREATURE).sized(0.5f, 0.5f).clientTrackingRange(10).build("firefly"));
-    private static final RegistryObject<ForgeSpawnEggItem> FIREFLY_SPAWN_EGG = ITEMS.register("firefly_spawn_egg",
-            () -> new FireflySpawnEgg(FIREFLY, 0x5B1313, 0xF7DD36, new Item.Properties().tab(CreativeModeTab.TAB_MISC)));
+    private static final RegistryObject<ForgeSpawnEggItem> FIREFLY_SPAWN_EGG = ITEMS.register("firefly_spawn_egg", () -> new FireflySpawnEgg(FIREFLY, 0x5B1313, 0xF7DD36, new Item.Properties().tab(CreativeModeTab.TAB_MISC)));
 
     // Particles
     public static final RegistryObject<ParticleType<FireflyParticleData.Dust>> FIREFLY_DUST_PARTICLE = PARTICLES.register("firefly_dust_particle", FireflyParticleData.Dust::get);
