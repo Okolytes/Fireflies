@@ -13,7 +13,7 @@ import java.util.HashMap;
 import java.util.Objects;
 
 
-@Mod.EventBusSubscriber(value = Dist.CLIENT, modid = Fireflies.MODID, bus = Mod.EventBusSubscriber.Bus.FORGE)
+@Mod.EventBusSubscriber(value = Dist.CLIENT, modid = Fireflies.MOD_ID, bus = Mod.EventBusSubscriber.Bus.FORGE)
 public class AbdomenAnimationManager {
     public static final HashMap<String, AbdomenAnimation> ANIMATIONS = new HashMap<>();
     public final AbdomenAnimationProperties abdomenAnimationProperties = new AbdomenAnimationProperties();
@@ -33,7 +33,7 @@ public class AbdomenAnimationManager {
             return;
         }
         Minecraft mc = Minecraft.getInstance();
-        if (!mc.isGamePaused() && mc.world != null && mc.player != null) {
+        if (!mc.isPaused() && mc.level != null && mc.player != null) {
             ANIMATIONS.values().forEach(AbdomenAnimation::tick);
         }
     }

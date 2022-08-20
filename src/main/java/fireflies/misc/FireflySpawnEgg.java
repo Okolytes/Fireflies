@@ -1,35 +1,37 @@
 package fireflies.misc;
 
-import net.minecraft.entity.EntityType;
-import net.minecraft.item.*;
-import net.minecraft.util.NonNullList;
+import net.minecraft.core.NonNullList;
+import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.Mob;
+import net.minecraft.world.item.CreativeModeTab;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
+import net.minecraftforge.common.ForgeSpawnEggItem;
 
-public class FireflySpawnEgg extends SpawnEggItem {
-    private final boolean soulFirefly;
-    public FireflySpawnEgg(EntityType<?> typeIn, int primaryColorIn, int secondaryColorIn, boolean soulFirefly) {
-        super(typeIn, primaryColorIn, secondaryColorIn, new Item.Properties().group(ItemGroup.MISC));
-        this.soulFirefly = soulFirefly;
+import java.util.function.Supplier;
+
+public class FireflySpawnEgg extends ForgeSpawnEggItem {
+    public FireflySpawnEgg(Supplier<? extends EntityType<? extends Mob>> type, int backgroundColor, int highlightColor, Properties props) {
+        super(type, backgroundColor, highlightColor, props);
     }
 
-    /**
-     * Relocate from the bottom of the creative tab to next to the fox spawn egg (or slime egg if its soul firefly) to fit with alphabetical order
-     */
     @Override
-    public void fillItemGroup(ItemGroup group, NonNullList<ItemStack> items) {
-        if (group == ItemGroup.MISC || group == ItemGroup.SEARCH) {
+    public void fillItemCategory(CreativeModeTab pCategory, NonNullList<ItemStack> pItems) {
+        // Relocate from the bottom of the creative tab to next to the fox spawn egg (or slime egg if its soul firefly) to fit with alphabetical order
+        if (pCategory == CreativeModeTab.TAB_MISC || pCategory == CreativeModeTab.TAB_SEARCH) {
             int index = -1;
             // Get the spawn egg's index
-            for (int i = 0; i < items.size(); i++) {
-                if (items.get(i).getItem() == (this.soulFirefly ? Items.SLIME_SPAWN_EGG : Items.FOX_SPAWN_EGG)) {
+            for (int i = 0; i < pItems.size(); i++) {
+                if (pItems.get(i).getItem() == Items.FOX_SPAWN_EGG) {
                     index = i;
                 }
             }
 
             if (index != -1) {
                 // Put it next to the spawn egg
-                items.add(index + 1, new ItemStack(this));
+                pItems.add(index + 1, new ItemStack(this));
             } else {
-                super.fillItemGroup(group, items);
+                super.fillItemCategory(pCategory, pItems);
             }
         }
     }

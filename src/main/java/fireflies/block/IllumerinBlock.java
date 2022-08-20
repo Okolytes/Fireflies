@@ -1,45 +1,44 @@
 package fireflies.block;
 
 import fireflies.Fireflies;
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.RotatedPillarBlock;
-import net.minecraft.block.SoundType;
-import net.minecraft.block.material.Material;
-import net.minecraft.block.material.MaterialColor;
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.EntityClassification;
-import net.minecraft.entity.SpawnReason;
-import net.minecraft.entity.passive.BatEntity;
-import net.minecraft.util.Direction;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.IBlockReader;
-import net.minecraftforge.common.ToolType;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.MobCategory;
+import net.minecraft.world.entity.MobSpawnType;
+import net.minecraft.world.entity.ambient.Bat;
+import net.minecraft.world.level.BlockGetter;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.RotatedPillarBlock;
+import net.minecraft.world.level.block.SoundType;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.material.Material;
+import net.minecraft.world.level.material.MaterialColor;
 import net.minecraftforge.event.entity.living.LivingSpawnEvent;
 import net.minecraftforge.eventbus.api.Event;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 
-@Mod.EventBusSubscriber(modid = Fireflies.MODID)
+@Mod.EventBusSubscriber(modid = Fireflies.MOD_ID)
 public class IllumerinBlock extends RotatedPillarBlock {
     private static final int ILLUMERIN_RADIUS = 8;
 
     public IllumerinBlock() {
-        super(Properties.create(Material.GLASS, MaterialColor.SAND).hardnessAndResistance(2f).sound(SoundType.BASALT).harvestTool(ToolType.PICKAXE).setAllowsSpawn((a, b, c, d) -> false).setEmmisiveRendering((a, b, c) -> true).setNeedsPostProcessing((a, b, c) -> true));
-        this.setDefaultState(this.stateContainer.getBaseState().with(AXIS, Direction.Axis.Y));
+        super(Properties.of(Material.GLASS, MaterialColor.SAND).strength(2f).sound(SoundType.BASALT).requiresCorrectToolForDrops().isValidSpawn((a, b, c, d) -> false).emissiveRendering((a, b, c) -> true).hasPostProcess((a, b, c) -> true));
+        this.registerDefaultState(this.stateDefinition.any().setValue(AXIS, Direction.Axis.Y));
     }
 
     @SubscribeEvent
     public static void stopMobSpawning(LivingSpawnEvent.CheckSpawn event) {
-        if (event.getWorld() == null || event.getWorld().isRemote() || event.getEntity() == null)
+        if (event.getLevel() == null || event.getLevel().isClientSide() || event.getEntity() == null)
             return;
 
         // Only disable spawner and natural spawns
-        if (event.getSpawnReason() != SpawnReason.NATURAL && event.getSpawnReason() != SpawnReason.SPAWNER)
+        if (event.getSpawnReason() != MobSpawnType.NATURAL && event.getSpawnReason() != MobSpawnType.SPAWNER)
             return;
 
         // Only disable monster spawns and bats
-        if (!event.getEntity().getType().getClassification().equals(EntityClassification.MONSTER) && !(event.getEntity() instanceof BatEntity))
+        if (!event.getEntity().getType().getCategory().equals(MobCategory.MONSTER) && !(event.getEntity() instanceof Bat))
             return;
 
         // Cancel the spawn if an illumerin / powered illumerin block is within radius
@@ -49,11 +48,11 @@ public class IllumerinBlock extends RotatedPillarBlock {
             for (double y = event.getY() - ILLUMERIN_RADIUS; y < event.getY() + ILLUMERIN_RADIUS; y++) {
                 for (double z = event.getZ() - ILLUMERIN_RADIUS; z < event.getZ() + ILLUMERIN_RADIUS; z++) {
                     final BlockPos blockPos = new BlockPos(x, y, z);
-                    if (!blockPos.withinDistance(mobPos, ILLUMERIN_RADIUS)) {
+                    if (!blockPos.closerThan(mobPos, ILLUMERIN_RADIUS)) {
                         continue;
                     }
 
-                    final BlockState state = event.getWorld().getBlockState(blockPos);
+                    final BlockState state = event.getLevel().getBlockState(blockPos);
                     final Block block = state.getBlock();
                     if (block instanceof IllumerinBlock) {
                         cancelMobSpawn = true;
@@ -65,7 +64,9 @@ public class IllumerinBlock extends RotatedPillarBlock {
 
         if (cancelMobSpawn) {
             // Remove any passengers that come with it
-            event.getEntity().getPassengers().forEach(Entity::remove);
+            for (var passenger : event.getEntity().getPassengers()){
+                passenger.remove(Entity.RemovalReason.DISCARDED);
+            }
 
             // Finally, cancel the mob spawn
             event.setResult(Event.Result.DENY);
@@ -73,7 +74,7 @@ public class IllumerinBlock extends RotatedPillarBlock {
     }
 
     @Override
-    public int getLightValue(BlockState state, IBlockReader world, BlockPos pos) {
-        return 1; // Needs at least a light level of 1 for the emissiveness to work
+    public int getLightEmission(BlockState state, BlockGetter level, BlockPos pos) {
+        return 1;// Needs at least a light level of 1 for the emissiveness to work
     }
 }

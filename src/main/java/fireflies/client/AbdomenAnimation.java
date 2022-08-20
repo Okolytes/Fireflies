@@ -1,14 +1,14 @@
 package fireflies.client;
 
 import fireflies.entity.FireflyEntity;
-import net.minecraft.util.math.MathHelper;
+import net.minecraft.util.Mth;
+import net.minecraft.util.RandomSource;
 
 import javax.annotation.Nullable;
 import java.util.HashSet;
-import java.util.Random;
 
 public class AbdomenAnimation {
-    private static final Random RANDOM = new Random();
+    private static final RandomSource RANDOM = RandomSource.create(694201337);
     public final HashSet<FireflyEntity> fireflies = new HashSet<>();
     public final String name;
     public Frame[] frames;
@@ -48,7 +48,7 @@ public class AbdomenAnimation {
         ap.glow = frame.glow;
 
         if (frame.delay != null) {
-            ap.delayTicks = MathHelper.nextInt(RANDOM, frame.delay[0], frame.delay[1]);
+            ap.delayTicks = Mth.nextInt(RANDOM, frame.delay[0], frame.delay[1]);
         }
 
         if (ap.frameCounter++ >= this.frames.length - 1) {

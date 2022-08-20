@@ -4,14 +4,13 @@ import com.mojang.brigadier.StringReader;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.serialization.Codec;
 import fireflies.Registry;
-import net.minecraft.network.PacketBuffer;
-import net.minecraft.particles.IParticleData;
-import net.minecraft.particles.ParticleType;
+import net.minecraft.core.particles.ParticleOptions;
+import net.minecraft.core.particles.ParticleType;
+import net.minecraft.network.FriendlyByteBuf;
 
-// This is the worstest java code of All Time
 @SuppressWarnings("deprecation")
 public class FireflyParticleData {
-    public abstract static class AbstractFireflyParticleData implements IParticleData {
+    public abstract static class AbstractFireflyParticleData implements ParticleOptions {
         public final int fireflyId;
 
         public AbstractFireflyParticleData(int fireflyId) {
@@ -26,12 +25,12 @@ public class FireflyParticleData {
         }
 
         @Override
-        public void write(PacketBuffer buffer) {
+        public void writeToNetwork(FriendlyByteBuf buffer) {
             buffer.writeVarInt(this.fireflyId);
         }
 
         @Override
-        public String getParameters() {
+        public String writeToString() {
             return Integer.toString(this.fireflyId);
         }
     }
@@ -42,20 +41,20 @@ public class FireflyParticleData {
         }
 
         public static ParticleType<Dust> get() {
-            return new ParticleType<Dust>(true, new IDeserializer<Dust>() {
+            return new ParticleType<Dust>(true, new Deserializer<Dust>() {
                 @Override
-                public Dust deserialize(ParticleType<Dust> type, StringReader reader) throws CommandSyntaxException {
+                public Dust fromCommand(ParticleType<Dust> type, StringReader reader) throws CommandSyntaxException {
                     reader.skipWhitespace();
                     return new Dust(reader.readInt());
                 }
 
                 @Override
-                public Dust read(ParticleType<Dust> type, PacketBuffer buffer) {
+                public Dust fromNetwork(ParticleType<Dust> type, FriendlyByteBuf buffer) {
                     return new Dust(buffer.readVarInt());
                 }
             }) {
                 @Override
-                public Codec<Dust> func_230522_e_() {
+                public Codec<Dust> codec() {
                     return Codec.INT.xmap(Dust::new, (fireflyDustParticleData) -> fireflyDustParticleData.fireflyId);
                 }
             };
@@ -73,20 +72,20 @@ public class FireflyParticleData {
         }
 
         public static ParticleType<Abdomen> get() {
-            return new ParticleType<Abdomen>(true, new IDeserializer<Abdomen>() {
+            return new ParticleType<Abdomen>(true, new Deserializer<Abdomen>() {
                 @Override
-                public Abdomen deserialize(ParticleType<Abdomen> type, StringReader reader) throws CommandSyntaxException {
+                public Abdomen fromCommand(ParticleType<Abdomen> type, StringReader reader) throws CommandSyntaxException {
                     reader.skipWhitespace();
                     return new Abdomen(reader.readInt());
                 }
 
                 @Override
-                public Abdomen read(ParticleType<Abdomen> type, PacketBuffer buffer) {
+                public Abdomen fromNetwork(ParticleType<Abdomen> type, FriendlyByteBuf buffer) {
                     return new Abdomen(buffer.readVarInt());
                 }
             }) {
                 @Override
-                public Codec<Abdomen> func_230522_e_() {
+                public Codec<Abdomen> codec() {
                     return Codec.INT.xmap(Abdomen::new, (fireflyDustParticleData) -> fireflyDustParticleData.fireflyId);
                 }
             };
