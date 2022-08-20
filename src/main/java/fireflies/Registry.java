@@ -47,9 +47,7 @@ public final class Registry {
     public static final RegistryObject<SoundEvent> FIREFLY_FLIGHT_LOOP = registerSoundEvent("firefly_flight_loop");
 
     // Stats
-    // todo some firefly related stat
-    //public static final ResourceLocation FILL_GLASS_JAR_STAT = registerCustomStat("fill_glass_jar");
-
+	
     public static void register(final IEventBus bus) {
         BLOCKS.register(bus);
         ITEMS.register(bus);
