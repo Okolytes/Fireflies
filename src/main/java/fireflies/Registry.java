@@ -34,7 +34,7 @@ public final class Registry {
     public static final RegistryObject<Item> ILLUMERIN = ITEMS.register("illumerin", () -> new Item(new Item.Properties().tab(CreativeModeTab.TAB_MATERIALS)));
 
     // Entities / Spawn Eggs
-    public static final RegistryObject<EntityType<FireflyEntity>> FIREFLY = ENTITY_TYPES.register("firefly", () -> EntityType.Builder.of(FireflyEntity::new, MobCategory.CREATURE).sized(0.5f, 0.5f).clientTrackingRange(10).build( Fireflies.MOD_ID + ":firefly"));
+    public static final RegistryObject<EntityType<FireflyEntity>> FIREFLY = ENTITY_TYPES.register("firefly", () -> EntityType.Builder.of(FireflyEntity::new, MobCategory.CREATURE).sized(0.5f, 0.5f).clientTrackingRange(10).build("firefly"));
     private static final RegistryObject<ForgeSpawnEggItem> FIREFLY_SPAWN_EGG = ITEMS.register("firefly_spawn_egg",
             () -> new FireflySpawnEgg(FIREFLY, 0x5B1313, 0xF7DD36, new Item.Properties().tab(CreativeModeTab.TAB_MISC)));
 
