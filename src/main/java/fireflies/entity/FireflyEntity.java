@@ -19,7 +19,6 @@ import net.minecraft.world.entity.*;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.ai.goal.FloatGoal;
-import net.minecraft.world.entity.ai.goal.FollowParentGoal;
 import net.minecraft.world.entity.ai.goal.PanicGoal;
 import net.minecraft.world.entity.ai.navigation.FlyingPathNavigation;
 import net.minecraft.world.entity.ai.navigation.PathNavigation;
@@ -133,7 +132,6 @@ public class FireflyEntity extends Animal implements FlyingAnimal {
         this.goalSelector.addGoal(0, new PanicGoal(this, 2.5f));
         //this.goalSelector.addGoal(1, new FireflyAI.MateGoal(this, 1f));
         //this.goalSelector.addGoal(3, new FireflyAI.EatCompostGoal(this, 1f, 22));
-        this.goalSelector.addGoal(5, new FollowParentGoal(this, 1.15f));
         //this.goalSelector.addGoal(6, new FireflyAI.WanderGoal(this));
         this.goalSelector.addGoal(7, new FloatGoal(this));
     }

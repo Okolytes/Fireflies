@@ -27,5 +27,4 @@ public class Fireflies {
     private void createEntityAttributes(EntityAttributeCreationEvent event) {
         event.put(Registry.FIREFLY.get(), FireflyEntity.createAttributes().build());
     }
-
 }
