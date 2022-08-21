@@ -14,7 +14,6 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.util.Mth;
-import net.minecraft.world.InteractionHand;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.*;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
@@ -22,15 +21,10 @@ import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.ai.goal.FloatGoal;
 import net.minecraft.world.entity.ai.goal.FollowParentGoal;
 import net.minecraft.world.entity.ai.goal.PanicGoal;
-import net.minecraft.world.entity.ai.goal.TemptGoal;
 import net.minecraft.world.entity.ai.navigation.FlyingPathNavigation;
 import net.minecraft.world.entity.ai.navigation.PathNavigation;
 import net.minecraft.world.entity.animal.Animal;
 import net.minecraft.world.entity.animal.FlyingAnimal;
-import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.Items;
-import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelReader;
 import net.minecraft.world.level.block.state.BlockState;
@@ -138,7 +132,6 @@ public class FireflyEntity extends Animal implements FlyingAnimal {
         // Register all of our fireflies AI goals. (0 being the highest priority, of course -_-)
         this.goalSelector.addGoal(0, new PanicGoal(this, 2.5f));
         //this.goalSelector.addGoal(1, new FireflyAI.MateGoal(this, 1f));
-        this.goalSelector.addGoal(2, new TemptGoal(this, 1.15f, Ingredient.of(Items.HONEY_BOTTLE), false));
         //this.goalSelector.addGoal(3, new FireflyAI.EatCompostGoal(this, 1f, 22));
         this.goalSelector.addGoal(5, new FollowParentGoal(this, 1.15f));
         //this.goalSelector.addGoal(6, new FireflyAI.WanderGoal(this));
@@ -235,32 +228,12 @@ public class FireflyEntity extends Animal implements FlyingAnimal {
     }
 
     @Override
-    public boolean isFood(ItemStack itemStack) {
-        return itemStack.getItem().equals(Items.HONEY_BOTTLE);
-    }
-
-    @Override
-    protected void usePlayerItem(Player pPlayer, InteractionHand pHand, ItemStack pStack) {
-        /* Fix the honey bottle being consumed in its entirety */
-        if (!pPlayer.getAbilities().instabuild) {
-            // Consume the honey bottle
-            pStack.shrink(1);
-            // Give back a glass bottle
-            final ItemStack glassBottle = new ItemStack(Items.GLASS_BOTTLE);
-            if (!pPlayer.getInventory().add(glassBottle)) {
-                pPlayer.drop(glassBottle, false);
-            }
-        }
-    }
-
-    @Override
     public void die(DamageSource cause) {
         if (this.level.isClientSide) {
             this.particleManager.destroyAbdomenParticle();
         }
         super.die(cause);
     }
-
 
     @Override
     protected SoundEvent getAmbientSound() {

@@ -22,8 +22,10 @@ public class FireflyAbdomenParticle extends SimpleAnimatedParticle {
         firefly.particleManager.abdomenParticle = this;
         this.setAlpha(0f);
         this.setSprite(0);
+        this.quadSize = 0.45f;
         // Something's probably gone wrong if it has existed for this long.
         this.lifetime = 1000;
+
     }
 
     @Override
@@ -37,8 +39,6 @@ public class FireflyAbdomenParticle extends SimpleAnimatedParticle {
             return;
         }
 
-        // Setting it in the tick() methods because the scale will need to change accordingly as a baby firefly grows (or shrinks?) // todo figure out what the fuck i meant by "shrink"
-        this.quadSize = this.firefly.isBaby() ? 0.2f : 0.45f;
         this.alpha = this.firefly.abdomenAnimationManager.abdomenAnimationProperties.glow;
 
         // Keep at the exact point of the abdomen

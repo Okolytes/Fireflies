@@ -57,7 +57,7 @@ public class FireflyRenderer extends MobRenderer<FireflyEntity, FireflyModel<Fir
                 new Vector3f(1.0F, -1.0F, 0.0F)
         };
 
-        final float scale = firefly.isBaby() ? 0.125f : 0.25f;
+        final float scale = 0.25f;
         // Face the camera
         for (int i = 0; i < 4; ++i) {
             vertices[i].transform(Vector3f.YP.rotationDegrees(-this.entityRenderDispatcher.camera.getYRot()));

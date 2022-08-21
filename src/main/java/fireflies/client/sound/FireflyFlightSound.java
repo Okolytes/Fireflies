@@ -57,10 +57,10 @@ public class FireflyFlightSound extends AbstractTickableSoundInstance {
     }
 
     private float getMinPitch() {
-        return this.firefly.isBaby() ? 1.1F : 0.9F;
+        return 0.9F;
     }
 
     private float getMaxPitch() {
-        return this.firefly.isBaby() ? 1.3F : 1.1F;
+        return 1.1F;
     }
 }
