@@ -1,16 +1,7 @@
 {
   "variants": {
-    "axis=x": {
-      "model": "fireflies:block/illumerin_block_horizontal",
-      "x": 90,
-      "y": 90
-    },
-    "axis=y": {
+    "": {
       "model": "fireflies:block/illumerin_block"
-    },
-    "axis=z": {
-      "model": "fireflies:block/illumerin_block_horizontal",
-      "x": 90
     }
   }
 }

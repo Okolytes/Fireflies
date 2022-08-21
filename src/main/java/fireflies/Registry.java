@@ -11,6 +11,7 @@ import net.minecraft.stats.StatFormatter;
 import net.minecraft.stats.Stats;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.MobCategory;
+import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.Block;
@@ -27,8 +28,10 @@ public final class Registry {
     private static final DeferredRegister<ParticleType<?>> PARTICLES = DeferredRegister.create(ForgeRegistries.PARTICLE_TYPES, Fireflies.MOD_ID);
     private static final DeferredRegister<SoundEvent> SOUNDS = DeferredRegister.create(ForgeRegistries.SOUND_EVENTS, Fireflies.MOD_ID);
 
+
     // Blocks
     public static final RegistryObject<Block> ILLUMERIN_BLOCK = BLOCKS.register("illumerin_block", IllumerinBlock::new);
+    public static final RegistryObject<Item> ILLUMERIN_BLOCKITEM = fromBlock(ILLUMERIN_BLOCK, new Item.Properties().tab(CreativeModeTab.TAB_DECORATIONS));
 
     // Items
     public static final RegistryObject<Item> ILLUMERIN = ITEMS.register("illumerin", () -> new Item(new Item.Properties().tab(CreativeModeTab.TAB_MATERIALS)));
@@ -67,5 +70,11 @@ public final class Registry {
         net.minecraft.core.Registry.register(net.minecraft.core.Registry.CUSTOM_STAT, name, rsc);
         Stats.CUSTOM.get(rsc, StatFormatter.DEFAULT);
         return rsc;
+    }
+
+    // https://github.com/McJty/TutorialV3/blob/7fe99a7fd4f03c71550c9fa61d75bbcf434805aa/src/main/java/com/example/tutorialv3/setup/Registration.java#L118
+    // Conveniance function: Take a RegistryObject<Block> and make a corresponding RegistryObject<Item> from it
+    public static <B extends Block> RegistryObject<Item> fromBlock(RegistryObject<B> block, Item.Properties properties) {
+        return ITEMS.register(block.getId().getPath(), () -> new BlockItem(block.get(), properties));
     }
 }

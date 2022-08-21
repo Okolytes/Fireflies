@@ -1,7 +1,37 @@
 {
-  "parent": "minecraft:block/cube_column",
+  "credit": "Made with Blockbench",
+  "parent": "block/block",
+  "render_type": "translucent",
   "textures": {
-    "end": "fireflies:block/illumerin_block_top",
-    "side": "fireflies:block/illumerin_block_side"
-  }
+    "particle": "fireflies:block/illumerin_block_bottom",
+    "4": "fireflies:block/illumerin_block_bottom",
+    "5": "fireflies:block/illumerin_block_side"
+  },
+  "elements": [
+    {
+      "from": [0, 0, 0],
+      "to": [16, 16, 16],
+      "faces": {
+        "north": {"uv": [0, 0, 16, 16], "texture": "#4", "cullface": "north"},
+        "east": {"uv": [0, 0, 16, 16], "texture": "#4", "cullface": "east"},
+        "south": {"uv": [0, 0, 16, 16], "texture": "#4", "cullface": "south"},
+        "west": {"uv": [0, 0, 16, 16], "texture": "#4", "cullface": "west"},
+        "up": {"uv": [0, 0, 16, 16], "texture": "#4", "cullface": "up"},
+        "down": {"uv": [0, 0, 16, 16], "texture": "#4", "cullface": "down"}
+      }
+    },
+    {
+      "from": [2, 2, 2],
+      "to": [14, 14, 14],
+      "faces": {
+        "north": {"uv": [0, 0, 12, 12], "texture": "#5"},
+        "east": {"uv": [0, 0, 12, 12], "texture": "#5"},
+        "south": {"uv": [0, 0, 12, 12], "texture": "#5"},
+        "west": {"uv": [0, 0, 12, 12], "texture": "#5"},
+        "up": {"uv": [0, 0, 12, 12], "texture": "#5"},
+        "down": {"uv": [0, 0, 12, 12], "texture": "#5"}
+      }
+    }
+  ],
+  "display": {}
 }
