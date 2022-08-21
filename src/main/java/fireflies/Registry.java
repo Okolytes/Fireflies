@@ -1,6 +1,7 @@
 package fireflies;
 
 import fireflies.block.IllumerinBlock;
+import fireflies.block.IllumerinLantern;
 import fireflies.entity.FireflyEntity;
 import fireflies.item.IllumerinItem;
 import fireflies.misc.FireflyParticleData;
@@ -32,7 +33,9 @@ public final class Registry {
 
     // Blocks
     public static final RegistryObject<Block> ILLUMERIN_BLOCK = BLOCKS.register("illumerin_block", IllumerinBlock::new);
-    public static final RegistryObject<Item> ILLUMERIN_BLOCKITEM = fromBlock(ILLUMERIN_BLOCK, new Item.Properties().tab(CreativeModeTab.TAB_DECORATIONS));
+    public static final RegistryObject<Item> ILLUMERIN_BLOCK_ITEM = fromBlock(ILLUMERIN_BLOCK, new Item.Properties().tab(CreativeModeTab.TAB_DECORATIONS));
+    public static final RegistryObject<Block> ILLUMERIN_LANTERN = BLOCKS.register("illumerin_lantern", IllumerinLantern::new);
+    public static final RegistryObject<Item> ILLUMERIN_LANTERN_ITEM = fromBlock(ILLUMERIN_LANTERN, new Item.Properties().tab(CreativeModeTab.TAB_DECORATIONS));
 
     // Items
     public static final RegistryObject<Item> ILLUMERIN = ITEMS.register("illumerin", IllumerinItem::new);

@@ -5,7 +5,6 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.MobCategory;
 import net.minecraft.world.entity.MobSpawnType;
 import net.minecraft.world.entity.ambient.Bat;
-import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.HalfTransparentBlock;
 import net.minecraft.world.level.block.SoundType;
@@ -20,9 +19,10 @@ import net.minecraftforge.fml.common.Mod;
 @Mod.EventBusSubscriber(modid = Fireflies.MOD_ID)
 public class IllumerinBlock extends HalfTransparentBlock {
     private static final int ILLUMERIN_RADIUS = 15;
+    private static final int LANTERN_ILLUMERIN_RADIUS = 8;
 
     public IllumerinBlock() {
-        super(Properties.of(Material.CLAY, MaterialColor.GRASS).noOcclusion().sound(SoundType.SLIME_BLOCK).isValidSpawn((a, b, c, d) -> false));
+        super(Properties.of(Material.CLAY, MaterialColor.GRASS).noOcclusion().sound(SoundType.SLIME_BLOCK).lightLevel(a -> 1).isValidSpawn((a, b, c, d) -> false));
     }
 
     @SubscribeEvent
@@ -41,17 +41,25 @@ public class IllumerinBlock extends HalfTransparentBlock {
         // Cancel the spawn if an illumerin is within radius
         boolean cancelMobSpawn = false;
         final BlockPos mobPos = new BlockPos(event.getX(), event.getY(), event.getZ());
-        for (double x = event.getX() - ILLUMERIN_RADIUS; x < event.getX() + ILLUMERIN_RADIUS; x++) {
-            for (double y = event.getY() - ILLUMERIN_RADIUS; y < event.getY() + ILLUMERIN_RADIUS; y++) {
-                for (double z = event.getZ() - ILLUMERIN_RADIUS; z < event.getZ() + ILLUMERIN_RADIUS; z++) {
+        final var radius = Math.max(ILLUMERIN_RADIUS, LANTERN_ILLUMERIN_RADIUS);
+        for (double x = event.getX() - radius; x < event.getX() + radius; x++) {
+            for (double y = event.getY() - radius; y < event.getY() + radius; y++) {
+                for (double z = event.getZ() - radius; z < event.getZ() + radius; z++) {
                     final BlockPos blockPos = new BlockPos(x, y, z);
-                    if (!blockPos.closerThan(mobPos, ILLUMERIN_RADIUS)) {
+                    // squared distance
+                    if (!blockPos.closerThan(mobPos, radius)) {
                         continue;
                     }
 
                     final BlockState state = event.getLevel().getBlockState(blockPos);
                     final Block block = state.getBlock();
-                    if (block instanceof IllumerinBlock) {
+                    boolean flag = block instanceof IllumerinLantern;
+                    if (block instanceof IllumerinBlock || flag) {
+                        if (flag && !blockPos.closerThan(mobPos, LANTERN_ILLUMERIN_RADIUS))
+                        {
+                            continue;
+                        }
+
                         cancelMobSpawn = true;
                         break;
                     }
@@ -68,10 +76,5 @@ public class IllumerinBlock extends HalfTransparentBlock {
             // Finally, cancel the mob spawn
             event.setResult(Event.Result.DENY);
         }
-    }
-
-    @Override
-    public int getLightEmission(BlockState state, BlockGetter level, BlockPos pos) {
-        return 1; // Needs at least a light level of 1 to render at fullbright
     }
 }
