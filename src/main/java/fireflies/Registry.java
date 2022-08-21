@@ -2,6 +2,7 @@ package fireflies;
 
 import fireflies.block.IllumerinBlock;
 import fireflies.entity.FireflyEntity;
+import fireflies.item.IllumerinItem;
 import fireflies.misc.FireflyParticleData;
 import fireflies.misc.FireflySpawnEgg;
 import net.minecraft.core.particles.ParticleType;
@@ -34,7 +35,7 @@ public final class Registry {
     public static final RegistryObject<Item> ILLUMERIN_BLOCKITEM = fromBlock(ILLUMERIN_BLOCK, new Item.Properties().tab(CreativeModeTab.TAB_DECORATIONS));
 
     // Items
-    public static final RegistryObject<Item> ILLUMERIN = ITEMS.register("illumerin", () -> new Item(new Item.Properties().tab(CreativeModeTab.TAB_MATERIALS)));
+    public static final RegistryObject<Item> ILLUMERIN = ITEMS.register("illumerin", IllumerinItem::new);
 
     // Entities / Spawn Eggs
     public static final RegistryObject<EntityType<FireflyEntity>> FIREFLY = ENTITY_TYPES.register("firefly", () -> EntityType.Builder.of(FireflyEntity::new, MobCategory.CREATURE).sized(0.5f, 0.5f).clientTrackingRange(10).build("firefly"));
