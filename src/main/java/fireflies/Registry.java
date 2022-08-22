@@ -3,6 +3,7 @@ package fireflies;
 import fireflies.block.IllumerinBlock;
 import fireflies.block.IllumerinLantern;
 import fireflies.entity.FireflyEntity;
+import fireflies.item.FireflyBottleItem;
 import fireflies.item.IllumerinItem;
 import fireflies.misc.FireflyParticleData;
 import fireflies.misc.FireflySpawnEgg;
@@ -39,6 +40,7 @@ public final class Registry {
 
     // Items
     public static final RegistryObject<Item> ILLUMERIN = ITEMS.register("illumerin", IllumerinItem::new);
+    public static final RegistryObject<Item> FIREFLY_BOTTLE = ITEMS.register("firefly_bottle", FireflyBottleItem::new);
 
     // Entities / Spawn Eggs
     public static final RegistryObject<EntityType<FireflyEntity>> FIREFLY = ENTITY_TYPES.register("firefly", () -> EntityType.Builder.of(FireflyEntity::new, MobCategory.CREATURE).sized(0.5f, 0.5f).clientTrackingRange(10).build("firefly"));

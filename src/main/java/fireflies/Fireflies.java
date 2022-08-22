@@ -2,6 +2,10 @@ package fireflies;
 
 import fireflies.client.AbdomenAnimationLoader;
 import fireflies.entity.FireflyEntity;
+import net.minecraft.core.NonNullList;
+import net.minecraft.world.item.CreativeModeTab;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.event.entity.EntityAttributeCreationEvent;
 import net.minecraftforge.eventbus.api.IEventBus;
@@ -26,5 +30,25 @@ public class Fireflies {
 
     private void createEntityAttributes(EntityAttributeCreationEvent event) {
         event.put(Registry.FIREFLY.get(), FireflyEntity.createAttributes().build());
+    }
+
+    // I hate Orbic
+    public static boolean creativeTabItemPlacement(Item thisItem, Item item, CreativeModeTab category, NonNullList<ItemStack> pItems) {
+        if (category == thisItem.getItemCategory() || category == CreativeModeTab.TAB_SEARCH) {
+            int index = -1;
+            // Get the item of choice's index
+            for (int i = 0; i < pItems.size(); i++) {
+                if (pItems.get(i).getItem() == item) {
+                    index = i;
+                }
+            }
+
+            if (index != -1) {
+                // Put our item next to the item of choice
+                pItems.add(index + 1, new ItemStack(thisItem));
+                return true;
+            }
+        }
+        return false;
     }
 }

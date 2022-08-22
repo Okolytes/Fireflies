@@ -55,11 +55,11 @@ public class FireflyEntity extends Animal implements FlyingAnimal {
      */
     private int rainedOnTicks;
     private boolean cachedHasIllumerin;
-    private int timeUntilIllumerinDrop;
+    public int timeUntilIllumerinDrop;
 
     public FireflyEntity(EntityType<? extends FireflyEntity> entityType, Level level) {
         super(entityType, level);
-        if (level.isClientSide) {
+        if (level.isClientSide()) {
             abdomenAnimationManager = new AbdomenAnimationManager(this);
             particleManager = new FireflyParticleManager(this);
         } else {
@@ -82,10 +82,11 @@ public class FireflyEntity extends Animal implements FlyingAnimal {
                 .add(Attributes.FOLLOW_RANGE, 48.0D);
     }
 
+
     @Nullable
     @Override
     public AgeableMob getBreedOffspring(ServerLevel pLevel, AgeableMob pOtherParent) {
-        return Registry.FIREFLY.get().create(pLevel);
+        return null;
     }
 
     @Override

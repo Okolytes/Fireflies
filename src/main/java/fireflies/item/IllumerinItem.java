@@ -1,5 +1,7 @@
 package fireflies.item;
 
+import fireflies.Fireflies;
+import net.minecraft.core.NonNullList;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
@@ -12,6 +14,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 
 public class IllumerinItem extends Item {
 
@@ -43,5 +46,12 @@ public class IllumerinItem extends Item {
         }
 
         return InteractionResult.SUCCESS;
+    }
+
+    @Override
+    public void fillItemCategory(CreativeModeTab pCategory, NonNullList<ItemStack> pItems) {
+        if (!Fireflies.creativeTabItemPlacement(this, Items.HONEYCOMB, pCategory, pItems)) {
+            super.fillItemCategory(pCategory, pItems);
+        }
     }
 }

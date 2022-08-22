@@ -1,10 +1,15 @@
 package fireflies.block;
 
 import fireflies.Fireflies;
+import fireflies.Registry;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.NonNullList;
 import net.minecraft.world.entity.MobCategory;
 import net.minecraft.world.entity.MobSpawnType;
 import net.minecraft.world.entity.ambient.Bat;
+import net.minecraft.world.item.CreativeModeTab;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.HalfTransparentBlock;
 import net.minecraft.world.level.block.SoundType;
@@ -75,6 +80,14 @@ public class IllumerinBlock extends HalfTransparentBlock {
 
             // Finally, cancel the mob spawn
             event.setResult(Event.Result.DENY);
+        }
+    }
+
+
+    @Override
+    public void fillItemCategory(CreativeModeTab pCategory, NonNullList<ItemStack> pItems) {
+        if (!Fireflies.creativeTabItemPlacement(Registry.ILLUMERIN_BLOCK_ITEM.get(), Items.SHROOMLIGHT, pCategory, pItems)) {
+            super.fillItemCategory(pCategory, pItems);
         }
     }
 }
