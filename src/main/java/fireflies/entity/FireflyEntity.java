@@ -6,6 +6,8 @@ import fireflies.client.ClientStuff;
 import fireflies.client.particle.FireflyParticleManager;
 import fireflies.client.sound.FireflyFlightSound;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.particles.BlockParticleOption;
+import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
@@ -18,14 +20,23 @@ import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.*;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
+import net.minecraft.world.entity.ai.control.FlyingMoveControl;
 import net.minecraft.world.entity.ai.goal.FloatGoal;
+import net.minecraft.world.entity.ai.goal.Goal;
+import net.minecraft.world.entity.ai.goal.MoveToBlockGoal;
 import net.minecraft.world.entity.ai.goal.PanicGoal;
 import net.minecraft.world.entity.ai.navigation.FlyingPathNavigation;
 import net.minecraft.world.entity.ai.navigation.PathNavigation;
+import net.minecraft.world.entity.ai.util.AirAndWaterRandomPos;
+import net.minecraft.world.entity.ai.util.HoverRandomPos;
 import net.minecraft.world.entity.animal.Animal;
 import net.minecraft.world.entity.animal.FlyingAnimal;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelReader;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.ComposterBlock;
+import net.minecraft.world.level.block.TrapDoorBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.pathfinder.BlockPathTypes;
 import net.minecraft.world.phys.Vec3;
@@ -34,6 +45,7 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.fluids.FluidType;
 
 import javax.annotation.Nullable;
+import java.util.EnumSet;
 
 public class FireflyEntity extends Animal implements FlyingAnimal {
     private static final EntityDataAccessor<Boolean> HAS_ILLUMERIN = SynchedEntityData.defineId(FireflyEntity.class, EntityDataSerializers.BOOLEAN);
@@ -45,17 +57,13 @@ public class FireflyEntity extends Animal implements FlyingAnimal {
      * null on server
      */
     public final FireflyParticleManager particleManager;
-    public int timeUntilCanEatCompostAgain;
+    public int eatCompostCooldown;
     /**
      * How many ticks this firefly has been underwater for
      */
     private int underWaterTicks;
-    /**
-     * How many ticks this firefly has been rained on for
-     */
-    private int rainedOnTicks;
     private boolean cachedHasIllumerin;
-    public int timeUntilIllumerinDrop;
+    public int illumerinDropTime;
 
     public FireflyEntity(EntityType<? extends FireflyEntity> entityType, Level level) {
         super(entityType, level);
@@ -66,7 +74,7 @@ public class FireflyEntity extends Animal implements FlyingAnimal {
             abdomenAnimationManager = null;
             particleManager = null;
         }
-        //this.moveControl = new FireflyAI.FlyingMovementHelper(this);
+        this.moveControl = new FlyingMoveControl(this, 20, true);
         this.setPathfindingMalus(BlockPathTypes.DANGER_FIRE, -1.0F);
         this.setPathfindingMalus(BlockPathTypes.WATER, -1.0F);
         this.setPathfindingMalus(BlockPathTypes.WATER_BORDER, 16.0F);
@@ -78,8 +86,7 @@ public class FireflyEntity extends Animal implements FlyingAnimal {
         return LivingEntity.createLivingAttributes()
                 .add(Attributes.MAX_HEALTH, 6.0D)
                 .add(Attributes.FLYING_SPEED, 0.25F)
-                .add(Attributes.MOVEMENT_SPEED, 0.15F)
-                .add(Attributes.FOLLOW_RANGE, 48.0D);
+                .add(Attributes.MOVEMENT_SPEED, 0.15F);
     }
 
 
@@ -115,26 +122,25 @@ public class FireflyEntity extends Animal implements FlyingAnimal {
     public void addAdditionalSaveData(CompoundTag nbt) {
         super.addAdditionalSaveData(nbt);
         nbt.putBoolean("HasIllumerin", this.hasIllumerin());
-        nbt.putInt("IllumerinDropTime", this.timeUntilIllumerinDrop);
-        nbt.putInt("EatCompostCooldown", this.timeUntilCanEatCompostAgain);
+        nbt.putInt("IllumerinDropTime", this.illumerinDropTime);
+        nbt.putInt("EatCompostCooldown", this.eatCompostCooldown);
     }
 
     @Override
     public void readAdditionalSaveData(CompoundTag nbt) {
         super.readAdditionalSaveData(nbt);
         this.setHasIllumerin(nbt.getBoolean("HasIllumerin"));
-        this.timeUntilIllumerinDrop = nbt.getInt("IllumerinDropTime");
-        this.timeUntilCanEatCompostAgain = nbt.getInt("EatCompostCooldown");
+        this.illumerinDropTime = nbt.getInt("IllumerinDropTime");
+        this.eatCompostCooldown = nbt.getInt("EatCompostCooldown");
     }
 
     @Override
     protected void registerGoals() {
         // Register all of our fireflies AI goals. (0 being the highest priority, of course -_-)
         this.goalSelector.addGoal(0, new PanicGoal(this, 2.5f));
-        //this.goalSelector.addGoal(1, new FireflyAI.MateGoal(this, 1f));
-        //this.goalSelector.addGoal(3, new FireflyAI.EatCompostGoal(this, 1f, 22));
-        //this.goalSelector.addGoal(6, new FireflyAI.WanderGoal(this));
-        this.goalSelector.addGoal(7, new FloatGoal(this));
+        this.goalSelector.addGoal(1, new EatCompostGoal(1f, 22));
+        this.goalSelector.addGoal(2, new FlyingWanderGoal());
+        this.goalSelector.addGoal(3, new FloatGoal(this));
     }
 
     @Override
@@ -151,12 +157,6 @@ public class FireflyEntity extends Animal implements FlyingAnimal {
         return flyingPathNavigation;
     }
 
-
-    @Override
-    public float getWalkTargetValue(BlockPos pPos, LevelReader pLevel) {
-        return pLevel.isEmptyBlock(pPos) ? 10.0F : 0.0F;
-    }
-
     @Override
     public void aiStep() {
         super.aiStep();
@@ -167,28 +167,28 @@ public class FireflyEntity extends Animal implements FlyingAnimal {
             } else {
                 this.abdomenAnimationManager.setAnimation(null);
             }
-        } else {
-            if (!this.isNoAi()) {
-                this.underWaterTicks = this.isInWaterOrBubble() ? this.underWaterTicks + 1 : 0;
-                this.rainedOnTicks = this.level.isRainingAt(this.blockPosition()) ? this.rainedOnTicks + 1 : 0;
+            return;
+        }
 
-                if (this.underWaterTicks > 20) {
-                    this.hurt(DamageSource.DROWN, 1.0F);
-                }
+        if (this.isNoAi()) {
+            return;
+        }
 
-                if (this.timeUntilCanEatCompostAgain > 0) {
-                    this.timeUntilCanEatCompostAgain--;
-                }
+        this.underWaterTicks = this.isInWaterOrBubble() ? this.underWaterTicks + 1 : 0;
 
-                if (this.hasIllumerin()) {
-                    if (this.timeUntilIllumerinDrop-- <= 0) {
-                        this.playSound(SoundEvents.CHICKEN_EGG, 1.0F, Mth.nextFloat(this.random, 0.5f, 1.5f));
-                        this.spawnAtLocation(Registry.ILLUMERIN.get());
-                        this.setHasIllumerin(false);
-                        this.setRandomIllumerinDropTime();
-                    }
-                }
-            }
+        if (this.underWaterTicks > 20) {
+            this.hurt(DamageSource.DROWN, 1.0F);
+        }
+
+        if (this.eatCompostCooldown > 0) {
+            this.eatCompostCooldown--;
+        }
+
+        if (this.hasIllumerin() && this.illumerinDropTime-- <= 0) {
+            this.playSound(SoundEvents.CHICKEN_EGG, 1.0F, Mth.nextFloat(this.random, 0.5f, 1.5f));
+            this.spawnAtLocation(Registry.ILLUMERIN.get());
+            this.setHasIllumerin(false);
+            this.setRandomIllumerinDropTime();
         }
     }
 
@@ -259,11 +259,17 @@ public class FireflyEntity extends Animal implements FlyingAnimal {
         return pDimensions.height * .5f;
     }
 
-    // fixme
+    // region what does this do?
     @Override
     public boolean isFlying() {
         return !this.onGround;
     }
+
+    @Override
+    protected boolean isFlapping() {
+        return !this.onGround;
+    }
+    //endregion
 
     @Override
     public boolean causeFallDamage(float pFallDistance, float pMultiplier, DamageSource pSource) {
@@ -275,26 +281,19 @@ public class FireflyEntity extends Animal implements FlyingAnimal {
         // do nothing
     }
 
-    // fixme
-    //@Override
-    //protected boolean isMovementNoisy() {
-    //    return false;
-    //}
-
     @Override
     protected void playStepSound(BlockPos blockPos, BlockState blockState) {
         // None
     }
 
-    // fixme
-//    @Override
-//    protected boolean makeFlySound() {
-//        return true;
-//    }
-
     @Override
     public MobType getMobType() {
         return MobType.ARTHROPOD;
+    }
+
+    @Override
+    public boolean isFood(ItemStack pStack) {
+        return false; // firefly doesn't accept any offerings
     }
 
     /**
@@ -324,6 +323,129 @@ public class FireflyEntity extends Animal implements FlyingAnimal {
     }
 
     private void setRandomIllumerinDropTime() {
-        this.timeUntilIllumerinDrop = Mth.nextInt(this.random, 3600, 7200); // 3600, 7200
+        this.illumerinDropTime = Mth.nextInt(this.random, 3600, 7200); // 3600, 7200
+    }
+
+    public class FlyingWanderGoal extends Goal {
+
+        public FlyingWanderGoal() {
+            this.setFlags(EnumSet.of(Flag.MOVE));
+        }
+
+        @Override
+        public boolean canUse() {
+            return FireflyEntity.this.getNavigation().isDone() && FireflyEntity.this.getRandom().nextInt(10) == 0;
+        }
+
+        @Override
+        public boolean canContinueToUse() {
+            return FireflyEntity.this.getNavigation().isInProgress();
+        }
+
+        @Override
+        public void start() {
+            Vec3 vec3 = this.findPos();
+            if (vec3 != null) {
+                FireflyEntity.this.getNavigation().moveTo(FireflyEntity.this.getNavigation().createPath(new BlockPos(vec3), 1), 1.0D);
+            }
+        }
+
+        @Nullable
+        private Vec3 findPos() {
+            Vec3 viewVector = FireflyEntity.this.getViewVector(0.0F);
+            Vec3 hoverPos = HoverRandomPos.getPos(FireflyEntity.this, 8, 7, viewVector.x, viewVector.z, ((float) Math.PI / 2F), 3, 1);
+            return hoverPos != null ? hoverPos : AirAndWaterRandomPos.getPos(FireflyEntity.this, 8, 4, -2, viewVector.x, viewVector.z, (float) Math.PI / 2F);
+        }
+    }
+
+    public class EatCompostGoal extends MoveToBlockGoal {
+        private int startEatingTicks;
+
+        public EatCompostGoal(double pSpeedModifier, int pSearchRange) {
+            super(FireflyEntity.this, pSpeedModifier, pSearchRange);
+        }
+
+        @Override
+        public boolean shouldRecalculatePath() {
+            return this.tryTicks % 100 == 0;
+        }
+
+        @Override
+        protected boolean isValidTarget(LevelReader worldIn, BlockPos pos) {
+            if (isComposterDesirable(worldIn, pos)) {
+                final BlockPos up = pos.above();
+                final BlockState above = worldIn.getBlockState(up);
+                return worldIn.isEmptyBlock(up) || (above.getBlock() instanceof TrapDoorBlock && above.getValue(TrapDoorBlock.OPEN));
+            }
+            return false;
+        }
+
+        public static boolean isComposterDesirable(LevelReader world, BlockPos pos) {
+            final BlockState state = world.getBlockState(pos);
+            return state.is(Blocks.COMPOSTER) && state.getValue(ComposterBlock.LEVEL) > 0;
+        }
+
+        private void lookAtCompost() {
+            FireflyEntity.this.lookControl.setLookAt(Vec3.atCenterOf(this.blockPos));
+        }
+
+        @Override
+        public void tick() {
+            if (this.blockPos.closerThan(FireflyEntity.this.blockPosition(), 2f)) {
+                this.lookAtCompost();
+                if (this.startEatingTicks++ >= 40) {
+                    this.eatCompost();
+                }
+            }
+
+            super.tick();
+        }
+
+        private void eatCompost() {
+            final BlockState state = FireflyEntity.this.level.getBlockState(this.blockPos);
+            if (!state.is(Blocks.COMPOSTER)) {
+                return;
+            }
+
+            final int i = state.getValue(ComposterBlock.LEVEL);
+            if (i <= 0) {
+                return;
+            }
+
+            final boolean eaten = FireflyEntity.this.getRandom().nextFloat() >= 0.5f;
+            if (eaten) {
+                FireflyEntity.this.level.setBlock(this.blockPos, state.setValue(ComposterBlock.LEVEL, i - (i == ComposterBlock.READY ? 2 : 1)), 3);
+            }
+            FireflyEntity.this.playSound(eaten ? SoundEvents.COMPOSTER_EMPTY : SoundEvents.COMPOSTER_FILL, 1.0F, 1.0F);
+
+            final var center = Vec3.atCenterOf(this.blockPos);
+
+            ((ServerLevel) FireflyEntity.this.level).sendParticles(new BlockParticleOption(ParticleTypes.BLOCK, Blocks.DEAD_BUSH.defaultBlockState()),
+                    center.x, center.y + .5f, center.z, 50, 0, 0, 0, 0.05D);
+
+            FireflyEntity.this.eatCompostCooldown = 1200;
+            FireflyEntity.this.setHasIllumerin(true);
+        }
+
+        private boolean canEat() {
+            return !FireflyEntity.this.hasIllumerin() && FireflyEntity.this.eatCompostCooldown <= 0;
+        }
+
+        @Override
+        public boolean canUse() {
+            return canEat() && super.canUse();
+        }
+
+        @Override
+        public boolean canContinueToUse() {
+            return canEat() && super.canContinueToUse();
+        }
+
+        @Override
+        public void start() {
+            this.startEatingTicks = 0;
+            this.lookAtCompost();
+            super.start();
+        }
     }
 }
