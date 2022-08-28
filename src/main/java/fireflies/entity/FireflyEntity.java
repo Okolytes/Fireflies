@@ -27,8 +27,7 @@ import net.minecraft.world.entity.ai.goal.MoveToBlockGoal;
 import net.minecraft.world.entity.ai.goal.PanicGoal;
 import net.minecraft.world.entity.ai.navigation.FlyingPathNavigation;
 import net.minecraft.world.entity.ai.navigation.PathNavigation;
-import net.minecraft.world.entity.ai.util.AirAndWaterRandomPos;
-import net.minecraft.world.entity.ai.util.HoverRandomPos;
+import net.minecraft.world.entity.ai.util.RandomPos;
 import net.minecraft.world.entity.animal.Animal;
 import net.minecraft.world.entity.animal.FlyingAnimal;
 import net.minecraft.world.item.ItemStack;
@@ -346,17 +345,20 @@ public class FireflyEntity extends Animal implements FlyingAnimal {
 
         @Override
         public void start() {
-            Vec3 vec3 = this.findPos();
-            if (vec3 != null) {
-                FireflyEntity.this.getNavigation().moveTo(FireflyEntity.this.getNavigation().createPath(new BlockPos(vec3), 1), 1.0D);
+            var pos = this.findPos();
+            if (pos != null) {
+                final var navigation = FireflyEntity.this.getNavigation();
+                navigation.moveTo(navigation.createPath(new BlockPos(pos), 1), 1.0D);
             }
         }
 
         @Nullable
-        private Vec3 findPos() {
-            Vec3 viewVector = FireflyEntity.this.getViewVector(0.0F);
-            Vec3 hoverPos = HoverRandomPos.getPos(FireflyEntity.this, 8, 2, viewVector.x, viewVector.z, Mth.HALF_PI, 1, 0);
-            return hoverPos != null ? hoverPos : AirAndWaterRandomPos.getPos(FireflyEntity.this, 8, 2, 0, viewVector.x, viewVector.z, Mth.HALF_PI);
+        private BlockPos findPos() {
+            final var viewVector = FireflyEntity.this.getViewVector(0.0F);
+            final var ret = RandomPos.generateRandomDirectionWithinRadians(FireflyEntity.this.random, 8, 1, 0,
+                    viewVector.x, viewVector.z, Mth.HALF_PI);
+
+            return ret;
         }
     }
 
@@ -441,7 +443,7 @@ public class FireflyEntity extends Animal implements FlyingAnimal {
         @Override
         public boolean canContinueToUse() {
             return canEat()
-                    && (FireflyEntity.this.level.getBrightness(LightLayer.BLOCK, this.blockPos) <= 2 || FireflyEntity.this.level.getBrightness(LightLayer.SKY, this.blockPos) <= 2)
+                    && (FireflyEntity.this.level.getBrightness(LightLayer.BLOCK, this.blockPos) <= 2 && !FireflyEntity.this.level.isDay())
                     && super.canContinueToUse();
         }
 
