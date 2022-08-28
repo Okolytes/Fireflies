@@ -32,9 +32,10 @@ public class AbdomenAnimationManager {
         if (event.phase == TickEvent.Phase.END) {
             return;
         }
+
         Minecraft mc = Minecraft.getInstance();
         if (!mc.isPaused() && mc.level != null && mc.player != null) {
-            ANIMATIONS.values().forEach(AbdomenAnimation::tick);
+            //ANIMATIONS.values().forEach(AbdomenAnimation::tick);
         }
     }
 

@@ -88,7 +88,7 @@ public class FireflyEntity extends Animal implements FlyingAnimal {
                 .add(Attributes.MAX_HEALTH, 6.0D)
                 .add(Attributes.FLYING_SPEED, 0.25F)
                 .add(Attributes.MOVEMENT_SPEED, 0.15F)
-                .add(Attributes.FOLLOW_RANGE, 48D);
+                .add(Attributes.FOLLOW_RANGE, 48D); // NECESSARY attributes
     }
 
 
@@ -355,8 +355,8 @@ public class FireflyEntity extends Animal implements FlyingAnimal {
         @Nullable
         private Vec3 findPos() {
             Vec3 viewVector = FireflyEntity.this.getViewVector(0.0F);
-            Vec3 hoverPos = HoverRandomPos.getPos(FireflyEntity.this, 8, 7, viewVector.x, viewVector.z, ((float) Math.PI / 2F), 3, 1);
-            return hoverPos != null ? hoverPos : AirAndWaterRandomPos.getPos(FireflyEntity.this, 8, 4, -2, viewVector.x, viewVector.z, (float) Math.PI / 2F);
+            Vec3 hoverPos = HoverRandomPos.getPos(FireflyEntity.this, 8, 2, viewVector.x, viewVector.z, Mth.HALF_PI, 1, 0);
+            return hoverPos != null ? hoverPos : AirAndWaterRandomPos.getPos(FireflyEntity.this, 8, 2, 0, viewVector.x, viewVector.z, Mth.HALF_PI);
         }
     }
 
@@ -440,7 +440,9 @@ public class FireflyEntity extends Animal implements FlyingAnimal {
 
         @Override
         public boolean canContinueToUse() {
-            return canEat() && super.canContinueToUse() && FireflyEntity.this.level.getBrightness(LightLayer.BLOCK, this.blockPos) <= 2;
+            return canEat()
+                    && (FireflyEntity.this.level.getBrightness(LightLayer.BLOCK, this.blockPos) <= 2 || FireflyEntity.this.level.getBrightness(LightLayer.SKY, this.blockPos) <= 2)
+                    && super.canContinueToUse();
         }
 
         @Override
