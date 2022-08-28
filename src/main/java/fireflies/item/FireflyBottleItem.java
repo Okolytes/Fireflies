@@ -26,7 +26,6 @@ import net.minecraftforge.fml.common.Mod;
 
 import javax.annotation.Nullable;
 import java.util.List;
-import java.util.Objects;
 
 @Mod.EventBusSubscriber(modid = Fireflies.MOD_ID)
 public class FireflyBottleItem extends Item {
@@ -35,6 +34,7 @@ public class FireflyBottleItem extends Item {
         super(new Item.Properties().tab(CreativeModeTab.TAB_MISC).stacksTo(1));
     }
 
+    // On right click firefly with glass bottle
     @SubscribeEvent
     public static void onEntityInteract(PlayerInteractEvent.EntityInteractSpecific event) {
         if (event.getLevel().isClientSide()) {
@@ -57,12 +57,7 @@ public class FireflyBottleItem extends Item {
 
         ItemStack fireflyBottle = new ItemStack(Registry.FIREFLY_BOTTLE.get());
         var tag = fireflyBottle.getOrCreateTag();
-        // todo DRY principle
-        tag.putBoolean("HasIllumerin", firefly.hasIllumerin());
-        tag.putInt("IllumerinDropTime", firefly.timeUntilIllumerinDrop);
-        tag.putInt("EatCompostCooldown", firefly.timeUntilCanEatCompostAgain);
-        tag.putInt("Age", firefly.getAge());
-        tag.putFloat("Health", firefly.getHealth());
+        firefly.addAdditionalSaveData(tag);
 
         if (target.hasCustomName()) {
             fireflyBottle.setHoverName(target.getCustomName());
@@ -82,6 +77,7 @@ public class FireflyBottleItem extends Item {
         target.discard();
     }
 
+    @Override
     public InteractionResult useOn(UseOnContext context) {
         Player player = context.getPlayer();
         if (player == null) {
@@ -93,33 +89,28 @@ public class FireflyBottleItem extends Item {
             return InteractionResult.SUCCESS;
         }
 
-        ItemStack itemstack = context.getItemInHand();
-        BlockPos blockpos = context.getClickedPos();
+        ItemStack bottle = context.getItemInHand();
+        BlockPos blockPos = context.getClickedPos();
         Direction direction = context.getClickedFace();
-        BlockState blockstate = level.getBlockState(blockpos);
+        BlockState blockState = level.getBlockState(blockPos);
 
-        BlockPos blockpos1;
-        if (blockstate.getCollisionShape(level, blockpos).isEmpty()) {
-            blockpos1 = blockpos;
-        } else {
-            blockpos1 = blockpos.relative(direction);
+        if (!blockState.getCollisionShape(level, blockPos).isEmpty()) {
+            blockPos = blockPos.relative(direction);
         }
 
-        var entity = Registry.FIREFLY.get().spawn((ServerLevel) level, itemstack, player, blockpos1, MobSpawnType.BUCKET, true,
-                !Objects.equals(blockpos, blockpos1) && direction == Direction.UP);
-        if (!(entity instanceof FireflyEntity firefly)) {
+        var tag = bottle.getTag();
+        if (tag == null) {
+            Fireflies.LOGGER.error("Attempted to spawn a firefly from a bottle with empty nbt data");
             return InteractionResult.PASS;
         }
 
-        var tag = itemstack.getOrCreateTag();
-        int age = tag.contains("Age") ? tag.getInt("Age") : 0;
-        float health = tag.contains("Health") ? tag.getFloat("Health") : firefly.getMaxHealth();
-        firefly.setAge(age);
-        firefly.setHealth(health);
-        firefly.setHasIllumerin(tag.getBoolean("HasIllumerin"));
-        firefly.timeUntilIllumerinDrop = tag.getInt("IllumerinDropTime");
-        firefly.timeUntilCanEatCompostAgain = tag.getInt("EatCompostCooldown");
-        firefly.setPersistenceRequired();
+        var entity = Registry.FIREFLY.get().spawn((ServerLevel) level, bottle, player, blockPos, MobSpawnType.BUCKET, true, false);
+        if (!(entity instanceof FireflyEntity firefly)) {
+            Fireflies.LOGGER.error("Failed to spawn firefly from a bottle");
+            return InteractionResult.PASS;
+        }
+
+        firefly.readAdditionalSaveData(tag);
 
         level.playSound(null, context.getClickedPos(), SoundEvents.BOTTLE_EMPTY, SoundSource.BLOCKS, 1.0F, 1.0F);
 
@@ -136,6 +127,7 @@ public class FireflyBottleItem extends Item {
 
     @Override
     public void appendHoverText(ItemStack pStack, @Nullable Level pLevel, List<Component> pTooltipComponents, TooltipFlag pIsAdvanced) {
+        //todo fireflies specie tooltip
         super.appendHoverText(pStack, pLevel, pTooltipComponents, pIsAdvanced);
     }
 
