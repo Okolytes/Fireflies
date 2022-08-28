@@ -34,6 +34,7 @@ import net.minecraft.world.entity.animal.FlyingAnimal;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelReader;
+import net.minecraft.world.level.LightLayer;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.ComposterBlock;
 import net.minecraft.world.level.block.TrapDoorBlock;
@@ -86,7 +87,8 @@ public class FireflyEntity extends Animal implements FlyingAnimal {
         return LivingEntity.createLivingAttributes()
                 .add(Attributes.MAX_HEALTH, 6.0D)
                 .add(Attributes.FLYING_SPEED, 0.25F)
-                .add(Attributes.MOVEMENT_SPEED, 0.15F);
+                .add(Attributes.MOVEMENT_SPEED, 0.15F)
+                .add(Attributes.FOLLOW_RANGE, 48D);
     }
 
 
@@ -438,7 +440,7 @@ public class FireflyEntity extends Animal implements FlyingAnimal {
 
         @Override
         public boolean canContinueToUse() {
-            return canEat() && super.canContinueToUse();
+            return canEat() && super.canContinueToUse() && FireflyEntity.this.level.getBrightness(LightLayer.BLOCK, this.blockPos) <= 2;
         }
 
         @Override
